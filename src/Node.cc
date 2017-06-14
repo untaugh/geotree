@@ -58,10 +58,13 @@ void UnionNode::build()
  */
 void TranslateNode::build()
 {
+  // first combine geometries into one
   UnionNode::build();
 
+  // need vector size 4 for matrix multiplication
   Eigen::Vector4d v(0.0, 0.0, 0.0, 1.0);
-  
+
+  // traverse rows
   for (int i; i < this->geometry->V.rows(); i++)
     {
       v.segment(0,3) = this->geometry->V.row(i);
@@ -106,7 +109,7 @@ CubeNode::CubeNode(double x, double y, double z)
 /* * * 
  * Translate in three dimensions. 
  */
-TranslateNode::TranslateNode(double x, double y, double z)
+TranslateNode::TranslateNode(double x, double y, double z) :
+  t(Eigen::Translation3d(x,y,z))
 {
-  t = Eigen::Translation3d(x,y,z);
 }
