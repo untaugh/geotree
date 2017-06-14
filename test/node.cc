@@ -22,7 +22,7 @@ namespace {
 
     GeometryNode *n = new GeometryNode(g);
 
-    EXPECT_EQ(3, n->geometry->V.rows());
+    EXPECT_EQ(3, n->g->V.rows());
   }
 
   // union between separate 2d geometries
@@ -52,27 +52,20 @@ namespace {
 
     n3->build();
     
-    EXPECT_EQ(6, n3->geometry->V.rows());
-    EXPECT_EQ(2, n3->geometry->F.rows());
+    EXPECT_EQ(6, n3->g->V.rows());
+    EXPECT_EQ(2, n3->g->F.rows());
 
     Eigen::MatrixXd v(1,3);
     Eigen::MatrixXi f(1,3);
 
     v << 0.5, 0.0, 0.0;
-    EXPECT_EQ(v, n3->geometry->V.row(1));
+    EXPECT_EQ(v, n3->g->V.row(1));
 
     v << -0.1, -0.5, 0.0;
-    EXPECT_EQ(v, n3->geometry->V.row(5));
+    EXPECT_EQ(v, n3->g->V.row(5));
     
     f << 2,1,0;
-    EXPECT_EQ(f, n3->geometry->F.row(1));
-  }
-
-  // union between intersecting 3d cubes
-  TEST_F(NodeTest, Union3D) {
-    Eigen::MatrixXd V1(3,3);
-    Eigen::MatrixXi F1(1,3);
-    
+    EXPECT_EQ(f, n3->g->F.row(1));
   }
 
   // tall union tree
@@ -99,17 +92,17 @@ namespace {
 
     n5->build();
 
-    EXPECT_EQ(3, n5->geometry->V.rows());
-    EXPECT_EQ(1, n5->geometry->F.rows());
+    EXPECT_EQ(3, n5->g->V.rows());
+    EXPECT_EQ(1, n5->g->F.rows());
 
     Eigen::MatrixXd v(1,3);
     Eigen::MatrixXi f(1,3);
 
     v << 0.5, 0.0, 0.0;
-    EXPECT_EQ(v, n5->geometry->V.row(1));
+    EXPECT_EQ(v, n5->g->V.row(1));
     
     f << 0,1,2;
-    EXPECT_EQ(f, n5->geometry->F.row(0));
+    EXPECT_EQ(f, n5->g->F.row(0));
   }
 
   // cube node
@@ -117,8 +110,8 @@ namespace {
 
     CubeNode * n = new CubeNode(10,10,10);
 
-    EXPECT_EQ(8, n->geometry->V.rows());
-    EXPECT_EQ(12, n->geometry->F.rows());
+    EXPECT_EQ(8, n->g->V.rows());
+    EXPECT_EQ(12, n->g->F.rows());
   }
 
   // translate node
@@ -131,16 +124,16 @@ namespace {
 
     t->build();
     
-    EXPECT_EQ(8, t->geometry->V.rows());
-    EXPECT_EQ(12, t->geometry->F.rows());
+    EXPECT_EQ(8, t->g->V.rows());
+    EXPECT_EQ(12, t->g->F.rows());
 
     double xmin = 1000.0, xmax = 0.0;
     double ymin = 1000.0, ymax = 0.0;
     double zmin = 1000.0, zmax = 0.0;
     
-    for (int i=0; i < t->geometry->V.rows(); i++)
+    for (int i=0; i < t->g->V.rows(); i++)
       {
-	Eigen::Vector3d v = t->geometry->V.row(i);
+	Eigen::Vector3d v = t->g->V.row(i);
 	xmin = std::min(xmin,v(0));
 	xmax = std::max(xmax,v(0));
 	ymin = std::min(ymin,v(1));
@@ -156,5 +149,24 @@ namespace {
     EXPECT_EQ(-5.0, zmin);
     EXPECT_EQ(5.0, zmax);    
   }
+
+    // union between intersecting 3d cubes
+  TEST_F(NodeTest, Union3D) {
+
+    CubeNode * c1 = new CubeNode(10,10,10);
+    CubeNode * c2 = new CubeNode(10,10,10);
+    TranslateNode * t = new TranslateNode(5,5,5);
+    UnionNode * u = new UnionNode();
+      
+    t->add(c1);
+    u->add(t);
+    u->add(c2);
+    u->build();
+
+    EXPECT_EQ(16, u->g->V.rows());
+    EXPECT_EQ(24, u->g->F.rows());
+        
+  }
+
   
 }

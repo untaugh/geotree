@@ -5,7 +5,7 @@
 class Node {
  public:
   std::vector<Node*> children;
-  Geometry * geometry;
+  Geometry * g;
   virtual void build();
   void add(Node * node);
 };
@@ -22,7 +22,7 @@ class GeometryNode : public Node
  public:
   void build(){};
   GeometryNode(){};
-  GeometryNode(Geometry *g){ this->geometry = g; };
+  GeometryNode(Geometry *g_){ this->g = g_; };
 };
 
 class CubeNode : public GeometryNode

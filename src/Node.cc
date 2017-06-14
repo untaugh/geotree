@@ -32,8 +32,8 @@ void UnionNode::build()
   
   for (Node * n : this->children)
     {
-      Vsize += n->geometry->V.rows();
-      Fsize += n->geometry->F.rows();
+      Vsize += n->g->V.rows();
+      Fsize += n->g->F.rows();
     }
 
   Eigen::MatrixXd V(Vsize,3);
@@ -43,14 +43,14 @@ void UnionNode::build()
   Fsize=0;
   for (Node * n : this->children)
     {
-      V.block(Vsize,0,n->geometry->V.rows(),3) = n->geometry->V;
-      F.block(Fsize,0,n->geometry->F.rows(),3) = n->geometry->F;
-      Vsize += n->geometry->V.rows();
-      Fsize += n->geometry->F.rows();
-      delete n->geometry;
+      V.block(Vsize,0,n->g->V.rows(),3) = n->g->V;
+      F.block(Fsize,0,n->g->F.rows(),3) = n->g->F;
+      Vsize += n->g->V.rows();
+      Fsize += n->g->F.rows();
+      delete n->g;
     }
   
-  this->geometry = new Geometry(V,F);
+  this->g = new Geometry(V,F);
 }
 
 /* * * 
@@ -65,11 +65,11 @@ void TranslateNode::build()
   Eigen::Vector4d v(0.0, 0.0, 0.0, 1.0);
 
   // traverse rows
-  for (int i; i < this->geometry->V.rows(); i++)
+  for (int i; i < this->g->V.rows(); i++)
     {
-      v.segment(0,3) = this->geometry->V.row(i);
+      v.segment(0,3) = this->g->V.row(i);
       v = t.matrix() * v;
-      this->geometry->V.row(i) = v.segment(0,3);
+      this->g->V.row(i) = v.segment(0,3);
     }
 }
 
@@ -103,7 +103,7 @@ CubeNode::CubeNode(double x, double y, double z)
     4,5,6,
     4,6,7;
 
-  this->geometry = new Geometry(V,F);  
+  this->g = new Geometry(V,F);  
 }
 
 /* * * 
