@@ -7,8 +7,38 @@ namespace {
 
   class NodeTest : public ::testing::Test {
   protected:
-  
+
+    ::testing::AssertionResult containsVector(Eigen::MatrixXd m,
+					      double x,
+					      double y,
+					      double z);
   };
+
+  ::testing::AssertionResult NodeTest::containsVector(Eigen::MatrixXd m,
+						      double x,
+						      double y,
+						      double z)
+  {
+    bool contains = false;
+
+    Eigen::MatrixXd v = Eigen::MatrixXd(1,3);
+    v << x,y,z;
+    
+    for (int i=0; i<m.rows(); i++)
+      {
+	if (m.row(i) == v)
+	  {
+	    return ::testing::AssertionSuccess();
+	  }
+      }
+    
+    return ::testing::AssertionFailure() << "does not contain";
+  }
+
+  testing::AssertionResult AssertionSuccess();
+  testing::AssertionResult AssertionFailure();
+
+
   
   // create an object
   TEST_F(NodeTest, Object) {
@@ -157,16 +187,16 @@ namespace {
     CubeNode * c2 = new CubeNode(10,10,10);
     TranslateNode * t = new TranslateNode(5,5,5);
     UnionNode * u = new UnionNode();
-      
+    
     t->add(c1);
     u->add(t);
     u->add(c2);
     u->build();
 
-    EXPECT_EQ(16, u->g->V.rows());
-    EXPECT_EQ(24, u->g->F.rows());
-        
-  }
+    EXPECT_EQ(20, u->g->V.rows());
+    EXPECT_EQ(33, u->g->F.rows());
 
-  
+    EXPECT_TRUE(containsVector(u->g->V, 0.0, 0.0, 0.0));
+    
+  }
 }
