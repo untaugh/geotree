@@ -2,6 +2,7 @@
 #include <vector>
 #include "Geometry.h"
 #include <Eigen/Geometry>
+
 class Node {
  public:
   std::vector<Node*> children;
@@ -38,5 +39,4 @@ class TranslateNode : public UnionNode
   TranslateNode(double x, double y, double z);
  private:
   Eigen::Affine3d t;
-  
 };
