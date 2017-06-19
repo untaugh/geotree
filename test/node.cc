@@ -185,12 +185,16 @@ namespace {
 
     CubeNode * c1 = new CubeNode(10,10,10);
     CubeNode * c2 = new CubeNode(10,10,10);
-    TranslateNode * t = new TranslateNode(5,5,5);
+    TranslateNode * t = new TranslateNode(1,2,3);
     UnionNode * u = new UnionNode();
     
-    t->add(c1);
-    u->add(t);
-    u->add(c2);
+    t->add(c2);
+    t->build();
+
+    GeometryNode * g = new GeometryNode(t->g);
+        
+    u->add(c1);
+    u->add(g);
     u->build();
 
     EXPECT_EQ(20, u->g->V.rows());
