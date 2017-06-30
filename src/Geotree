@@ -1,7 +1,11 @@
+#pragma once
+
+#include "Node.h"
+
 class Geotree
 {
  public:
   Geotree();
-  ~Geotree();
+  ~Geotree(){};
   int test;
 };

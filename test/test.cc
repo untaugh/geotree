@@ -1,6 +1,6 @@
 #include "gtest/gtest.h"
 
-#include "geotree.h"
+#include "Geotree"
 
 namespace {
 

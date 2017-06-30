@@ -2,6 +2,7 @@
 #include <Eigen/Dense>
 
 #include <iostream>
+
 Geometry::Geometry(MatrixXd V_, MatrixXi F_)
 {
   this->V = V_;
@@ -181,4 +182,30 @@ int Geometry::add(Geometry *g)
   this->F = F_;
   
   return 0;
+}
+
+namespace Calc
+{
+  /* * * 
+   * divide
+   * Given triangle and points, divide into smaller triangles.
+   */
+  bool divide(MatrixXd *Face, MatrixXd *P, MatrixXd *V, MatrixXi *F)
+  {
+    // Test if point inside triangle
+    
+    
+    // Test if point on edge
+  }
+
+  
+  // inside
+  // Test if point is insde face. 
+  bool inside()
+  {
+    
+  }
+
+
+  
 }

@@ -1,4 +1,4 @@
-#include "geotree.h"
+#include "Geotree"
 
 Geotree::Geotree()
 {

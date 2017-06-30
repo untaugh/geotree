@@ -180,7 +180,7 @@ namespace {
     EXPECT_EQ(5.0, zmax);    
   }
 
-    // union between intersecting 3d cubes
+  // union between intersecting 3d cubes
   TEST_F(NodeTest, Union3D) {
 
     CubeNode * c1 = new CubeNode(10,10,10);
@@ -200,7 +200,6 @@ namespace {
     EXPECT_EQ(20, u->g->V.rows());
     EXPECT_EQ(33, u->g->F.rows());
 
-    EXPECT_TRUE(containsVector(u->g->V, 0.0, 0.0, 0.0));
-    
+    EXPECT_TRUE(containsVector(u->g->V, 0.0, 0.0, 0.0));    
   }
 }
