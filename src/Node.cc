@@ -1,4 +1,5 @@
-#include <Node.h>
+#include "Node.h"
+#include "Calc.h"
 #include <iostream>
 
 /* * * 
@@ -44,6 +45,13 @@ typedef struct ISMAP{
   Vector3d p;
 } ISMAP;
 
+// intersection between face and a segment shared by two faces
+typedef struct Intersect {
+  int plane;
+  Vector2i segment;
+  Vector3d point;
+} Intersect;
+
 /* * * 
  * Combine children geometries into one.
  */
@@ -51,10 +59,12 @@ void UnionNode::build()
 {
   Node::build();
 
+  
+  
   // Calculate intersections
 
   if (this->children.size() > 1)
-    {
+    {            
       MatrixXd Vnew = MatrixXd(100,3);
       MatrixXi Fnew = MatrixXi(100,3);
       
@@ -64,6 +74,128 @@ void UnionNode::build()
       
       std::vector<ISMAP> intersections;
       std::vector<ISMAP> intersections2;
+
+      MatrixXi S1, S2;
+      Calc::getFaceSegments(n1->g->F, S1);
+      Calc::getFaceSegments(n2->g->F, S2);
+
+      std::cout << "S1 " << S1 << std::endl;
+      std::cout << "S2 " << S2 << std::endl;
+
+      MatrixXd V1 = n1->g->V;
+      MatrixXi F1 = n1->g->F;
+
+      MatrixXd V2 = n2->g->V;
+      MatrixXi F2 = n2->g->F;
+
+      std::vector <Intersect> I1;
+      std::vector <Intersect> I2;
+
+      for (int i=0; i<F1.rows(); i++)
+	{
+	  for (int j=0; j<S2.rows(); j++)
+	    {
+	      bool ret = Calc::getIntersection(V1, F1, V2, F2, i,
+			      S2.row(j)[0], S2.row(j)[1], v);
+	      if (ret)
+		{
+		  Intersect is = {i, S2.row(j), v};
+		  I1.push_back(is);
+		}
+	    }	  
+	}
+
+      for (int i=0; i<F2.rows(); i++)
+	{
+	  for (int j=0; j<S1.rows(); j++)
+	    {
+	      bool ret = Calc::getIntersection(V2, F2, V1, F1, i,
+			      S1.row(j)[0], S1.row(j)[1], v);
+	      if (ret)
+		{
+		  Intersect is = {i, S1.row(j), v};
+		  I2.push_back(is);
+		}
+	    }
+	}
+
+      for (Intersect i : I1)
+	{
+	  std::cout << "f: " << i.plane
+		    << ", s: " << i.segment.transpose()
+		    << ", p: " << i.point.transpose()
+		    << std::endl;
+	}
+
+      for (Intersect i : I2)
+	{
+	  std::cout << "f: " << i.plane
+		    << ", s: " << i.segment.transpose()
+		    << ", p: " << i.point.transpose()
+		    << std::endl;
+	}
+
+      for (Intersect i1 : I1)
+	{
+	  std::cout << "p: " << i1.plane;
+	  std::vector<Intersect> d;
+	  MatrixXd D;
+
+	  int plane, previous_plane;
+	  
+	  // get first edge point
+	  for (Intersect i2 : I2)
+	    {
+	      if (i2.segment[0] == i1.plane ||
+		  i2.segment[1] == i1.plane)
+		{
+		  std::cout << ", p: " << i2.point.transpose();
+		  plane = i2.plane;
+		  previous_plane = -1;
+		  d.push_back(i2);
+		  break;
+		}
+	    }
+
+	  bool pointfound = true;
+
+	  while (pointfound)
+	    {
+	      pointfound = false;
+	      // get plane point
+	      for (Intersect i1b : I1)
+		{
+		  if ( i1.plane == i1b.plane &&
+		       ( plane == i1b.segment[0] || plane == i1b.segment[1] ) &&
+		       ( previous_plane != i1b.segment[0] &&
+			 previous_plane != i1b.segment[1] ))
+		    {
+		      std::cout << ", p: " << i1b.point.transpose();
+		      d.push_back(i1b);
+
+		      previous_plane = plane;
+		      
+		      if (plane == i1b.segment[0])
+			{
+			  plane = i1b.segment[1];
+			}
+		      else
+			{
+			  plane = i1b.segment[0];
+			}
+
+		      //std::cout << " plane" << plane;
+		      //std::cout << " previous_plane" << previous_plane << std::endl;
+		      pointfound = true;
+		      break;
+		    }
+		}
+	      
+	    }
+
+	  
+	  std::cout << std::endl;
+	}
       
       int f1, f2;
       for (f1=0; f1 < n1->g->F.rows(); f1++)

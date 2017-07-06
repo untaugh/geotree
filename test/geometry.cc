@@ -191,7 +191,7 @@ namespace {
     EXPECT_EQ(g1Frows + g2->F.rows(),  g1->F.rows());
   }
 
-  TEST_F(GeometryTest, divideFace)
+  TEST_F(GeometryTest, DISABLED_divideFace)
   {
     Eigen::MatrixXd V(3,3);
     Eigen::MatrixXi F(1,3);
