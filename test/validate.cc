@@ -31,7 +31,5 @@ namespace {
       {
 	EXPECT_FALSE(Geotree::Validate::face(f[i]));	
       }
-  }
-
-  
+  } 
 }
