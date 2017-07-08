@@ -1,5 +1,6 @@
 #include "Calc.h"
 #include <iostream>
+
 namespace Calc
 {
   void getSegments(MatrixXi &F, MatrixXi &S)
@@ -61,7 +62,7 @@ namespace Calc
     n = ((F.rows()+1)/2)*3;
     Fo = MatrixXi(n,2);
 
-    std::cout << "n " << n << std::endl;	  
+    //std::cout << "n " << n << std::endl;	  
     
     // segment counter
     unsigned int c;
@@ -72,7 +73,7 @@ namespace Calc
 	// j=i no duplicate segments
 	for (int j=i; j < F.rows(); j++)
 	  {
-	    std::cout << "F " << i << std::endl;	  
+	    //std::cout << "F " << i << std::endl;	  
 	    int num_segments = sharedSegments(F.row(i), F.row(j));
 
 	    if (num_segments == 1)
