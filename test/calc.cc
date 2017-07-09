@@ -124,5 +124,28 @@ namespace {
     bool r = Calc::getIntersection(V1, F1, V2, F2, 0, 0, 1, p);
 
     EXPECT_EQ(p, p_exp);
-  }  
+  }
+
+  // test if faces indicies describe same face
+  TEST_F(CalcTest, FaceEqual)
+  {
+    Eigen::Vector3i f1;
+    Eigen::Vector3i f2;
+
+    f1 << 0,1,2;
+    f2 << 0,1,3;
+    EXPECT_FALSE(Calc::equal(f1,f2));
+
+    f1 << 0,1,2;
+    f2 << 0,1,2;
+    EXPECT_TRUE(Calc::equal(f1,f2));
+
+    f1 << 0,1,2;
+    f2 << 2,0,1;
+    EXPECT_TRUE(Calc::equal(f1,f2));
+
+    f1 << 0,1,2;
+    f2 << 1,2,0;
+    EXPECT_TRUE(Calc::equal(f1,f2));
+  }
 }

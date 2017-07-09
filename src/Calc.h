@@ -45,4 +45,9 @@ namespace Calc
   void toSegment(MatrixXi &F, unsigned int f1, unsigned int f2,
 		  unsigned int &s1, unsigned int &s2);
 
+  // equal : test if indexies are same
+  // ret   : true if equal
+  // in f1 : indicies of face 1
+  // in f2 : indicies of face 2
+  bool equal(Vector3i f1, Vector3i f2);
 }

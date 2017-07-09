@@ -2,6 +2,7 @@
 #include <Eigen/Core>
 
 #include "Validate.h"
+#include "Geometry.h"
 
 namespace {
   class ValidateTest : public ::testing::Test {
@@ -31,5 +32,106 @@ namespace {
       {
 	EXPECT_FALSE(Geotree::Validate::face(f[i]));	
       }
-  } 
+  }
+
+  TEST_F(ValidateTest, Indicies)
+  {
+    Eigen::Vector3i f;
+
+    f << 0,1,2;
+    EXPECT_TRUE(Geotree::Validate::face(f));
+
+    f << 0,0,0;
+    EXPECT_FALSE(Geotree::Validate::face(f));
+    
+    f << 0,1,1;
+    EXPECT_FALSE(Geotree::Validate::face(f));
+
+    f << 4,0,4;
+    EXPECT_FALSE(Geotree::Validate::face(f));
+    
+    f << 0,-1,1;
+    EXPECT_FALSE(Geotree::Validate::face(f));
+  }
+  
+  TEST_F(ValidateTest, GeometryVerticies)
+  {
+    Eigen::MatrixXd V = Eigen::Matrix3d();
+    Eigen::MatrixXi F = Eigen::MatrixXi(1,3);
+    Geometry g = Geometry(V,F);
+
+    g.V << 1,2,0,2,3,0,3,4,0;
+    g.F << 0,1,2;
+    EXPECT_TRUE(Geotree::Validate::geometry(g));
+
+    // duplicate faces
+    g.V << 0,0,0,0,0,0,0,0,0;
+    EXPECT_FALSE(Geotree::Validate::geometry(g));
+
+    // duplicate face
+    g.V << 1,2,0,2,3,0,1,2,0;
+    EXPECT_FALSE(Geotree::Validate::geometry(g));
+
+    g.V = Eigen::MatrixXd(9,3);
+    g.V << 1,0,0,2,0,0,3,0,0,4,0,0,5,0,0,6,0,0,7,0,0,8,0,0,9,0,0;
+    EXPECT_TRUE(Geotree::Validate::geometry(g));
+
+    // duplicate face
+    g.V << 1,0,0,2,0,0,3,0,0,4,0,0,5,0,0,6,0,0,7,0,0,8,0,0,8,0,0;
+    EXPECT_FALSE(Geotree::Validate::geometry(g));
+  }
+
+  TEST_F(ValidateTest, GeometryIndicies)
+  {
+    Eigen::MatrixXd V = Eigen::Matrix3d();
+    Eigen::MatrixXi F = Eigen::MatrixXi(1,3);
+    Geometry g = Geometry(V,F);
+
+    g.V << 1,0,0,2,0,0,3,0,0;
+    g.F << 2,1,0;
+    EXPECT_TRUE(Geotree::Validate::geometry(g));
+
+    // index overflow
+    g.V << 1,0,0,2,0,0,3,0,0;
+    g.F << 0,1,3;
+    EXPECT_FALSE(Geotree::Validate::geometry(g));
+
+    // negative index
+    g.F << 0,-1,3;
+    EXPECT_FALSE(Geotree::Validate::geometry(g));
+    
+    // not valid face
+    g.F << 0,1,1;
+    EXPECT_FALSE(Geotree::Validate::geometry(g));
+  }
+
+  // index matrix size
+  TEST_F(ValidateTest, GeometryIndexSize)
+  {
+    Eigen::MatrixXd V = Eigen::Matrix3d();
+    Eigen::MatrixXi F = Eigen::Vector3i();
+    Geometry g = Geometry(V,F);
+
+    g.V << 1,0,0,2,0,0,3,0,0;
+    g.F << 0,1,2;
+    EXPECT_FALSE(Geotree::Validate::geometry(g));
+  }
+
+  // duplicate faces in face index
+  TEST_F(ValidateTest, GeometryIndiciesDuplicate)
+  {
+    Eigen::MatrixXd V = Eigen::MatrixXd(6,3);
+    Eigen::MatrixXi F = Eigen::MatrixXi(3,3);
+    Geometry g = Geometry(V,F);
+
+    g.V << 1,0,0,2,0,0,3,0,0,4,0,0,5,0,0,6,0,0;
+    g.F << 0,1,2,0,1,3,0,1,4;
+    EXPECT_TRUE(Geotree::Validate::geometry(g));
+
+    g.F << 0,1,2,0,1,3,0,1,2;
+    EXPECT_FALSE(Geotree::Validate::geometry(g));
+
+    g.F << 0,1,2,0,1,3,2,1,0;
+    EXPECT_FALSE(Geotree::Validate::geometry(g));
+  }
 }
