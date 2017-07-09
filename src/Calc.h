@@ -45,9 +45,34 @@ namespace Calc
   void toSegment(MatrixXi &F, unsigned int f1, unsigned int f2,
 		  unsigned int &s1, unsigned int &s2);
 
-  // equal : test if indexies are same
+  // equal : test if indexies describe the same face
   // ret   : true if equal
   // in f1 : indicies of face 1
   // in f2 : indicies of face 2
   bool equal(Vector3i f1, Vector3i f2);
+
+  // divide : divide triangular by path into polygons
+  // in V        : verticies
+  // in F        : face
+  // in P        : path dividing face
+  // out P1      : resulting part 1
+  // out P2      : resulting part 2
+  void divide(const MatrixXd V,
+	      const Vector3i F,
+	      const MatrixXi P,
+	      VectorXi P1,
+	      VectorXi P2);
+
+  // triangulate : divide triangular face by path and triangulate 
+  // in V        : verticies
+  // in F        : face
+  // in P        : path dividing face
+  // out F1      : resulting part 1
+  // out F2      : resulting part 2
+  void triangulate(const MatrixXd V,
+		   const Vector3i F,
+		   const MatrixXi P,
+		   MatrixXi F1,
+		   MatrixXi F2);
+
 }

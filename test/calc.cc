@@ -148,4 +148,41 @@ namespace {
     f2 << 1,2,0;
     EXPECT_TRUE(Calc::equal(f1,f2));
   }
+
+  TEST_F(CalcTest, Divide)
+  {
+    Eigen::MatrixXd V = Eigen::MatrixXd(6,3);
+    V << 0,0,0, 1,0,0, 0,1,0, 0.5,0,0, 0,0.5,0, 0.1,0.1,0;
+
+    Eigen::MatrixXi F = Eigen::MatrixXi(1,3);
+    F << 0,1,2;
+
+    Eigen::MatrixXi P = Eigen::MatrixXi(1,3);
+    P << 3,4,5;
+
+    Eigen::VectorXi P1, P2;
+
+    divide(V, F, P, P1, P2);
+
+    Eigen::VectorXi P1_exp = Eigen::VectorXi(6);
+    P1_exp << 0,3,5, 0,4,5;
+
+    Eigen::VectorXi P2_exp = Eigen::VectorXi(9);
+    P2_exp << 1,2,5, 1,3,5, 2,4,5;
+
+    
+  }
+  
+  // divide and triangulate 
+  TEST_F(CalcTest, Triangulate)
+  {
+    Eigen::MatrixXd V = Eigen::MatrixXd(6,3);
+    V << 0,0,0, 1,0,0, 0,1,0, 0.5,0,0, 0,0.5,0, 0.1,0.1,0;
+    
+    Eigen::MatrixXi F = Eigen::MatrixXi(1,3);
+    F << 0,1,2;
+
+    Eigen::MatrixXi P = Eigen::MatrixXi(1,3);
+    P << 3,4,5;
+  }
 }

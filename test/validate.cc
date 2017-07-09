@@ -134,4 +134,10 @@ namespace {
     g.F << 0,1,2,0,1,3,2,1,0;
     EXPECT_FALSE(Geotree::Validate::geometry(g));
   }
+  
+  // unreferenced verticies
+  TEST_F(ValidateTest, DISABLED_GeometryUnreferenced)
+  {
+    
+  }
 }

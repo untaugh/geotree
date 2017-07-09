@@ -1,7 +1,7 @@
 #include "gtest/gtest.h"
-
-#include "Node.h"
 #include <Eigen/Core>
+#include "Node.h"
+#include "Validate.h"
 
 namespace {
 
@@ -138,6 +138,8 @@ namespace {
 
     CubeNode * n = new CubeNode(10,10,10);
 
+    EXPECT_TRUE(Geotree::Validate::geometry(*n->g));
+    
     EXPECT_EQ(8, n->g->V.rows());
     EXPECT_EQ(12, n->g->F.rows());
   }
