@@ -127,20 +127,15 @@ namespace Calc
     Vector3d p2 = V1.row(f[1]);
     Vector3d p3 = V1.row(f[2]);
 
+    // face indicies to segment verticies
     unsigned int n1,n2;
     toSegment(F2, f2a, f2b, n1, n2);
-
     Vector3d s1 = V2.row(n1);
     Vector3d s2 = V2.row(n2);
-    
-    // Plane and segment intersection
-    Vector3d v1 = p1 - p2;
-    Vector3d v2 = p1 - p3;
 
-    // cross product to find normal
-    Vector3d n = v1.cross(v2);
-    n.normalize();
-  
+    // normal
+    Vector3d n = Calc::normal(p1,p2,p3);
+
     // calculate u and w
     Vector3d u = s2 - s1;
     Vector3d w = s1 - p1;
@@ -164,7 +159,7 @@ namespace Calc
       {
 	return false;
       }
-  
+
     // calulate point of inersection
     p = s1 + sI * u;
   
@@ -206,4 +201,33 @@ namespace Calc
     return false;  
   }
 
+  void triangulate(const MatrixXd P, MatrixXi &F)
+  {
+
+      for (int i=0; i<P.rows()-2; i++)
+	{
+	  Eigen::Vector3d v1 = P.row(i) - P.row(i+1);
+	  Eigen::Vector3d v2 = P.row(i+2) - P.row(i+1);
+	  float d = v1.dot(v2);
+	  std::cout << "v1: " << v1.transpose()
+		    << " v2: " << v2.transpose()
+		    << " dot: " << d << std::endl;
+	}
+      
+      F = Eigen::MatrixXi(2,3); 
+  }
+  
+  Vector3d normal(Vector3d v1, Vector3d v2, Vector3d v3)
+  {
+    Vector3d va = v2 - v1;
+    Vector3d vb = v3 - v1;
+
+    Vector3d n = va.cross(vb);
+
+    n.normalize();
+
+    //std::cout << n.transpose() << std::endl;
+	
+    return n;
+  }
 }

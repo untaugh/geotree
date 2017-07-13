@@ -89,3 +89,23 @@ bool Geotree::Validate::geometry(Geometry g)
   
   return true;
 }
+
+bool Geotree::Validate::planar(MatrixXd P)
+{
+  Vector3d normal_ref = Calc::normal(P.row(0), P.row(1), P.row(2));
+
+  //std::cout << "normal calc:" << std::endl;
+  
+  for (int i=3; i<P.rows(); i++)
+    {
+      Vector3d normal = Calc::normal(P.row(0), P.row(1), P.row(i));
+
+      //std::cout << normal_ref.transpose() << " " << normal.transpose() << std::endl;
+
+      if (normal != normal_ref && normal != -normal_ref)
+	{
+	  return false;
+	}
+    }
+  return true;
+}

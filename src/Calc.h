@@ -75,4 +75,15 @@ namespace Calc
 		   MatrixXi F1,
 		   MatrixXi F2);
 
+  // triangulate : triangulate path in 3d space, points in one plane
+  // in P        : path
+  // out F       : face indicies
+  void triangulate(const MatrixXd P, MatrixXi &F);
+
+  // normal : get notmal for three points in 3d space
+  // ret    : normal
+  // in v1  : v1 vector
+  // in v2  : v2 vector
+  // in v3  : v3 vector
+  Vector3d normal(Vector3d v1, Vector3d v2, Vector3d v3);
 }

@@ -134,6 +134,29 @@ namespace {
     g.F << 0,1,2,0,1,3,2,1,0;
     EXPECT_FALSE(Geotree::Validate::geometry(g));
   }
+
+  // test points of path on same plane
+  TEST_F(ValidateTest, PathPlanar)
+  {
+    Eigen::MatrixXd P = Eigen::MatrixXd(4,3);
+
+    P << 0.0,0.0,0.2, 1.0,0.0,0.2, 0.0,1.0,0.2, 1.0,1.0,0.2;
+    EXPECT_TRUE(Geotree::Validate::planar(P));
+
+    P << 0.0,0.0,0.2, 1.0,0.0,0.2, 0.0,1.0,0.2, -1.0,-0.1,0.2;
+    EXPECT_TRUE(Geotree::Validate::planar(P));
+
+
+    P = Eigen::MatrixXd(6,3);
+
+    P << 0.0,0.0,0.2, 1.0,0.0,0.2, 0.0,1.0,0.2, 1.0,1.0,0.2, 0.1,0.2,0.2,
+      -10.0,100.2,0.2;
+    EXPECT_TRUE(Geotree::Validate::planar(P));
+
+    P << 0.0,0.0,0.2, 1.0,0.0,0.2, 0.0,1.0,0.2, 1.0,1.0,0.2, 0.1,0.2,0.2,
+      -10.0,100.2,0.1;
+    EXPECT_FALSE(Geotree::Validate::planar(P));
+  }
   
   // unreferenced verticies
   TEST_F(ValidateTest, DISABLED_GeometryUnreferenced)

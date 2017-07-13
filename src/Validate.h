@@ -15,5 +15,10 @@ namespace Geotree {
     
     // geometry
     bool geometry(Geometry g);
+
+    // planar : are points on same plane
+    // ret    : true if yes
+    // in P   : Nx3 matrix with verticies
+    bool planar(MatrixXd P);
   }
 }

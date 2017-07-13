@@ -181,7 +181,7 @@ namespace {
   }
 
   // union between intersecting 3d cubes
-  TEST_F(NodeTest, Union3D) {
+  TEST_F(NodeTest, DISABLED_Union3D) {
 
     CubeNode * c1 = new CubeNode(10,10,10);
     CubeNode * c2 = new CubeNode(10,10,10);

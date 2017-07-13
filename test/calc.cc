@@ -162,27 +162,51 @@ namespace {
 
     Eigen::VectorXi P1, P2;
 
-    divide(V, F, P, P1, P2);
+    //divide(V, F, P, P1, P2);
 
     Eigen::VectorXi P1_exp = Eigen::VectorXi(6);
     P1_exp << 0,3,5, 0,4,5;
 
     Eigen::VectorXi P2_exp = Eigen::VectorXi(9);
     P2_exp << 1,2,5, 1,3,5, 2,4,5;
-
-    
   }
   
-  // divide and triangulate 
-  TEST_F(CalcTest, Triangulate)
+  // triangulate path
+  TEST_F(CalcTest, DISABLED_Triangulate)
   {
-    Eigen::MatrixXd V = Eigen::MatrixXd(6,3);
-    V << 0,0,0, 1,0,0, 0,1,0, 0.5,0,0, 0,0.5,0, 0.1,0.1,0;
-    
-    Eigen::MatrixXi F = Eigen::MatrixXi(1,3);
-    F << 0,1,2;
+    Eigen::MatrixXd V = Eigen::MatrixXd(4,3);
+    V << 0,0,0, 0,1,0, -0.7,0.7,0, 1,0,0;
 
-    Eigen::MatrixXi P = Eigen::MatrixXi(1,3);
-    P << 3,4,5;
+    Eigen::MatrixXi P;
+    Eigen::MatrixXi P_exp = Eigen::MatrixXi(2,3);
+    P_exp << 0,1,2, 1,2,3;
+    
+    Calc::triangulate(V, P);
+
+    EXPECT_EQ(P, P_exp);
+  }
+
+  // normal for three points in 3d space
+  TEST_F(CalcTest, Normal)
+  {
+    Eigen::Vector3d n;
+    Eigen::Vector3d v1 = Eigen::Vector3d(0.0,0.0,0.0);
+    Eigen::Vector3d v2 = Eigen::Vector3d(2.0,0.0,0.0);
+    Eigen::Vector3d v3 = Eigen::Vector3d(0.0,2.0,0.0);
+    Eigen::Vector3d n_exp = Eigen::Vector3d(0.0,0.0,1.0);
+	
+    EXPECT_EQ(Calc::normal(v1,v2,v3), n_exp);
+
+    v1 << 0.0, 0.0, 0.0;
+    v2 << -1.0, 0.0, 0.0;
+    v3 << 0.0, 1.0, 0.0;
+    n_exp << 0.0, 0.0, 1.0;
+    EXPECT_EQ(Calc::normal(v1,v2,v3), -n_exp);
+
+    v1 << 0.0, 0.0, 0.0;
+    v2 << 0.0, 1.0, 0.0;
+    v3 << 0.8, 0.0, 0.6;
+    n_exp << -0.6, 0.0, 0.8;
+    EXPECT_EQ(Calc::normal(v1,v2,v3), -n_exp);
   }
 }
