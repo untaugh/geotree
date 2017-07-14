@@ -146,3 +146,8 @@ bool Geotree::Validate::planar(MatrixXd P)
   return true;
 
 }
+
+bool Geotree::Validate::intersect(Vector3d v1a, Vector3d v1b, Vector3d v2a, Vector3d v2b)
+{
+  return true;
+}

@@ -160,6 +160,27 @@ namespace {
       -10.0,100.0,-89.0;
     EXPECT_TRUE(Geotree::Validate::planar(P));
   }
+
+  // segments intersect in 3d space
+  TEST_F(ValidateTest, IntersectSegments)
+  {
+    Eigen::Vector3d v1a;
+    Eigen::Vector3d v1b;
+    Eigen::Vector3d v2a;
+    Eigen::Vector3d v2b;
+
+    v1a << -1.0, 0.0, 0.0;
+    v1b << 1.0, 0.0, 0.0;
+    v2a << 0.0, -1.0, 0.0;
+    v2b << 0.0, 1.0, 0.0;
+    EXPECT_TRUE(Geotree::Validate::intersect(v1a, v1b, v2a, v2b));
+
+    v1a << -1.0, 0.0, 0.0;
+    v1b << 1.0, 0.0, 0.0;
+    v2a << 0.0, -1.0, 0.0;
+    v2b << 0.0, 1.0, 0.1;
+    EXPECT_FALSE(Geotree::Validate::intersect(v1a, v1b, v2a, v2b));      
+  }
   
   // unreferenced verticies
   TEST_F(ValidateTest, DISABLED_GeometryUnreferenced)

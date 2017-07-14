@@ -209,4 +209,10 @@ namespace {
     n_exp << -0.6, 0.0, 0.8;
     EXPECT_EQ(Calc::normal(v1,v2,v3), -n_exp);
   }
+
+  // intersection between segments in 3d space
+  TEST_F(CalcTest, IntersectionSegment)
+  {
+    
+  }
 }
