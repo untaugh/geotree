@@ -1,6 +1,8 @@
 #include "Validate.h"
 #include "Calc.h"
 #include <iostream>
+#include <stdlib.h>
+
 bool Geotree::Validate::face(Matrix3d f)
 {
   // duplicate vertex
@@ -93,19 +95,54 @@ bool Geotree::Validate::geometry(Geometry g)
 bool Geotree::Validate::planar(MatrixXd P)
 {
   Vector3d normal_ref = Calc::normal(P.row(0), P.row(1), P.row(2));
-
-  //std::cout << "normal calc:" << std::endl;
   
   for (int i=3; i<P.rows(); i++)
     {
       Vector3d normal = Calc::normal(P.row(0), P.row(1), P.row(i));
+      
+      Vector3d normal2 = -normal;
 
-      //std::cout << normal_ref.transpose() << " " << normal.transpose() << std::endl;
+      long int tmp1[3];
+      tmp1[0] = *(long int*) &normal_ref[0];
+      tmp1[1] = *(long int*) &normal_ref[1];
+      tmp1[2] = *(long int*) &normal_ref[2];
 
-      if (normal != normal_ref && normal != -normal_ref)
+      long int tmp2[3];
+      tmp2[0] = *(long int*) &normal[0];
+      tmp2[1] = *(long int*) &normal[1];
+      tmp2[2] = *(long int*) &normal[2];
+      
+      long int tmp3[3];
+      tmp3[0] = *(long int*) &normal2[0];
+      tmp3[1] = *(long int*) &normal2[1];
+      tmp3[2] = *(long int*) &normal2[2];
+
+      // printf("\nnormal_ref:    0x%lX, 0x%lx, 0x%lx\n", tmp1[0], tmp1[1], tmp1[2]);
+      // printf("normal:        0x%lX, 0x%lx, 0x%lx\n", tmp2[0], tmp2[1], tmp2[2]);
+      // printf("normal2:       0x%lX, 0x%lx, 0x%lx\n", tmp3[0], tmp3[1], tmp3[2]);
+
+      // printf("\nnormal_ref:    %ld, %ld, %ld\n", tmp1[0], tmp1[1], tmp1[2]);
+      // printf("normal:        %ld, %ld, %ld\n", tmp2[0], tmp2[1], tmp2[2]);
+      // printf("normal2:       %ld, %ld, %ld\n", tmp3[0], tmp3[1], tmp3[2]);
+      
+      // printf("calc0:    0x%ld\n", abs(tmp1[0] - tmp2[0]));
+      // printf("calc0:    0x%ld\n", abs(tmp1[0] - tmp3[0]));
+      // printf("calc1:    0x%ld\n", abs(tmp1[1] - tmp2[1]));
+      // printf("calc1:    0x%ld\n", abs(tmp1[1] - tmp3[1]));
+      // printf("calc2:    0x%ld\n", abs(tmp1[2] - tmp2[2]));
+      // printf("calc2:    0x%ld\n", abs(tmp1[2] - tmp3[2]));
+      
+      if ( (abs(tmp1[0] - tmp2[0]) > 2 ||
+	    abs(tmp1[1] - tmp2[1]) > 2 ||
+	    abs(tmp1[2] - tmp2[2]) > 2) &&
+	   (abs(tmp1[0] - tmp3[0]) > 2 ||
+	    abs(tmp1[1] - tmp3[1]) > 2 ||
+	    abs(tmp1[2] - tmp3[2]) > 2) )
 	{
 	  return false;
-	}
+	}      
     }
+
   return true;
+
 }

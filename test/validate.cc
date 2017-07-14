@@ -146,7 +146,6 @@ namespace {
     P << 0.0,0.0,0.2, 1.0,0.0,0.2, 0.0,1.0,0.2, -1.0,-0.1,0.2;
     EXPECT_TRUE(Geotree::Validate::planar(P));
 
-
     P = Eigen::MatrixXd(6,3);
 
     P << 0.0,0.0,0.2, 1.0,0.0,0.2, 0.0,1.0,0.2, 1.0,1.0,0.2, 0.1,0.2,0.2,
@@ -156,6 +155,10 @@ namespace {
     P << 0.0,0.0,0.2, 1.0,0.0,0.2, 0.0,1.0,0.2, 1.0,1.0,0.2, 0.1,0.2,0.2,
       -10.0,100.2,0.1;
     EXPECT_FALSE(Geotree::Validate::planar(P));
+
+    P << 1.0,0.0,0.0, 0.0,1.0,0.0, 0.0,0.0,1.0, -2.0,-1.0,4.0, 5.2,4.3,-8.5,
+      -10.0,100.0,-89.0;
+    EXPECT_TRUE(Geotree::Validate::planar(P));
   }
   
   // unreferenced verticies
