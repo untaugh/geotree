@@ -11,11 +11,8 @@ class Geometry
   MatrixXi F;
 
  public:
-  unsigned int intersect(MatrixXd * m1, MatrixXd * m2, Vector3d * v);
-  bool intersect(MatrixXd * m1, MatrixXd * m2, MatrixXd * mr);
   bool intersect(MatrixXd * f, Vector3d * v1, Vector3d * v2, Vector3d * r);
   int add(Geometry *g);
-  template <typename M> bool fequal(M, M);
 };
 
 

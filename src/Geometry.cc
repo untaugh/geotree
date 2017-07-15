@@ -9,32 +9,6 @@ Geometry::Geometry(MatrixXd V_, MatrixXi F_)
   this->F = F_;
 }
 
-unsigned int Geometry::intersect(MatrixXd * m1, MatrixXd * m2, Vector3d * v)
-{
-  unsigned int count = 0;
-  
-  for (int i=0; i<3; i++)
-    {
-      Vector3d s1 = m2->row(i);
-      Vector3d s2 = m2->row((i+1)%3);
-      Eigen::Vector3d v1;
-
-      std::cout << "m: "<< *m1 << " s1: "<< s1 << " s2: " << s2 << std::endl;
-      bool r = this->intersect(m1, &s1, &s2, &v1);
-      if (r)
-	{
-	  count++;
-	}
-    }
-
-  return count;
-}
-
-bool Geometry::intersect(MatrixXd * m1, MatrixXd * m2, MatrixXd * ps)
-{
-  return true;
-}
-
 bool Geometry::intersect(MatrixXd * f, Vector3d * s1, Vector3d * s2, Vector3d * p)
 {
   // Plane and segment intersection

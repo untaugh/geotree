@@ -70,25 +70,6 @@ namespace {
     EXPECT_DOUBLE_EQ(v(1), ve(1));
     EXPECT_DOUBLE_EQ(v(2), ve(2));
   }
-
-  TEST_F(GeometryTest, DISABLED_IntersectFace) {
-    Eigen::MatrixXd V1(3,3);
-    Eigen::MatrixXi F1(1,3);
-    Eigen::MatrixXd V2(3,3);
-    Eigen::MatrixXi F2(1,3);
-
-    Eigen::Vector3d v;
-	  
-    V1 << 0.0, 0.0, 0.0, 0.5, 0.0, 0.5, 0.0, 0.5, 0.5;
-    F1 << 0,1,2;
-    V2 << 0.1, 0.1, 0.0, 0.1, 0.1, 5.0, 5.2, 5.2, 0.0;
-    F2 << 0,1,2;
-
-    Geometry *g = new Geometry(V1,F1);
-	  
-    unsigned int count = g->intersect(&V1, &V2, &v);
-    EXPECT_EQ(count,1);
-  }
   
   TEST_F(GeometryTest, DISABLED_Divide) {
     Eigen::MatrixXd V1(3,3);
