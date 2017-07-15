@@ -115,31 +115,3 @@ int Geometry::add(Geometry *g)
   
   return 0;
 }
-
-namespace Calc
-{
-  /* * * 
-   * divide
-   * Given triangle and points, divide into smaller triangles.
-   */
-  bool divide(MatrixXd *Face, MatrixXd *P, MatrixXd *V, MatrixXi *F)
-  {
-    // Test if point inside triangle
-    
-    
-    // Test if point on edge
-
-    return true;
-  }
-
-  
-  // inside
-  // Test if point is insde face. 
-  bool inside()
-  {
-    return true;
-  }
-
-
-  
-}

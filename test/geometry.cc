@@ -70,28 +70,7 @@ namespace {
     EXPECT_DOUBLE_EQ(v(1), ve(1));
     EXPECT_DOUBLE_EQ(v(2), ve(2));
   }
-  
-  TEST_F(GeometryTest, DISABLED_Divide) {
-    Eigen::MatrixXd V1(3,3);
-    Eigen::MatrixXi F1(1,3);
-    Eigen::MatrixXd V2(3,3);
-    Eigen::MatrixXi F2(1,3);
 
-    Eigen::Vector3d v;
-	  
-    V1 << 0.0, 0.0, 0.0, 0.5, 0.0, 0.5, 0.0, 0.5, 0.5;
-    F1 << 0,1,2;
-    V2 << 0.1, 0.1, 0.0, 0.1, 0.1, 5.0, 5.2, 5.2, 0.0;
-    F2 << 0,1,2;
-
-    //Geometry *g = new Geometry(V1,F1);
-
-    v << V1.row(0);
-    
-    //unsigned int count = g->divide(&V1, &v, &);
-    //EXPECT_EQ(count,1);
-  }
-  
   TEST_F(GeometryTest, add) {
     Eigen::MatrixXd V1(3,3);
     Eigen::MatrixXi F1(1,3);
@@ -116,27 +95,6 @@ namespace {
     
     EXPECT_EQ(g1Vrows + g2->V.rows(),  g1->V.rows());
     EXPECT_EQ(g1Frows + g2->F.rows(),  g1->F.rows());
-  }
-
-  TEST_F(GeometryTest, DISABLED_divideFace)
-  {
-    Eigen::MatrixXd V(3,3);
-    Eigen::MatrixXi F(1,3);
-    Eigen::MatrixXd P(2,3);
-    Eigen::MatrixXd V2;
-    Eigen::MatrixXi F2;
-    
-    V << 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, 0.0;
-    F << 0,1,2;
-
-    P << 0.0, 0.5, 0.0, 0.5, 0.0, 0.0;
-
-    //Geometry *g = new Geometry(V,F);
-
-    Calc::divide(&V, &P, &V2, &F2);
-    
-    EXPECT_EQ(V2.rows(), 5);
-    EXPECT_EQ(F2.rows(), 3);
   }
   
 }
