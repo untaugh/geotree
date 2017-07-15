@@ -162,7 +162,7 @@ namespace {
   }
 
   // segments intersect in 3d space
-  TEST_F(ValidateTest, IntersectSegments)
+  TEST_F(ValidateTest, DISABLED_IntersectSegments)
   {
     Eigen::Vector3d v1a;
     Eigen::Vector3d v1b;

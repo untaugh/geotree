@@ -91,7 +91,7 @@ namespace {
     CubeNode * c1 = new CubeNode(10,10,10);
     CubeNode * c2 = new CubeNode(10,10,10);
     TranslateNode * t = new TranslateNode(1,2,3);
-    UnionNode * u = new UnionNode();    
+
     t->add(c2);
     t->build();
 

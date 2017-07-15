@@ -103,7 +103,7 @@ namespace {
     V2 << 0.1, 0.1, 0.0, 0.1, 0.1, 5.0, 5.2, 5.2, 0.0;
     F2 << 0,1,2;
 
-    Geometry *g = new Geometry(V1,F1);
+    //Geometry *g = new Geometry(V1,F1);
 
     v << V1.row(0);
     
@@ -150,7 +150,7 @@ namespace {
 
     P << 0.0, 0.5, 0.0, 0.5, 0.0, 0.0;
 
-    Geometry *g = new Geometry(V,F);
+    //Geometry *g = new Geometry(V,F);
 
     Calc::divide(&V, &P, &V2, &F2);
     

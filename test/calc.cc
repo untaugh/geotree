@@ -124,6 +124,7 @@ namespace {
     bool r = Calc::getIntersection(V1, F1, V2, F2, 0, 0, 1, p);
 
     EXPECT_EQ(p, p_exp);
+    EXPECT_TRUE(r);
   }
 
   // test if faces indicies describe same face
@@ -210,9 +211,78 @@ namespace {
     EXPECT_EQ(Calc::normal(v1,v2,v3), -n_exp);
   }
 
-  // intersection between segments in 3d space
-  TEST_F(CalcTest, IntersectionSegment)
+  
+  // distance between segments in 3d space
+  TEST_F(CalcTest, DistanceSegments)
   {
-    
+    Eigen::Vector3d v1a; // segment 1 start
+    Eigen::Vector3d v1b; // segment 1 end
+    Eigen::Vector3d v2a; // segment 2 start
+    Eigen::Vector3d v2b; // segment 2 end
+    double d; // distance
+
+    // intersecting
+    v1a << -1.0, 0.0, 0.0;
+    v1b << 1.0, 0.0, 0.0;
+    v2a << 0.0, -1.0, 0.0;
+    v2b << 0.0, 1.0, 0.0;
+    d = Calc::distance(v1a, v1b, v2a, v2b);
+    EXPECT_DOUBLE_EQ(0.0, d);
+
+    // intersecting
+    v1a << -1.0, 0.0, 3.0;
+    v1b << 1.0, 0.0, 3.0;
+    v2a << 0.0, -1.0, 3.0;
+    v2b << 0.0, 1.0, 3.0;
+    d = Calc::distance(v1a, v1b, v2a, v2b);
+    EXPECT_DOUBLE_EQ(0.0, d);
+
+    // not intersecting
+    v1a << -1.0, 0.0, 0.0;
+    v1b << 1.0, 0.0, 0.0;
+    v2a << 0.0, -1.0, 0.0;
+    v2b << 0.0, 1.0, 0.1;
+    d = Calc::distance(v1a, v1b, v2a, v2b);
+    EXPECT_NEAR(0.05, d, 0.0001);
+
+    // s2 away from intersection
+    v1a << -1.0, 0.0, 0.0;
+    v1b << 1.0, 0.0, 0.0;
+    v2a << 0.0, 0.001, 0.0;
+    v2b << 0.0, 2.0, 0.0;
+    d = Calc::distance(v1a, v1b, v2a, v2b);
+    EXPECT_DOUBLE_EQ(0.001, d);
+
+    // s2 away from intersection
+    v1a << -1.0, 0.0, 0.0;
+    v1b << 1.0, 0.0, 0.0;
+    v2a << 0.0, 3.0, 0.0;
+    v2b << 0.0, 0.003, 0.0;
+    d = Calc::distance(v1a, v1b, v2a, v2b);
+    EXPECT_DOUBLE_EQ(0.003, d);
+
+    // s1 away from intersection
+    v1a << 0.0, 0.0, 0.0;
+    v1b << 5.0, 0.0, 0.0;
+    v2a << 6.5, 1.0, 0.0;
+    v2b << 6.5, -2.0, 0.0;
+    d = Calc::distance(v1a, v1b, v2a, v2b);
+    EXPECT_DOUBLE_EQ(1.5, d);
+
+    // z distance 2.0
+    v1a << 0.0, 0.0, 1.0;
+    v1b << 1.0, 0.0, 1.0;
+    v2a << 0.0, 0.0, -1.0;
+    v2b << 0.0, 1.0, -1.0;
+    d = Calc::distance(v1a, v1b, v2a, v2b);
+    EXPECT_DOUBLE_EQ(2.0, d);
+
+    // both segments not on intersection
+    v1a << 1.0, 0.0, 0.0;
+    v1b << 2.0, 0.0, 0.0;
+    v2a << 0.0, 1.0, 0.0;
+    v2b << 0.0, 2.0, 0.0;
+    d = Calc::distance(v1a, v1b, v2a, v2b);
+    EXPECT_DOUBLE_EQ(sqrt(2.0), d);
   }
 }

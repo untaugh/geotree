@@ -154,6 +154,8 @@ namespace Calc
     
     
     // Test if point on edge
+
+    return true;
   }
 
   
@@ -161,7 +163,7 @@ namespace Calc
   // Test if point is insde face. 
   bool inside()
   {
-    
+    return true;
   }
 
 

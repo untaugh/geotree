@@ -20,34 +20,34 @@ namespace Calc
 
   unsigned int sharedSegments(Vector3i F1, Vector3i F2)
   {
-    if ( F1[0] == F2[0] && F1[1] == F2[1] && F1[2] == F2[2] ||
-	 F1[0] == F2[1] && F1[1] == F2[0] && F1[2] == F2[2] ||
-	 F1[0] == F2[2] && F1[1] == F2[0] && F1[2] == F2[1] ||
-	 F1[0] == F2[0] && F1[1] == F2[2] && F1[2] == F2[1] ||
-	 F1[0] == F2[1] && F1[1] == F2[2] && F1[2] == F2[0] ||
-	 F1[0] == F2[2] && F1[1] == F2[1] && F1[2] == F2[0] )
+    if ( (F1[0] == F2[0] && F1[1] == F2[1] && F1[2] == F2[2]) ||
+	 (F1[0] == F2[1] && F1[1] == F2[0] && F1[2] == F2[2]) ||
+	 (F1[0] == F2[2] && F1[1] == F2[0] && F1[2] == F2[1]) ||
+	 (F1[0] == F2[0] && F1[1] == F2[2] && F1[2] == F2[1]) ||
+	 (F1[0] == F2[1] && F1[1] == F2[2] && F1[2] == F2[0]) ||
+	 (F1[0] == F2[2] && F1[1] == F2[1] && F1[2] == F2[0]) )
       {
 	return 3;
       }
     
-    if ( F1[0] == F2[0] && F1[1] == F2[1] ||
-	 F1[1] == F2[1] && F1[2] == F2[2] ||
-	 F1[2] == F2[2] && F1[0] == F2[0] ||
-	 F1[0] == F2[0] && F1[1] == F2[2] ||
-	 F1[0] == F2[0] && F1[2] == F2[1] ||
-	 F1[1] == F2[1] && F1[2] == F2[0] ||
-	 F1[1] == F2[1] && F1[0] == F2[2] ||
-	 F1[2] == F2[2] && F1[1] == F2[0] ||
-	 F1[2] == F2[2] && F1[0] == F2[1] ||
-	 F1[0] == F2[1] && F1[1] == F2[0] ||
-	 F1[0] == F2[1] && F1[1] == F2[2] ||
-	 F1[0] == F2[1] && F1[2] == F2[0] ||
-	 F1[0] == F2[2] && F1[1] == F2[0] ||
-	 F1[0] == F2[2] && F1[2] == F2[0] ||
-	 F1[0] == F2[2] && F1[2] == F2[1] ||
-	 F1[1] == F2[2] && F1[2] == F2[0] ||
-	 F1[1] == F2[2] && F1[2] == F2[1] ||
-	 F1[1] == F2[0] && F1[2] == F2[1] )
+    if ( (F1[0] == F2[0] && F1[1] == F2[1]) ||
+	 (F1[1] == F2[1] && F1[2] == F2[2]) ||
+	 (F1[2] == F2[2] && F1[0] == F2[0]) ||
+	 (F1[0] == F2[0] && F1[1] == F2[2]) ||
+	 (F1[0] == F2[0] && F1[2] == F2[1]) ||
+	 (F1[1] == F2[1] && F1[2] == F2[0]) ||
+	 (F1[1] == F2[1] && F1[0] == F2[2]) ||
+	 (F1[2] == F2[2] && F1[1] == F2[0]) ||
+	 (F1[2] == F2[2] && F1[0] == F2[1]) ||
+	 (F1[0] == F2[1] && F1[1] == F2[0]) ||
+	 (F1[0] == F2[1] && F1[1] == F2[2]) ||
+	 (F1[0] == F2[1] && F1[2] == F2[0]) ||
+	 (F1[0] == F2[2] && F1[1] == F2[0]) ||
+	 (F1[0] == F2[2] && F1[2] == F2[0]) ||
+	 (F1[0] == F2[2] && F1[2] == F2[1]) ||
+	 (F1[1] == F2[2] && F1[2] == F2[0]) ||
+	 (F1[1] == F2[2] && F1[2] == F2[1]) ||
+	 (F1[1] == F2[0] && F1[2] == F2[1]) )
       {
 	return 1;
       }
@@ -229,5 +229,70 @@ namespace Calc
     //std::cout << n.transpose() << std::endl;
 	
     return n;
+  }
+
+  double distance(Vector3d v1a, Vector3d v1b, Vector3d v2a, Vector3d v2b)
+  {
+    // direction of segments
+    Vector3d v1 = v1a - v1b;
+    Vector3d v2 = v2a - v2b;
+
+    // vector perpendicular to both lines
+    Vector3d n = v1.cross(v2);
+
+    // nearest points
+    Vector3d n2 = v2.cross(n);
+    Vector3d n1 = v1.cross(n);
+    Vector3d p1 =  v1a + ( (v2a - v1a).dot(n2) / v1.dot(n2) ) * v1;
+    Vector3d p2 =  v2a + ( (v1a - v2a).dot(n1) / v2.dot(n1) ) * v2;
+    
+    // std::cout << "closest point s1: " << ps1.transpose() << std::endl
+    // 	      << "closest point s2: " << ps2.transpose() << std::endl;
+
+    // std::cout << "v2a - ps2: " << (v2a - ps2).transpose() << std::endl
+    // 	      << "v2: " << v2.transpose() << std::endl
+    // 	      << "dot: " << v2.dot(v2a - ps2) << std::endl
+    // 	      << "dot2: " << v2.dot(v2a - ps2) / v2.dot(v2) << std::endl;
+
+    // position of nearest point on segment
+    double a1 = v1.dot(v1a - p1) / v1.dot(v1);
+    double a2 = v2.dot(v2a - p2) / v2.dot(v2);
+
+    // std::cout << "a1: " << a1 << std::endl
+    // 	      << "a2: " << a2 << std::endl;
+
+    //Vector3d p1 = ps1;
+    //Vector3d p2 = ps2;
+
+    // v2a is closest point
+    if (a2 < 0.0)
+      {
+	p2 = v2a;
+      }
+
+    // v2b is closest point
+    if (a2 > 1.0)
+      {
+	p2 = v2b;
+      }
+    
+    // v1a is closest point
+    if (a1 < 0.0)
+      {
+	p1 = v1a;
+      }
+
+    // v1b is closest point
+    if (a1 > 1.0)
+      {
+	p1 = v1b;
+      }
+
+    return (p1 - p2).norm();
+    
+    // distance
+    //double D = abs(p.dot(n)) / sqrt(n.dot(n));
+
+    //return D;
   }
 }

@@ -19,7 +19,7 @@ namespace {
 						      double y,
 						      double z)
   {
-    bool contains = false;
+    //bool contains = false;
 
     Eigen::MatrixXd v = Eigen::MatrixXd(1,3);
     v << x,y,z;
@@ -35,8 +35,8 @@ namespace {
     return ::testing::AssertionFailure() << "does not contain";
   }
 
-  testing::AssertionResult AssertionSuccess();
-  testing::AssertionResult AssertionFailure();
+  //testing::AssertionResult AssertionSuccess();
+  //testing::AssertionResult AssertionFailure();
 
   // create an object
   TEST_F(NodeTest, Object) {

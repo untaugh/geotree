@@ -86,4 +86,12 @@ namespace Calc
   // in v2  : v2 vector
   // in v3  : v3 vector
   Vector3d normal(Vector3d v1, Vector3d v2, Vector3d v3);
+
+  // distance : distance between segments
+  // ret      : the distance
+  // in v1a   : segment 1 start
+  // in v1b   : segment 1 end
+  // in v2a   : segment 2 start
+  // in v2b   : segment 2 end
+  double distance(Vector3d v1a, Vector3d v1b, Vector3d v2a, Vector3d v2b);
 }
