@@ -162,23 +162,9 @@ namespace Calc
 
     // calulate point of inersection
     p = s1 + sI * u;
-  
-    // Test if point is inside triangle
-  
-    Vector3d e1 = p2 - p1;
-    Vector3d e2 = p3 - p2;
-    Vector3d e3 = p1 - p3;
     
-    Vector3d c1 = p - p1;
-    Vector3d c2 = p - p2;
-    Vector3d c3 = p - p3;
-
-    float r1 = n.dot(e1.cross(c1));
-    float r2 = n.dot(e2.cross(c2));
-    float r3 = n.dot(e3.cross(c3));
-  
     // is point outisde triangle
-    if (r1 < 0.0 || r2 < 0.0 || r3 < 0.0)
+    if(!inside(p1, p2, p3, p))
       {
 	//std::cout << "r1: " << r1 << " r2: " << r2 << " r3: " << r3 << std::endl;
 	return false;
@@ -294,5 +280,33 @@ namespace Calc
     //double D = abs(p.dot(n)) / sqrt(n.dot(n));
 
     //return D;
+  }
+
+  
+  bool inside(Vector3d v1, Vector3d v2, Vector3d v3, Vector3d p)
+  {
+    // normal
+    Vector3d n = Calc::normal(v1,v2,v3);
+
+    // Test if point is inside triangle  
+    Vector3d e1 = v2 - v1;
+    Vector3d e2 = v3 - v2;
+    Vector3d e3 = v1 - v3;
+    
+    Vector3d c1 = p - v1;
+    Vector3d c2 = p - v2;
+    Vector3d c3 = p - v3;
+
+    double r1 = n.dot(e1.cross(c1));
+    double r2 = n.dot(e2.cross(c2));
+    double r3 = n.dot(e3.cross(c3));
+
+    // is point outisde triangle
+    if (r1 < 0.0 || r2 < 0.0 || r3 < 0.0)
+      {
+	return false;
+      }
+    
+    return true;
   }
 }

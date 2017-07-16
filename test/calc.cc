@@ -49,7 +49,7 @@ namespace {
     EXPECT_EQ(S, S_exp);
   }
 
-  // get face segments from a triangular face
+  // get all segments (face index) from faces
   TEST_F(CalcTest, getFaceSegments)
   {
     // face indicies
@@ -68,6 +68,7 @@ namespace {
     EXPECT_EQ(S, S_exp);
   }
 
+  // number of shared segments in faces
   TEST_F(CalcTest, sharedSegments)
   {
     Vector3i F1;
@@ -89,6 +90,7 @@ namespace {
     EXPECT_EQ(Calc::sharedSegments(F1, F2),1);
   }
 
+  // face indicies to segment indicies
   TEST_F(CalcTest, toSegment)
   {
     MatrixXi F(4,3);
@@ -96,15 +98,16 @@ namespace {
 
     unsigned int s1,s2;
 
-    Calc::toSegment(F, 0,1,s1,s2);
+    Calc::toSegment(F, 0, 1, s1, s2);
     EXPECT_EQ(s1,1);
     EXPECT_EQ(s2,2);
 
-    Calc::toSegment(F, 1,3,s1,s2);
+    Calc::toSegment(F, 1, 3, s1, s2);
     EXPECT_EQ(s1,2);
     EXPECT_EQ(s2,3);
   }
-  
+
+  // intersection face and segment
   TEST_F(CalcTest, getIntersection)
   {
     MatrixXd V1(3,3);
@@ -210,7 +213,6 @@ namespace {
     n_exp << -0.6, 0.0, 0.8;
     EXPECT_EQ(Calc::normal(v1,v2,v3), -n_exp);
   }
-
   
   // distance between segments in 3d space
   TEST_F(CalcTest, DistanceSegments)
@@ -284,5 +286,25 @@ namespace {
     v2b << 0.0, 2.0, 0.0;
     d = Calc::distance(v1a, v1b, v2a, v2b);
     EXPECT_DOUBLE_EQ(sqrt(2.0), d);
+  }
+
+  // segment distance invalid and parallell segments
+  TEST_F(CalcTest, DISABLED_DistanceSegmentsInvalid)
+  {
+
+  }
+
+  // point inside triangular face
+  TEST_F(CalcTest, pointInside)
+  {
+    Vector3d v1, v2, v3, p;
+
+    v1 << 0.0, 0.0, 0.0;
+    v2 << 1.0, 0.0, 0.0;
+    v3 << 0.0, 1.0, 0.0;
+    p << 0.1, 0.1, 0.0;
+    EXPECT_TRUE(Calc::inside(v1,v2,v3,p));
+    p << 0.7, 0.7, 0.0;
+    EXPECT_FALSE(Calc::inside(v1,v2,v3,p));
   }
 }
