@@ -176,17 +176,20 @@ namespace {
   }
   
   // triangulate path
-  TEST_F(CalcTest, DISABLED_Triangulate)
+  TEST_F(CalcTest, Triangulate)
   {
     Eigen::MatrixXd V = Eigen::MatrixXd(4,3);
-    V << 0,0,0, 0,1,0, -0.7,0.7,0, 1,0,0;
-
     Eigen::MatrixXi P;
     Eigen::MatrixXi P_exp = Eigen::MatrixXi(2,3);
-    P_exp << 0,1,2, 1,2,3;
-    
-    Calc::triangulate(V, P);
 
+    V << 0,0,0, 0,1,0, 0.7,0.7,0, 1,0,0;
+    P_exp << 0,1,2, 1,2,3;
+    Calc::triangulate(V, P);
+    EXPECT_EQ(P, P_exp);
+
+    V << 0,1,0, 0.1,0.1,0, 1.0,0,0, 0,0,0;
+    P_exp << 1,2,3, 3,0,1;
+    Calc::triangulate(V, P);
     EXPECT_EQ(P, P_exp);
   }
 
@@ -310,7 +313,41 @@ namespace {
     EXPECT_TRUE(Calc::inside(v1,v2,v3,p));
   }
 
-  // point inside triangular face
+  // any point inside triangular face
+  TEST_F(CalcTest, pointsInside)
+  {
+    Vector3d v1, v2, v3;
+    MatrixXd P = MatrixXd(5,3);
+    int i;
+    
+    v1 << 0.0, 0.0, 0.0;
+    v2 << 1.0, 0.0, 0.0;
+    v3 << 0.0, 1.0, 0.0;
+    P << 1.1, 0.0, 0.0,
+      0.0, 1.1, 0.0,
+      0.6, 0.6, 0.0,
+      0.7, 10.1, 0.0,
+      1.0, -0.1, 0.0;
+    EXPECT_FALSE(Calc::inside(v1,v2,v3,P));
+
+    P << 0.0, 0.0, 0.0,
+      1.0, 0.0, 0.0,
+      0.0, 1.0, 0.0,
+      0.7, 10.1, 0.0,
+      1.0, -0.1, 0.0;
+    EXPECT_FALSE(Calc::inside(v1,v2,v3,P));
+
+    
+    P << 1.1, 0.0, 0.0,
+      0.0, 0.9, 0.0,
+      0.6, 0.6, 0.0,
+      0.7, 10.1, 0.0,
+      1.0, -0.1, 0.0;
+    EXPECT_TRUE(Calc::inside(v1,v2,v3,P));
+  }
+  
+
+  // angle between segments
   TEST_F(CalcTest, angle)
   {
     Vector3d v1, v2, v3, up;
@@ -332,8 +369,6 @@ namespace {
     v3 << 2.0, 0.0, 0.0;
     up << 0.0, 0.0, 1.0;
     EXPECT_DOUBLE_EQ(Calc::angle(v1,v2,v3, up), M_PI);
-
-
   }
 
 }

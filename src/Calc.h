@@ -110,4 +110,12 @@ namespace Calc
   // in v3  : point 3
   // in up  : planeup vector
   double angle(Vector3d v1, Vector3d v2, Vector3d v3, Vector3d up);
+
+  // inside : any point inside triangle
+  // ret    : true if yes
+  // in v1  : vertex 1 of face
+  // in v2  : vertex 2 of face
+  // in v3  : vertex 3 of face
+  // in P   : list of points to test
+  bool inside(Vector3d v1, Vector3d v2, Vector3d v3, MatrixXd P);
 }

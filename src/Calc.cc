@@ -1,5 +1,6 @@
 #include "Calc.h"
 #include <iostream>
+#include <set>
 
 namespace Calc
 {
@@ -190,18 +191,43 @@ namespace Calc
 
   void triangulate(const MatrixXd P, MatrixXi &F)
   {
+    std::set <int> skip;
 
-      for (int i=0; i<P.rows()-2; i++)
-	{
-	  Eigen::Vector3d v1 = P.row(i) - P.row(i+1);
-	  Eigen::Vector3d v2 = P.row(i+2) - P.row(i+1);
-	  float d = v1.dot(v2);
-	  std::cout << "v1: " << v1.transpose()
-		    << " v2: " << v2.transpose()
-		    << " dot: " << d << std::endl;
-	}
-      
-      F = Eigen::MatrixXi(2,3); 
+    Vector3d up = normal(P.row(0), P.row(1), P.row(2));
+
+    MatrixXi tmp = MatrixXi(P.rows(), 3);
+
+    int count = 0;
+    
+    for (int i=0; i<P.rows()-2; i++)
+      {
+	Eigen::Vector3d p1 = P.row(i);
+	Eigen::Vector3d p2 = P.row(i+1);
+	Eigen::Vector3d p3 = P.row(i+2);
+
+	// are any points inside?
+	if ( inside(p1, p2, p3, P) )
+	  {	      
+	    std::cout << "a point is inside" << std::endl;
+	    continue;
+	  }
+
+	// is angle greater than 180?
+	if ( angle(p1,p2,p3,up) >= 180.0 )
+	  {
+	    std::cout << "angle is greater than 180" << std::endl;
+	    continue;
+	  }
+
+	// create triangle
+	tmp.row(count++) = Vector3i(i, i+1, i+2);
+
+	// skip point
+	skip.insert(i+2);
+      }
+
+    std::cout << "count:" << count << std::endl;
+    F = tmp.block(0,0,count,3);
   }
   
   Vector3d normal(Vector3d v1, Vector3d v2, Vector3d v3)
@@ -282,7 +308,6 @@ namespace Calc
 
     //return D;
   }
-
   
   bool inside(Vector3d v1, Vector3d v2, Vector3d v3, Vector3d p)
   {
@@ -309,6 +334,27 @@ namespace Calc
       }
     
     return true;
+  }
+
+  bool inside(Vector3d v1, Vector3d v2, Vector3d v3, MatrixXd P)
+  {
+    // iterate points
+    for (int i=0; i<P.rows(); i++)
+      {
+	Vector3d p = P.row(i);
+
+	// don't test triangle points
+	if (! (p == v1 || p == v2 || p == v3))
+	  {
+	    // test if point inside
+	    if (inside(v1,v2,v3,p))
+	      {
+		return true;
+	      }	    
+	  }
+	
+      }
+    return false;
   }
 
   double angle(Vector3d v1, Vector3d v2, Vector3d v3, Vector3d up)
