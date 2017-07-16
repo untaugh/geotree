@@ -306,5 +306,34 @@ namespace {
     EXPECT_TRUE(Calc::inside(v1,v2,v3,p));
     p << 0.7, 0.7, 0.0;
     EXPECT_FALSE(Calc::inside(v1,v2,v3,p));
+    p << 1.0, 0.0, 0.0;
+    EXPECT_TRUE(Calc::inside(v1,v2,v3,p));
   }
+
+  // point inside triangular face
+  TEST_F(CalcTest, angle)
+  {
+    Vector3d v1, v2, v3, up;
+    
+    v1 << 0.0, 0.0, 0.0;
+    v2 << 1.0, 0.0, 0.0;
+    v3 << 1.0, 1.0, 0.0;
+    up << 0.0, 0.0, 1.0;
+    EXPECT_DOUBLE_EQ(Calc::angle(v1,v2,v3, up), M_PI*3/2);
+
+    v1 << 0.0, 0.0, 0.0;
+    v2 << 1.0, 0.0, 0.0;
+    v3 << 1.0, -1.0, 0.0;
+    up << 0.0, 0.0, 1.0;
+    EXPECT_DOUBLE_EQ(Calc::angle(v1,v2,v3, up), M_PI/2);
+
+    v1 << 0.0, 0.0, 0.0;
+    v2 << 1.0, 0.0, 0.0;
+    v3 << 2.0, 0.0, 0.0;
+    up << 0.0, 0.0, 1.0;
+    EXPECT_DOUBLE_EQ(Calc::angle(v1,v2,v3, up), M_PI);
+
+
+  }
+
 }

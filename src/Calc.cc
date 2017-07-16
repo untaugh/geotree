@@ -164,13 +164,14 @@ namespace Calc
     p = s1 + sI * u;
     
     // is point outisde triangle
-    if(!inside(p1, p2, p3, p))
+    if(inside(p1, p2, p3, p))
       {
-	//std::cout << "r1: " << r1 << " r2: " << r2 << " r3: " << r3 << std::endl;
+	return true;
+      }
+    else
+      {
 	return false;
       }
-    
-    return true;
   }
 
   bool equal(Vector3i f1, Vector3i f2)
@@ -308,5 +309,24 @@ namespace Calc
       }
     
     return true;
+  }
+
+  double angle(Vector3d v1, Vector3d v2, Vector3d v3, Vector3d up)
+  {
+    Vector3d va = v2 - v1;
+    Vector3d vb = v2 - v3;
+
+    Vector3d n = va.cross(vb);
+
+    double d = va.dot(vb);
+
+    double angle = atan2(n.dot(up), d);
+
+    if (angle < 0.0)
+      {
+	angle += M_PI * 2;
+      }
+    
+    return angle;
   }
 }

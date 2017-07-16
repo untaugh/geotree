@@ -102,4 +102,12 @@ namespace Calc
   // in v3  : vertex 3 of face
   // in p   : point to test
   bool inside(Vector3d v1, Vector3d v2, Vector3d v3, Vector3d p);
+
+  // angle : angle between segments in radians from 0 to pi
+  // ret   : angle in degrees
+  // in v1  : point 1
+  // in v2  : point 2
+  // in v3  : point 3
+  // in up  : planeup vector
+  double angle(Vector3d v1, Vector3d v2, Vector3d v3, Vector3d up);
 }
