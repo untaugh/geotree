@@ -87,7 +87,38 @@ bool Geotree::Validate::geometry(Geometry g)
 	      return false;
 	    }
 	}
-    }  
+    }
+
+  // is polyhedron
+  MatrixXi S;
+  std::set<int> s;
+  std::set<int> f;
+  Calc::getFaceSegments(g.F, S);
+  for (int i=0; i<S.rows(); i++)    
+    {
+      s.insert(S.row(i)[0]);
+      s.insert(S.row(i)[1]);
+      std::cout << "S " << S.row(i)[0] << std::endl;
+      std::cout << "S " << S.row(i)[1] << std::endl;
+    }
+  for (int i=0; i<g.F.rows(); i++)    
+    {
+      f.insert(g.F.row(i)[0]);
+      f.insert(g.F.row(i)[1]);
+      f.insert(g.F.row(i)[2]);
+    }
+
+  for (int i: s)
+    {
+      std::cout << "s " << i << std::endl;
+    }
+  for (int i: f)
+    {
+      std::cout << "f " << i << std::endl;
+    }
+  std::cout << s.size() << std::endl;
+  std::cout << g.F.size() << std::endl;
+  
   
   return true;
 }
@@ -151,4 +182,26 @@ bool Geotree::Validate::intersect(Vector3d v1a, Vector3d v1b, Vector3d v2a, Vect
 {
   
   return true;
+}
+
+bool Geotree::Validate::intersect(MatrixXd P)
+{
+  for (int i=0; i<P.rows(); i++)
+    {      
+      for (int j=0; j<P.rows(); j++)
+	{
+	  if (i == j || (i+1)%P.rows() ==j || (j+1)%P.rows() == i)
+	    {
+	      continue;
+	    }
+	  double d = Calc::distance(P.row(i), P.row((i+1)%P.rows()),
+			      P.row(j), P.row((j+1)%P.rows()));
+	  if (d < 0.00000000001)
+	    {
+	      return true;
+	    }
+	}
+      
+    }
+  return false;
 }

@@ -6,6 +6,7 @@ using namespace Eigen;
 class Geometry
 {
  public:
+  Geometry(){};
   Geometry(MatrixXd V, MatrixXi F);
   MatrixXd V;
   MatrixXi F;

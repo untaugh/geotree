@@ -28,5 +28,10 @@ namespace Geotree {
     // in v2a    : segment 2 start
     // in v2b    : segment 2 end
     bool intersect(Vector3d v1a, Vector3d v1b, Vector3d v2a, Vector3d v2b);
+
+    // intersect : does path intersect
+    // ret       : true if yes
+    // in P      : Verticies of path
+    bool intersect(MatrixXd P);
   }
 }

@@ -83,6 +83,90 @@ namespace {
     EXPECT_EQ(points, points_exp);
   }
 
+  // get faces of outside/inside/intersection
+  TEST_F(IntersectionTest, faceInfo1)
+  {
+    Intersections * I = new Intersections();
+
+    // create two cube geometries
+    CubeNode * c1 = new CubeNode(10,10,10);
+    CubeNode * c2 = new CubeNode(10,5,5);
+    TranslateNode * t = new TranslateNode(1,1,1);
+
+    t->add(c2);
+    t->build();
+
+    I->add(*c1->g, *t->g);
+
+    std::set <int> Fi, Fo, Ft, F_tot, F_exp;
+
+    for (int i=0; i<12; i++)
+      {
+	F_exp.insert(i);
+      }
+    
+    I->faceInfo(0, Fi, Fo, Ft);
+    F_tot.insert(Fi.begin(), Fi.end());
+    F_tot.insert(Fo.begin(), Fo.end());
+    F_tot.insert(Ft.begin(), Ft.end());
+    EXPECT_EQ(Fi.size(), 0);
+    EXPECT_EQ(Fo.size(), 10);
+    EXPECT_EQ(Ft.size(), 2);
+    EXPECT_EQ(F_tot, F_exp);
+
+    Fi.clear(); Fo.clear(); Ft.clear();
+    I->faceInfo(1, Fi, Fo, Ft);
+    F_tot.insert(Fi.begin(), Fi.end());
+    F_tot.insert(Fo.begin(), Fo.end());
+    F_tot.insert(Ft.begin(), Ft.end());
+    EXPECT_EQ(Fi.size(), 2);
+    EXPECT_EQ(Fo.size(), 2);
+    EXPECT_EQ(Ft.size(), 8);
+    EXPECT_EQ(F_tot, F_exp);
+  }
+
+  // get faces of outside/inside/intersection
+  TEST_F(IntersectionTest, faceInfo2)
+  {
+    Intersections * I = new Intersections();
+
+    // create two cube geometries
+    CubeNode * c1 = new CubeNode(10,10,10);
+    CubeNode * c2 = new CubeNode(10,10,10);
+    TranslateNode * t = new TranslateNode(1,2,3);
+
+    t->add(c2);
+    t->build();
+
+    I->add(*c1->g, *t->g);
+
+    std::set <int> Fi, Fo, Ft, F_tot, F_exp;
+
+    for (int i=0; i<12; i++)
+      {
+	F_exp.insert(i);
+      }
+    
+    I->faceInfo(0, Fi, Fo, Ft);
+    F_tot.insert(Fi.begin(), Fi.end());
+    F_tot.insert(Fo.begin(), Fo.end());
+    F_tot.insert(Ft.begin(), Ft.end());
+    EXPECT_EQ(0, Fi.size());
+    EXPECT_EQ(6, Fo.size());
+    EXPECT_EQ(6, Ft.size());
+    EXPECT_EQ(F_tot, F_exp);
+
+    Fi.clear(); Fo.clear(); Ft.clear();
+    I->faceInfo(1, Fi, Fo, Ft);
+    F_tot.insert(Fi.begin(), Fi.end());
+    F_tot.insert(Fo.begin(), Fo.end());
+    F_tot.insert(Ft.begin(), Ft.end());
+    EXPECT_EQ(0, Fi.size());
+    EXPECT_EQ(6, Fo.size());
+    EXPECT_EQ(6, Ft.size());
+    EXPECT_EQ(F_tot, F_exp);
+  }
+
   TEST_F(IntersectionTest, geometries1)
   {
     Intersections * I = new Intersections();
@@ -100,6 +184,40 @@ namespace {
     // test numPoints
     EXPECT_EQ(I->numPoints(0), 7);
     EXPECT_EQ(I->numPoints(1), 7);
+
+    // get intermediate geometries
+    Eigen::MatrixXd V;
+    Eigen::MatrixXi F1i;
+    Eigen::MatrixXi F1o;
+    Eigen::MatrixXi F2i;
+    Eigen::MatrixXi F2o;
+    
+    I->get(V, F1o, F1i, F2o, F2i);
+  }
+
+  TEST_F(IntersectionTest, divide)
+  {
+    Intersections * I = new Intersections();
+
+    Eigen::MatrixXd V1 = Eigen::MatrixXd(5,3);
+    Eigen::MatrixXd V2 = Eigen::MatrixXd(3,3);
+    Eigen::MatrixXi F1 = Eigen::MatrixXi(3,3);
+    Eigen::MatrixXi F2 = Eigen::MatrixXi(1,3);
+    Eigen::MatrixXi Fa;
+    Eigen::MatrixXi Fb;
+
+    V1 << 0,0,0, 1,0,0, 0,1,0, 1,1,0, 1,-1,0;
+    F1 << 0,1,2, 1,2,3, 0,1,4;
+    V2 << 0.5,-1,-1, 0.5,2,-1, 0.5,0.5,5;
+    F2 << 0,1,2;
+    
+    Geometry *g1 = new Geometry(V1, F1);
+    Geometry *g2 = new Geometry(V2, F2);
+
+    I->add(*g1, *g2);
+
+    //EXPECT_EQ(I->numPoints(0), 3);
+    //EXPECT_EQ(I->numPoints(1), 3);
 
     
   }

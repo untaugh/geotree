@@ -1,4 +1,5 @@
 #include <Eigen/Core>
+#include <set>
 
 using namespace Eigen;
 
@@ -35,6 +36,13 @@ namespace Calc
 		       unsigned int f1,
 		       unsigned int f2a, unsigned int f2b,
 		       Vector3d &p);
+
+  // getIntersection : Get point of intersection between face and segment
+  // ret (bool)      : Intersection found
+  // in F            : 3x3 matrix verticies of a face 
+  // in segment      : 2x3 matrix start and end points of a segment
+  // in point        : intersecting point
+  bool getIntersection(MatrixXd F, MatrixXd segment, Vector3d &point);
 
   // getSegment : Face indicies to segment indicies
   // in F       :
@@ -76,9 +84,10 @@ namespace Calc
 		   MatrixXi F2);
 
   // triangulate : triangulate path in 3d space, points in one plane
+  // ret         : true if successfull
   // in P        : path
   // out F       : face indicies
-  void triangulate(const MatrixXd P, MatrixXi &F);
+  bool triangulate(const MatrixXd P, MatrixXi &F);
 
   // normal : get notmal for three points in 3d space
   // ret    : normal
@@ -118,4 +127,24 @@ namespace Calc
   // in v3  : vertex 3 of face
   // in P   : list of points to test
   bool inside(Vector3d v1, Vector3d v2, Vector3d v3, MatrixXd P);
+
+  // next    : next point in list
+  // ret     : true if successfull
+  // out i   : start looking from index
+  // in skip : skip these points
+  bool next(MatrixXd P, int &i, std::set<int> skip);
+
+  // connected : list face connected to this face
+  // ret       : the list
+  // in F      : N*3 matrix with faces
+  // in skip   : skip these faces
+  // in index  : start from this index
+  std::set <int> connected(MatrixXi F, std::set <int> skip, int index);
+
+  // boundingBox : get bounding box
+  // in V        : verticies
+  // in F        : triangular faces
+  // out B1      : point 1 of box
+  // out B2      : point 2 of box
+  void boundingBox(MatrixXd V, MatrixXi F, Vector3d &B1, Vector3d &B2);
 }

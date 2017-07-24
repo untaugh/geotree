@@ -162,24 +162,17 @@ namespace {
   }
 
   // segments intersect in 3d space
-  TEST_F(ValidateTest, DISABLED_IntersectSegments)
+  TEST_F(ValidateTest, IntersectPolygon)
   {
-    Eigen::Vector3d v1a;
-    Eigen::Vector3d v1b;
-    Eigen::Vector3d v2a;
-    Eigen::Vector3d v2b;
+    Eigen::MatrixXd V = Eigen::MatrixXd(4,3);
 
-    v1a << -1.0, 0.0, 0.0;
-    v1b << 1.0, 0.0, 0.0;
-    v2a << 0.0, -1.0, 0.0;
-    v2b << 0.0, 1.0, 0.0;
-    EXPECT_TRUE(Geotree::Validate::intersect(v1a, v1b, v2a, v2b));
+    // intersecting path
+    V << 0,0,0, 1,0,0, 1,1,0, 0,-1,0;    
+    EXPECT_TRUE(Geotree::Validate::intersect(V));
 
-    v1a << -1.0, 0.0, 0.0;
-    v1b << 1.0, 0.0, 0.0;
-    v2a << 0.0, -1.0, 0.0;
-    v2b << 0.0, 1.0, 0.1;
-    EXPECT_FALSE(Geotree::Validate::intersect(v1a, v1b, v2a, v2b));      
+    // not intersecting path
+    V << 0,0,0, 1,0,0, 1,1,0, 0,1,0;    
+    EXPECT_FALSE(Geotree::Validate::intersect(V));
   }
   
   // unreferenced verticies

@@ -19,13 +19,17 @@ class Intersections
  public:
   std::vector <Intersect> I;
 
+  Geometry g1, g2;
+
   // intersections from geometries
   void add(Geometry &g1, Geometry &g2);
   
   // add an intersection point
   void add(int index, int plane, Vector2i segment, Vector3d point);
 
-  // get all paths dividing a face
+  // getPaths : get all paths dividing a face
+  // in index : geometry index
+  // in face  : face index
   std::vector<std::set<unsigned>> getPaths(int index, int face);
 
   // number of points in geometry
@@ -33,4 +37,19 @@ class Intersections
 
   // get all points from intersection
   void getPoints(Eigen::MatrixXd &points);
+
+  // get     : get intermediate geometries
+  // out V   : all verticies
+  // out F1o : faces of geometry 1 outside
+  // out F1i : faces of geometry 1 inside
+  // out F2o : faces of geometry 2 outside
+  // out F2i : faces of geometry 2 inside
+  void get(MatrixXd V, MatrixXi F1o, MatrixXi F1i, MatrixXi F2o, MatrixXi F2i);
+
+  // faceInfo : info of faces
+  // in index : geometry index
+  // out Fi   : faces inside
+  // out Fo   : faces outside
+  // out Ft   : faces intersection
+  void faceInfo(int index, std::set<int> &Fi, std::set<int> &Fo, std::set<int> &Ft); 
 };

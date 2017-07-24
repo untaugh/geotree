@@ -90,6 +90,12 @@ namespace Calc
 		 unsigned int &s1, unsigned int &s2)
   {
     int i;
+
+    std::cout << "F " << F.rows() << std::endl;
+    std::cout << "f1 " << f1 << std::endl;
+    std::cout << "f2 " << f2 << std::endl;
+    std::cout << "s1 " << s1 << std::endl;
+    std::cout << "s2 " << s2 << std::endl;
     
     for (i=0; i<3; i++)
       {
@@ -117,6 +123,58 @@ namespace Calc
       }
   }
 
+  bool getIntersection(MatrixXd F, MatrixXd segment, Vector3d &point)
+  {
+    // verticies of face
+    Vector3d p1 = F.row(0);
+    Vector3d p2 = F.row(1);
+    Vector3d p3 = F.row(2);
+
+    // verticies of segment
+    Vector3d s1 = segment.row(0);
+    Vector3d s2 = segment.row(1);
+    
+    // normal
+    Vector3d n = Calc::normal(p1, p2, p3);
+
+    // calculate u and w
+    Vector3d u = s2 - s1;
+    Vector3d w = s1 - p1;
+
+    // calculate D and N
+    float D = n.dot(u);
+    float N = -n.dot(w);
+
+    // is segment parallell to plane
+    if (D == 0)
+      {
+	return false;
+      }
+  
+    float sI = N/D;
+    
+    //std::cout << "sI " << sI << std::endl;
+  
+    // is segment outside plane
+    if (sI < 0.0 || sI > 1.0)
+      {
+	return false;
+      }
+
+    // calulate point of inersection
+    point = s1 + sI * u;
+    
+    // is point outisde triangle
+    if(inside(p1, p2, p3, point))
+      {
+	return true;
+      }
+    else
+      {
+	return false;
+      }
+  }
+  
   bool getIntersection(MatrixXd &V1, MatrixXi &F1,
 		       MatrixXd &V2, MatrixXi &F2,
 		       unsigned int f1,
@@ -189,45 +247,108 @@ namespace Calc
     return false;  
   }
 
-  void triangulate(const MatrixXd P, MatrixXi &F)
+  bool triangulate(const MatrixXd P, MatrixXi &F)
   {
+    // skip list
     std::set <int> skip;
 
-    Vector3d up = normal(P.row(0), P.row(1), P.row(2));
+    Vector3d up = -normal(P.row(0), P.row(1), P.row(2));
 
+    //std::cout << "up:" << up.transpose() << std::endl;
+    
     MatrixXi tmp = MatrixXi(P.rows(), 3);
 
     int count = 0;
-    
-    for (int i=0; i<P.rows()-2; i++)
-      {
-	Eigen::Vector3d p1 = P.row(i);
-	Eigen::Vector3d p2 = P.row(i+1);
-	Eigen::Vector3d p3 = P.row(i+2);
 
-	// are any points inside?
-	if ( inside(p1, p2, p3, P) )
-	  {	      
-	    std::cout << "a point is inside" << std::endl;
+    int i = 0;
+    int c = 0;
+    bool done = false;
+
+    int n1, n2, n3;
+    Eigen::Vector3d p1,p2,p3;
+    
+    while (!done)
+      {
+	//std::cout << "while:" <<  count << std::endl;
+	//std::cout << "skip:" <<  skip.size() << std::endl;
+
+	for (int s : skip)
+	  {
+	    //std::cout << s << ", ";	    
+	  }
+	//std::cout << std::endl;
+	if (c++ > 30)
+	  {
+	    return false;
+	  }
+	if (! Calc::next(P, i, skip))
+	  {
+	    //std::cout << "1" << std::endl;
+	    done = true;
+	    //continue;
+	  }
+	p1 = P.row(i);
+	n1 = i++;
+	
+	if (! Calc::next(P, i, skip))
+	  {
+	    //std::cout << "2" << std::endl;
+	    done = true;
+	    //continue;
+	  }
+	p2 = P.row(i);
+	n2 = i++;
+	
+	if (! Calc::next(P, i, skip))
+	  {
+	    //std::cout << "3" << std::endl;
+	    done = true;
+	    //continue;
+	  }
+	p3 = P.row(i);
+	n3 = i;
+
+	//std::cout << "n1 " << n1 << std::endl;
+	//std::cout << "n2 " << n2 << std::endl;
+	//std::cout << "n3 " << n3 << std::endl;
+
+	if (n1 == n3)
+	  {
+	    //std::cout << "n1 == n3 " << std::endl;
+	    done = true;
 	    continue;
 	  }
-
-	// is angle greater than 180?
-	if ( angle(p1,p2,p3,up) >= 180.0 )
+	// are any points inside?
+	if ( inside(p1, p2, p3, P) )
 	  {
-	    std::cout << "angle is greater than 180" << std::endl;
+	    //std::cout << "a point is inside" << std::endl;
+	    i = n2;
+	    continue;
+	  }
+	
+	double a = angle(p1,p2,p3,up);
+	//std::cout << "angle:" << a << std::endl;
+	// is angle greater than 180?
+	if ( a >= M_PI )
+	  {
+	    //std::cout << "angle is greater than 180" << std::endl;
+	    i = n2;
 	    continue;
 	  }
 
 	// create triangle
-	tmp.row(count++) = Vector3i(i, i+1, i+2);
+	tmp.row(count++) = Vector3i(n1, n2, n3);
 
+	//std::cout << "added:" <<  tmp.row(count-1)<< std::endl;
+	    
 	// skip point
-	skip.insert(i+2);
+	skip.insert(n2);
       }
 
-    std::cout << "count:" << count << std::endl;
+    //std::cout << "count:" << count << std::endl;
     F = tmp.block(0,0,count,3);
+
+    return true;
   }
   
   Vector3d normal(Vector3d v1, Vector3d v2, Vector3d v3)
@@ -245,7 +366,7 @@ namespace Calc
   }
 
   double distance(Vector3d v1a, Vector3d v1b, Vector3d v2a, Vector3d v2b)
-  {
+  { 
     // direction of segments
     Vector3d v1 = v1a - v1b;
     Vector3d v2 = v2a - v2b;
@@ -253,6 +374,22 @@ namespace Calc
     // vector perpendicular to both lines
     Vector3d n = v1.cross(v2);
 
+    // segments are parallell
+    if (n.norm() == 0.0)
+      {
+	Vector3d v3 = v1a - v2a; // line 1 to 2
+	Vector3d v4 = v1.normalized() * v3.dot(v1.normalized()); // project v3 to line
+	Vector3d v5 = v1a + v4;
+	//std::cout << v3 << ", " << v4 << std::endl;
+	if (v1.norm() < v4.norm())
+	  {
+	    return 2.0;
+	  }
+	
+	return (v4 - v2a).norm();
+	//return -1;
+      }
+    
     // nearest points
     Vector3d n2 = v2.cross(n);
     Vector3d n1 = v1.cross(n);
@@ -372,7 +509,109 @@ namespace Calc
       {
 	angle += M_PI * 2;
       }
+
+    //std::cout << "angle:" << angle << std::endl;
+    //std::cout << v1.transpose() << std::endl;
+    //std::cout << v2.transpose() << std::endl;
+    //std::cout << v3.transpose() << std::endl;
     
     return angle;
+  }
+
+  bool next(MatrixXd P, int &i, std::set<int> skip)
+  {
+    int count = P.rows();
+    int rows = P.rows();
+
+    i = i % rows;
+
+    while (skip.count(i%rows))
+      {
+	i++;
+	
+	if (i >= P.rows())
+	  {
+	    i = 0;
+	  }
+	
+	if (! count--)
+	  {
+	    return false;
+	  }
+      }
+
+    return true;
+  }
+
+  // all connected to this point
+  static std::set <int> connectedFace(MatrixXi F, std::set <int> skip, Vector3i f)
+  {
+    std::set <int> list;
+
+    for (int i=0; i<F.rows(); i++)
+      {
+	if ( !skip.count(i))
+	  {	    
+	    for (int j=0; j<3; j++)
+	      {
+		for (int k=0; k<3; k++)
+		  {	       
+		    if ( F.row(i)[j] == f[k])
+		      {
+			list.insert(i);
+		      }
+		  }
+	      }
+	  }
+      }
+    return list;
+  }
+      
+  std::set <int> connected(MatrixXi F, std::set <int> skip, int index)
+  {
+    std::set <int> list, ret;
+
+    bool done = false;
+	    
+    list.insert(index);
+
+    while(!done)
+      {
+	done = true;
+	for (int i : list)
+	  {
+	    if (! skip.count(i))
+	      {
+		done = false;
+		skip.insert(i);
+		ret = connectedFace(F, skip, F.row(i));
+		list.insert(ret.begin(), ret.end());
+	      }    
+	  }
+      }
+
+    return list;
+  }
+
+  void boundingBox(MatrixXd V, MatrixXi F, Vector3d &B1, Vector3d &B2)
+  {
+    // initial values
+    B1 = V.row(F.row(0)[0]);
+    B2 = V.row(F.row(0)[0]);
+
+    for (int i=0; i<F.rows(); i++)
+      {
+	// verticies in face
+	for (int j=0; j<3; j++)
+	  {
+	    Vector3d v = V.row(F.row(i)[j]);
+	    // elements of vertex
+	    for (int k=0; k<3; k++)
+	      {
+		B1[k] = std::min(B1[k], v[k]);
+		B2[k] = std::max(B2[k], v[k]);
+	      }
+	  }
+      }
   }
 }
