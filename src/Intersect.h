@@ -30,7 +30,7 @@ class Intersections
   // getPaths : get all paths dividing a face
   // in index : geometry index
   // in face  : face index
-  std::vector<std::set<unsigned>> getPaths(int index, int face);
+  std::vector<std::vector<int>> getPaths(int index, int face);
 
   // number of points in geometry
   int numPoints(int index);
@@ -51,5 +51,14 @@ class Intersections
   // out Fi   : faces inside
   // out Fo   : faces outside
   // out Ft   : faces intersection
-  void faceInfo(int index, std::set<int> &Fi, std::set<int> &Fo, std::set<int> &Ft); 
+  void faceInfo(int index, std::set<int> &Fi, std::set<int> &Fo, std::set<int> &Ft);
+
+  // divide  : divide a face and triangulate
+  // in int  : index of geometry
+  // in face : index of face
+  // out F1  : resulting faces
+  // out F2  : resulting faces
+  void divide(int index, int face, MatrixXi &F1, MatrixXi &F2);
+
+  
 };

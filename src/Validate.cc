@@ -98,8 +98,8 @@ bool Geotree::Validate::geometry(Geometry g)
     {
       s.insert(S.row(i)[0]);
       s.insert(S.row(i)[1]);
-      std::cout << "S " << S.row(i)[0] << std::endl;
-      std::cout << "S " << S.row(i)[1] << std::endl;
+      //std::cout << "S " << S.row(i)[0] << std::endl;
+      //std::cout << "S " << S.row(i)[1] << std::endl;
     }
   for (int i=0; i<g.F.rows(); i++)    
     {
@@ -110,14 +110,14 @@ bool Geotree::Validate::geometry(Geometry g)
 
   for (int i: s)
     {
-      std::cout << "s " << i << std::endl;
+      //std::cout << "s " << i << std::endl;
     }
   for (int i: f)
     {
-      std::cout << "f " << i << std::endl;
+      //std::cout << "f " << i << std::endl;
     }
-  std::cout << s.size() << std::endl;
-  std::cout << g.F.size() << std::endl;
+  //std::cout << s.size() << std::endl;
+  //  std::cout << g.F.size() << std::endl;
   
   
   return true;

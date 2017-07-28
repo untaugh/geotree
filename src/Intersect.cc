@@ -103,66 +103,105 @@ void Intersections::add(int index, int plane, Vector2i segment, Vector3d point)
   this->I.push_back(is);  
 }
 
-std::vector<std::set<unsigned>> Intersections::getPaths(int index, int face)
-{  
-  std::vector<std::set<unsigned>> is;
+std::vector<std::vector<int>> Intersections::getPaths(int index, int face)
+{
+  std::vector<std::vector<int>> paths;
+  std::vector<int> path;
 
-  std::set<unsigned> path;
-
-  std::vector<Intersect> ipath;
-
-  Intersect intersect_prev;
-
-  int count = 0;
+  int segment = -1;
+  int segment_start = -1;
   
   // get start point
-  for(Intersect i : this->I)
+  for (int i=0; i<this->I.size(); i++)
     {
-      if ( (i.segment[0] == face || i.segment[1] == face) && i.index != index)
+      Intersect is = this->I[i];
+      
+      if ( (is.segment[0] == face || is.segment[1] == face)
+	   && is.index != index )
 	{
-	  ipath.push_back(i);
-	  intersect_prev = i;
-	  path.insert(count);
+	  std::cout << "start " << i << std::endl;
+	  path.push_back(i);
 	  break;
 	}
-      count++;
     }
 
-  count = 0;
-  
-  // midpoints
-  for(Intersect i : this->I)
+  if (path.size() == 0)
     {
-      if ( i.plane == face && i.index == index &&
-	    ( intersect_prev.plane == i.segment[0] ||
-	      intersect_prev.plane == i.segment[1] ))
+      // get start point inside
+      for (int i=0; i<this->I.size(); i++)
 	{
-	  ipath.push_back(i);
-	  intersect_prev = i;
-	  path.insert(count);
-	  break;	  
+	  Intersect is = this->I[i];
+      
+	  if ( is.plane == face && is.index == index )
+	    {
+	      std::cout << "start inside" << i << std::endl;
+	      path.push_back(i);
+	      break;
+	    }
 	}
-      count++;
     }
 
-  count = 0;
-  
-  // get end point
-  for(Intersect i : this->I)
+  // if no start found
+  if (path.size() == 0)
     {
-      if ( (i.segment[0] == face || i.segment[1] == face) && i.index != index &&
-	   ipath[0].plane != i.plane)
+      return paths;
+    }
+  
+  bool last = false;
+  
+  while(!last)
+    {
+      Intersect is_prev = this->I[path.back()];
+      Intersect is_start = this->I[path.front()];
+
+      last = true;
+      
+      // mid points
+      for (int i=0; i<this->I.size(); i++)
 	{
-	  ipath.push_back(i);
-	  path.insert(count);
-	  break;
+	  
 	}
-      count++;
+      
     }
 
-  is.push_back(path);
+  Intersect is_prev = this->I[path.back()];
+  Intersect is_start = this->I[path.front()];
+
+  for (int i=0; i<this->I.size(); i++)
+    {
+      Intersect is = this->I[i];
+      
+      if ( (is.segment[0] == face || is.segment[1] == face)
+	   && is.index != index)
+	{
+	  
+	  if (path.size() == 1 && is_start.plane == is.plane
+	      && (is.segment[0] != is_prev.segment[0] ||
+		  is.segment[1] != is_prev.segment[1]))
+	    {
+	      std::cout << "End " << i << std::endl;
+	      path.push_back(i);
+	      break;		  
+	    }
+
+	  if ( is_prev.segment[0] == is.plane || is_prev.segment[1] == is.plane )
+	    {
+	      if ( is_start.plane != is.plane )
+		{
+		  std::cout << "end " << i << std::endl;
+		  path.push_back(i);
+		  break;
+		}
+	    }
+	}
+    }
+
+  if (path.size() > 1)
+    {
+      paths.push_back(path);
+    }
   
-  return is;
+  return paths;
 }
 
 void Intersections::getPoints(Eigen::MatrixXd &points)
@@ -239,4 +278,34 @@ void Intersections::faceInfo(int index, std::set<int> &Fi, std::set<int> &Fo, st
   
   Fo = c1;
   Fi = c2;  
+}
+
+
+void Intersections::divide(int index, int face, MatrixXi &F1, MatrixXi &F2)
+{
+
+  int c = 0;
+  for (Intersect i: I )
+    {
+      std::cout << c++;
+      std::cout << " index: " << i.index;
+      std::cout << ", plane: " << i.plane;
+      std::cout << ", segment: " << i.segment.transpose();
+      std::cout << ", point: " << i.point.transpose() << std::endl;
+    }
+  
+  std::vector<std::vector<int>> ps = getPaths(index,face);
+
+  std::cout << "divide: " << face << std::endl;
+	
+  for (std::vector<int> s: ps)
+    {
+      std::cout << "path:" << std::endl;
+      for (int i: s)
+	{
+	  std::cout << "p " << i
+		    << ", " << this->I[i].plane
+		    << ", " << this->I[i].segment.transpose() << std::endl;
+	}
+    }
 }

@@ -16,8 +16,8 @@ namespace {
   TEST_F(IntersectionTest, basic)
   {
     Intersections * I = new Intersections();
-    std::vector<std::set<unsigned>> paths;
-    std::set<unsigned> path;
+    std::vector<std::vector<int>> paths;
+    std::vector<int> path;
 
     I->add(0, 0, Vector2i(3,4), Vector3d(1,1,0));
     I->add(1, 3, Vector2i(0,1), Vector3d(1,0,0));
@@ -32,6 +32,8 @@ namespace {
     paths = I->getPaths(0,0);
     path = {1,0,2};
     EXPECT_EQ(paths[0], path);
+    path = {1,2,0};
+    EXPECT_NE(paths[0], path);
 
     paths = I->getPaths(1,3);
     path = {0,1,3};
@@ -49,23 +51,27 @@ namespace {
   TEST_F(IntersectionTest, test1)
   {
     Intersections * I = new Intersections();
-    std::vector<std::set<unsigned>> paths;
-    std::set<unsigned> path;
+    std::vector<std::vector<int>> paths;
+    std::vector<int> path;
 
     I->add(1, 1, Vector2i(1,2), Vector3d(5,0,0));
     I->add(0, 1, Vector2i(0,1), Vector3d(4,0,0));
     I->add(1, 2, Vector2i(2,3), Vector3d(3,0,0));
     I->add(0, 2, Vector2i(1,2), Vector3d(2,0,0));
     I->add(0, 3, Vector2i(2,3), Vector3d(1,0,0));
+    I->add(0, 4, Vector2i(9,8), Vector3d(9,0,0));
+    I->add(0, 4, Vector2i(8,11), Vector3d(7,0,0));
 
     // test numPoints
-    EXPECT_EQ(I->numPoints(0), 3);
+    EXPECT_EQ(I->numPoints(0), 5);
     EXPECT_EQ(I->numPoints(1), 2);
 
     // test getPaths
     paths = I->getPaths(1,1);
     path = {1,0,3};
     EXPECT_EQ(paths[0], path);
+    path = {1,3,0};
+    EXPECT_NE(paths[0], path);
 
     paths = I->getPaths(1,2);
     path = {3,2,4};
@@ -75,10 +81,20 @@ namespace {
     path = {0,3,2};
     EXPECT_EQ(paths[0], path);
 
+    paths = I->getPaths(1,8);
+    path = {5,6};
+    EXPECT_EQ(paths[0], path);
+
+    paths = I->getPaths(1,11);
+    EXPECT_EQ(paths.size(), 0);
+
+    paths = I->getPaths(1,120);
+    EXPECT_EQ(paths.size(), 0);
+    
     // test getPoints
     Eigen::MatrixXd points;
-    Eigen::MatrixXd points_exp = Eigen::MatrixXd(5,3);
-    points_exp << 5,0,0, 4,0,0, 3,0,0, 2,0,0, 1,0,0;
+    Eigen::MatrixXd points_exp = Eigen::MatrixXd(7,3);
+    points_exp << 5,0,0, 4,0,0, 3,0,0, 2,0,0, 1,0,0, 9,0,0, 7,0,0;
     I->getPoints(points);    
     EXPECT_EQ(points, points_exp);
   }
@@ -90,8 +106,8 @@ namespace {
 
     // create two cube geometries
     CubeNode * c1 = new CubeNode(10,10,10);
-    CubeNode * c2 = new CubeNode(10,5,5);
-    TranslateNode * t = new TranslateNode(1,1,1);
+    CubeNode * c2 = new CubeNode(10,1,1);
+    TranslateNode * t = new TranslateNode(1,1,8);
 
     t->add(c2);
     t->build();
@@ -114,6 +130,14 @@ namespace {
     EXPECT_EQ(Ft.size(), 2);
     EXPECT_EQ(F_tot, F_exp);
 
+    // divide faces
+    Eigen::MatrixXi F1,F2;
+    
+    for(int f : Ft)
+      {
+	I->divide(0, f, F1, F2);
+      }
+
     Fi.clear(); Fo.clear(); Ft.clear();
     I->faceInfo(1, Fi, Fo, Ft);
     F_tot.insert(Fi.begin(), Fi.end());
@@ -123,6 +147,12 @@ namespace {
     EXPECT_EQ(Fo.size(), 2);
     EXPECT_EQ(Ft.size(), 8);
     EXPECT_EQ(F_tot, F_exp);
+
+    // divide faces
+    for(int f : Ft)
+      {
+	I->divide(1, f, F1, F2);
+      }
   }
 
   // get faces of outside/inside/intersection
@@ -193,9 +223,10 @@ namespace {
     Eigen::MatrixXi F2o;
     
     I->get(V, F1o, F1i, F2o, F2i);
+    
   }
 
-  TEST_F(IntersectionTest, divide)
+  TEST_F(IntersectionTest, DISABLED_invalidGeometries)
   {
     Intersections * I = new Intersections();
 
@@ -219,7 +250,7 @@ namespace {
     //EXPECT_EQ(I->numPoints(0), 3);
     //EXPECT_EQ(I->numPoints(1), 3);
 
-    
+
   }
 
 }
