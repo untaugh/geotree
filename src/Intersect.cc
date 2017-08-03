@@ -1,6 +1,7 @@
 #include "Intersect.h"
 #include "Calc.h"
 #include "Validate.h"
+#include <algorithm>
 #include <iostream>
 
 void Intersections::add(Geometry &g1, Geometry &g2)
@@ -80,6 +81,32 @@ void Intersections::add(Geometry &g1, Geometry &g2)
 	    }
 	}
     }
+
+  // add face offset for second geometry
+  int offset = g1.F.rows();
+  
+  for (int i=0; i< this->I.size(); i++)
+    {
+      if (this->I[i].index == 1)
+	{
+	  this->I[i].plane += offset;
+	}
+      else
+	{
+	  this->I[i].segment[0] += offset;
+	  this->I[i].segment[1] += offset;
+	}
+    }
+
+  // add to gx
+  MatrixXd V; 
+  MatrixXi F = MatrixXi(0, 3); 
+  this->getPoints(V);
+  Geometry G_is(V,F); 
+    
+  this->gx.add(this->g1);
+  this->gx.add(this->g2);
+  this->gx.add(G_is);
 }
 
 int Intersections::numPoints(int index)
@@ -100,7 +127,146 @@ void Intersections::add(int index, int plane, Vector2i segment, Vector3d point)
 {
   Intersect is = {index, plane, segment, point};
 
-  this->I.push_back(is);  
+  this->I.push_back(is);
+}
+
+bool Intersections::getPathsNext(int index, int face, std::vector<int> &path, std::vector <Intersect> I)
+{
+  // get first point
+  if (path.size() == 0)
+    {
+      // find an edge point
+      for (int i=0; i<I.size(); i++)
+	{
+	  if ( (I[i].segment[0] == face || I[i].segment[1] == face) &&
+	       index != I[i].index )
+	    {
+	      std::cout << "Start edge: " << i << std::endl;
+	      path.push_back(i);
+	      return true;
+	    }
+	}
+
+      // find an inner start point
+      for (int i=0; i<I.size(); i++)
+	{
+	  if ( I[i].plane == face && I[i].index == index)
+	    {
+	      std::cout << "Start inner: " << i << std::endl;
+	      path.push_back(i);
+	      return true;
+	    }
+	}
+
+      // no start point found
+      std::cout << "No start found." << std::endl;
+      return false;      
+    }
+
+  int path_prev = path.back();
+  int path_prev_prev = -1;
+  std::cout << "Last point: " << path_prev << std::endl;
+  if (path.size() > 1)
+    {
+      path_prev_prev = path[path.size()-2];
+      std::cout << "Point before last: " << path_prev_prev << std::endl;
+    }
+  int plane_cut; // face of cutting plane
+
+  // last point was an inner point
+  if (I[path_prev].index == index)
+    {
+      // no second point, go any direction
+      if (path_prev_prev < 0)
+	{
+	  std::cout << "No second point." << std::endl;
+	  plane_cut = I[path_prev].segment[0];
+	}
+      else
+	{
+	  // point before last was inner
+	  if (I[path_prev_prev].index == index)
+	    {
+	      // don't get face in last and before last 
+	      if ( I[path_prev_prev].segment[0] == I[path_prev].segment[0] ||
+		   I[path_prev_prev].segment[1] == I[path_prev].segment[0])
+		{
+		  plane_cut = I[path_prev].segment[1];
+		}
+	      else if ( I[path_prev_prev].segment[0] == I[path_prev].segment[1] ||
+			I[path_prev_prev].segment[1] == I[path_prev].segment[1])
+		{
+		  plane_cut = I[path_prev].segment[0];
+		}
+	      else
+		{
+		  std::cout << "Error: incorrect iteration of path." << std::endl;
+		}
+	      
+	    }
+	  else
+	    {
+	      if ( I[path_prev_prev].plane == I[path_prev].segment[0] )
+		{
+		  plane_cut = I[path_prev].segment[1];
+		}
+	      else if ( I[path_prev_prev].plane == I[path_prev].segment[1] )
+		{
+		  plane_cut = I[path_prev].segment[0];		  
+		}
+	      else
+		{
+		  std::cout << "Error: incorrect iteration of path." << std::endl;
+		}
+	    }
+      
+	}
+    }
+  else
+    {
+      plane_cut = I[path_prev].plane;
+    }
+  std::cout << "Cutting plane: " << plane_cut << std::endl;	
+  
+  // get mid or end point
+  for (int i=0; i<I.size(); i++)
+    {
+      // point exists
+      if ( std::find(path.begin(), path.end(), i) != path.end() )
+	{
+	  continue;
+	}
+      
+      if ( (I[i].segment[0] == plane_cut || I[i].segment[1] == plane_cut ) &&
+	   I[i].index == index && I[i].plane == face)
+	{
+	  std::cout << "Adding mid: " << i << std::endl;
+	  path.push_back(i);
+	  return true;
+	}
+    }
+
+  // get end point on edge
+  for (int i=0; i<I.size(); i++)
+    {
+      // point exists
+      if ( std::find(path.begin(), path.end(), i) != path.end() )
+	{
+	  continue;
+	}
+      
+      if ( (I[i].segment[0] == face || I[i].segment[1] == face) &&
+	   index != I[i].index && I[i].plane == plane_cut)
+	{
+	  std::cout << "Adding end: " << i << std::endl;
+	  path.push_back(i);
+	  return true;
+	}
+    }
+
+  std::cout << "No point found." << std::endl;
+  return false;
+  
 }
 
 std::vector<std::vector<int>> Intersections::getPaths(int index, int face)
@@ -108,99 +274,18 @@ std::vector<std::vector<int>> Intersections::getPaths(int index, int face)
   std::vector<std::vector<int>> paths;
   std::vector<int> path;
 
-  int segment = -1;
-  int segment_start = -1;
-  
-  // get start point
-  for (int i=0; i<this->I.size(); i++)
+  bool ret = true;
+
+  while (ret)
     {
-      Intersect is = this->I[i];
-      
-      if ( (is.segment[0] == face || is.segment[1] == face)
-	   && is.index != index )
-	{
-	  std::cout << "start " << i << std::endl;
-	  path.push_back(i);
-	  break;
-	}
+      ret = getPathsNext(index, face, path, this->I);
     }
 
-  if (path.size() == 0)
-    {
-      // get start point inside
-      for (int i=0; i<this->I.size(); i++)
-	{
-	  Intersect is = this->I[i];
-      
-	  if ( is.plane == face && is.index == index )
-	    {
-	      std::cout << "start inside" << i << std::endl;
-	      path.push_back(i);
-	      break;
-	    }
-	}
-    }
-
-  // if no start found
-  if (path.size() == 0)
-    {
-      return paths;
-    }
-  
-  bool last = false;
-  
-  while(!last)
-    {
-      Intersect is_prev = this->I[path.back()];
-      Intersect is_start = this->I[path.front()];
-
-      last = true;
-      
-      // mid points
-      for (int i=0; i<this->I.size(); i++)
-	{
-	  
-	}
-      
-    }
-
-  Intersect is_prev = this->I[path.back()];
-  Intersect is_start = this->I[path.front()];
-
-  for (int i=0; i<this->I.size(); i++)
-    {
-      Intersect is = this->I[i];
-      
-      if ( (is.segment[0] == face || is.segment[1] == face)
-	   && is.index != index)
-	{
-	  
-	  if (path.size() == 1 && is_start.plane == is.plane
-	      && (is.segment[0] != is_prev.segment[0] ||
-		  is.segment[1] != is_prev.segment[1]))
-	    {
-	      std::cout << "End " << i << std::endl;
-	      path.push_back(i);
-	      break;		  
-	    }
-
-	  if ( is_prev.segment[0] == is.plane || is_prev.segment[1] == is.plane )
-	    {
-	      if ( is_start.plane != is.plane )
-		{
-		  std::cout << "end " << i << std::endl;
-		  path.push_back(i);
-		  break;
-		}
-	    }
-	}
-    }
-
+  // one point is no path
   if (path.size() > 1)
     {
       paths.push_back(path);
     }
-  
   return paths;
 }
 
@@ -236,6 +321,12 @@ void Intersections::faceInfo(int index, std::set<int> &Fi, std::set<int> &Fo, st
 	}
     }
 
+  std::cout << "Ft: " << std::endl;
+  for (int i : Ft)
+    {
+      std::cout << i << std::endl;
+    }
+
   // more faces
   int starti;
   std::set <int> c1, c2;
@@ -250,6 +341,8 @@ void Intersections::faceInfo(int index, std::set<int> &Fi, std::set<int> &Fo, st
       F = g2.F;
     }
 
+  F = gx.F;
+
   // first set
   for (starti=0; starti<F.rows(); starti++)
     {
@@ -259,7 +352,7 @@ void Intersections::faceInfo(int index, std::set<int> &Fi, std::set<int> &Fo, st
 	}
     }
   
-  c1 = Calc::connected(g1.F, Ft, starti);
+  c1 = Calc::connected(F, Ft, starti);
 
   // second set
   for (starti=0; starti<F.rows(); starti++)
@@ -273,7 +366,7 @@ void Intersections::faceInfo(int index, std::set<int> &Fi, std::set<int> &Fo, st
   // second set not found
   if (starti < F.rows())
     {
-      c2 = Calc::connected(g1.F, Ft, starti);
+      c2 = Calc::connected(F, Ft, starti);
     }
   
   Fo = c1;
@@ -294,18 +387,136 @@ void Intersections::divide(int index, int face, MatrixXi &F1, MatrixXi &F2)
       std::cout << ", point: " << i.point.transpose() << std::endl;
     }
   
-  std::vector<std::vector<int>> ps = getPaths(index,face);
+  std::vector<std::vector<int>> paths = getPaths(index,face);
 
   std::cout << "divide: " << face << std::endl;
 	
-  for (std::vector<int> s: ps)
+  for (std::vector<int> path: paths)
     {
       std::cout << "path:" << std::endl;
-      for (int i: s)
+
+      int start = path.front();
+      int end = path.back();
+      
+      MatrixXd P1,P2;
+      getPoints(P1);	      
+      P2 = P1;
+      
+      // path from edge to edge
+      if ( I[start].index != index && I[end].index != index)
 	{
-	  std::cout << "p " << i
-		    << ", " << this->I[i].plane
-		    << ", " << this->I[i].segment.transpose() << std::endl;
+	  // start and end on same edge
+	  if (I[start].segment == I[end].segment)
+	    {
+	      std::cout << "Start end on same edge." << std::endl;
+	    }
+	  else
+	    {
+	      std::cout << "Edge to edge" << std::endl;
+	      
+	      MatrixXd V;
+	      MatrixXi F;
+	      int sharedVertex, singleVertex1, singleVertex2;
+	      unsigned int start1, start2, end1, end2;
+
+	      if (index == 0)
+		{
+		  V = g1.V;
+		  F = g1.F;
+		}
+	      else
+		{
+		  V = g2.V;
+		  F = g2.F;
+		}
+	      
+	      Calc::toSegment(F, I[start].segment[0], I[start].segment[1],
+			      start1, start2);
+	      Calc::toSegment(F, I[end].segment[0], I[end].segment[1],
+			      end1, end2);
+	      
+	      if (start1 == end1)
+		{
+		  sharedVertex = start1;
+		  singleVertex1 = end2;
+		  singleVertex2 = start2;
+		}
+	      else if (start1 == end2)
+		{
+		  sharedVertex = start1;
+		  singleVertex1 = end1;
+		  singleVertex2 = start2;
+		}
+	      else if (start2 == end1)
+		{
+		  sharedVertex = start2;
+		  singleVertex1 = end2;
+		  singleVertex2 = start1;
+		}
+	      else if (start2 == end2)
+		{
+		  sharedVertex = start2;
+		  singleVertex1 = end1;
+		  singleVertex2 = start1;
+		}
+	      else
+		{
+		  std::cout << "Invalid path." << std::endl; 		  
+		}
+	      	      
+	      // path1 is path + shared vertex
+	      P1.conservativeResize(P1.rows()+1, NoChange);
+	      P1.row(P1.rows()-1) << V.row(sharedVertex);
+	      //path + 
+	      std::cout << P1 << std::endl;
+
+	      // path2 is path + other 
+	      P2.conservativeResize(P2.rows()+2, NoChange);
+	      P2.row(P2.rows()-2) << V.row(singleVertex1);
+	      P2.row(P2.rows()-1) << V.row(singleVertex2);
+	      std::cout << P2 << std::endl;
+	    }
+	}
+      // path inside face
+      else if (I[start].index == index && I[end].index == index)
+	{
+	  std::cout << "Path inside face." << std::endl;
+
+	  //MatrixXd V;
+	  //MAtrixXi F;
+	  
+	  // if (index == 0)
+	  //   {
+	  //     V = g1.V;
+	  //     F = g1.F;
+	  //   }
+	  // else
+	  //   {
+	  //     V = g2.V;
+	  //     F = g2.F;
+	  //   }
+
+	  // find closest point
+	  // Vector3d p = V.row(F.row(face)[0]);
+	  // int closest;
+	  // double distance = I[path[0]];
+	    
+	  for (int i : path)
+	    {
+	      
+	    }
+	}
+      else
+	{
+	  std::cout << "Invalid path." << std::endl;
+	}
+      
+      for (int i: path)
+	{
+	  std::cout << i
+		    << " plane: " << this->I[i].plane
+		    << ", segment: " << this->I[i].segment.transpose()
+		    << " point: " << this->I[i].point.transpose() << std::endl;
 	}
     }
 }

@@ -247,16 +247,16 @@ namespace Calc
     return false;  
   }
 
-  bool triangulate(const MatrixXd P, MatrixXi &F)
+  bool triangulate(const MatrixXd V, const VectorXi P, MatrixXi &F)
   {
     // skip list
     std::set <int> skip;
 
-    Vector3d up = -normal(P.row(0), P.row(1), P.row(2));
+    Vector3d up = -normal(V.row(P[0]), V.row(P[1]), V.row(P[2]));
 
     //std::cout << "up:" << up.transpose() << std::endl;
     
-    MatrixXi tmp = MatrixXi(P.rows(), 3);
+    MatrixXi tmp = MatrixXi(P.size(), 3);
 
     int count = 0;
 
@@ -287,7 +287,7 @@ namespace Calc
 	    done = true;
 	    //continue;
 	  }
-	p1 = P.row(i);
+	p1 = V.row(P[i]);
 	n1 = i++;
 	
 	if (! Calc::next(P, i, skip))
@@ -296,7 +296,7 @@ namespace Calc
 	    done = true;
 	    //continue;
 	  }
-	p2 = P.row(i);
+	p2 = V.row(P[i]);
 	n2 = i++;
 	
 	if (! Calc::next(P, i, skip))
@@ -305,7 +305,7 @@ namespace Calc
 	    done = true;
 	    //continue;
 	  }
-	p3 = P.row(i);
+	p3 = V.row(P[i]);
 	n3 = i;
 
 	//std::cout << "n1 " << n1 << std::endl;
@@ -319,7 +319,7 @@ namespace Calc
 	    continue;
 	  }
 	// are any points inside?
-	if ( inside(p1, p2, p3, P) )
+	if ( inside(p1, p2, p3, V) )
 	  {
 	    //std::cout << "a point is inside" << std::endl;
 	    i = n2;
@@ -518,10 +518,10 @@ namespace Calc
     return angle;
   }
 
-  bool next(MatrixXd P, int &i, std::set<int> skip)
+  bool next(VectorXi P, int &i, std::set<int> skip)
   {
-    int count = P.rows();
-    int rows = P.rows();
+    int count = P.size();
+    int rows = P.size();
 
     i = i % rows;
 
@@ -529,7 +529,7 @@ namespace Calc
       {
 	i++;
 	
-	if (i >= P.rows())
+	if (i >= rows)
 	  {
 	    i = 0;
 	  }

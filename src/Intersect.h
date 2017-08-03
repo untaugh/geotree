@@ -17,10 +17,14 @@ typedef struct Intersect {
 class Intersections
 {
  public:
+  // intersections between gemetries
   std::vector <Intersect> I;
 
-  Geometry g1, g2;
-
+  // g1 : input geometry 1
+  // g2 : input geometry 2
+  // gx : resulting geometry, g1 + g2 + (intersections)
+  Geometry g1, g2, gx;
+  
   // intersections from geometries
   void add(Geometry &g1, Geometry &g2);
   
@@ -31,7 +35,7 @@ class Intersections
   // in index : geometry index
   // in face  : face index
   std::vector<std::vector<int>> getPaths(int index, int face);
-
+  static bool getPathsNext(int index, int face, std::vector<int> &path, std::vector <Intersect> I);
   // number of points in geometry
   int numPoints(int index);
 

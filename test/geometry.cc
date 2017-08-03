@@ -90,7 +90,7 @@ namespace {
     int g1Vrows = g1->V.rows();
     int g1Frows = g1->F.rows();
     
-    g1->add(g2);
+    g1->add(*g2);
     
     
     EXPECT_EQ(g1Vrows + g2->V.rows(),  g1->V.rows());

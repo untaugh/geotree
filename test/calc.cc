@@ -197,60 +197,70 @@ namespace {
   // triangulate path
   TEST_F(CalcTest, TriangulateBasic)
   {
-    Eigen::MatrixXd V = Eigen::MatrixXd(4,3);
-    Eigen::MatrixXi P;
-    Eigen::MatrixXi P_exp = Eigen::MatrixXi(2,3);
+    Eigen::MatrixXd V = Eigen::MatrixXd(4,3); // verticies
+    Eigen::VectorXi P = Eigen::VectorXi(4); // path
+    Eigen::MatrixXi F; // resulting faces
+    Eigen::MatrixXi F_exp = Eigen::MatrixXi(2,3); // expected
     
-    V << 0,0,0, 1,0,0, 0.7,0.7,0, 0,1,0;    
-    P_exp << 0,1,2, 2,3,0;
-    EXPECT_TRUE(Calc::triangulate(V, P));
-    EXPECT_EQ(P, P_exp);
+    V << 0,0,0, 1,0,0, 0.7,0.7,0, 0,1,0;
+    P << 0,1,2,3;
+    F_exp << 0,1,2, 2,3,0;
+    EXPECT_TRUE(Calc::triangulate(V, P, F));
+    EXPECT_EQ(F, F_exp);
 
     // reverse
     V << 0,0,0, 0,1,0, 0.7,0.7,0, 1,0,0;
-    P_exp << 0,1,2, 2,3,0;
-    EXPECT_TRUE(Calc::triangulate(V, P));
-    EXPECT_EQ(P, P_exp);
+    F_exp << 0,1,2, 2,3,0;
+    EXPECT_TRUE(Calc::triangulate(V, P, F));
+    EXPECT_EQ(F, F_exp);
 
     // X plane
     V << 0,0,0, 0,1,0, 0.0,0.7,0.3, 0,0,1.6;
-    P_exp << 0,1,2, 2,3,0;
-    EXPECT_TRUE(Calc::triangulate(V, P));
-    EXPECT_EQ(P, P_exp);
+    F_exp << 0,1,2, 2,3,0;
+    EXPECT_TRUE(Calc::triangulate(V, P, F));
+    EXPECT_EQ(F, F_exp);
   }
 
   // triangulate path
   TEST_F(CalcTest, TriangulateSkip)
   {
-    Eigen::MatrixXd V = Eigen::MatrixXd(4,3);
-    Eigen::MatrixXi P;
-    Eigen::MatrixXi P_exp = Eigen::MatrixXi(2,3);
+    Eigen::MatrixXd V = Eigen::MatrixXd(4,3); // verticies
+    Eigen::VectorXi P = Eigen::VectorXi(4); // path
+    Eigen::MatrixXi F;
+    Eigen::MatrixXi F_exp = Eigen::MatrixXi(2,3);
 
     V << 1,0,0, 0.0,0.0,0, 0.0,1.0,0, 0.1,0.1,0;
-    P_exp << 1,2,3, 3,0,1;
-    Calc::triangulate(V, P);
-    EXPECT_EQ(P, P_exp);
+    P << 0,1,2,3;
+    F_exp << 1,2,3, 3,0,1;
+    EXPECT_TRUE(Calc::triangulate(V, P, F));
+    EXPECT_EQ(F, F_exp);
   }
 
   // triangulate invalid
   TEST_F(CalcTest, TriangulateInvalid)
   {
     Eigen::MatrixXd V = Eigen::MatrixXd(4,3);
-    Eigen::MatrixXi P;
-    Eigen::MatrixXi P_exp = Eigen::MatrixXi(2,3);
+    Eigen::VectorXi P = Eigen::VectorXi(4); // path
+    Eigen::MatrixXi F;
+    Eigen::MatrixXi F_exp = Eigen::MatrixXi(2,3);
 
     V << 0,0,0, 1,0,0, 1,1,0, 0,-1,0;    
-    P_exp << 0,1,2, 2,3,0;
-    bool r = Calc::triangulate(V, P);
+    P << 0,1,2,3;
+    F_exp << 0,1,2, 2,3,0;
+    bool r = Calc::triangulate(V, P, F);
     EXPECT_FALSE(r);
   }
+
   // triangulate path
   TEST_F(CalcTest, TriangulateLonger)
   {
     Eigen::MatrixXd V = Eigen::MatrixXd(10,3);
-    Eigen::MatrixXi P;
-    Eigen::MatrixXi P_exp = Eigen::MatrixXi(8,3);
+    Eigen::VectorXi P = Eigen::VectorXi(10); // path
+    Eigen::MatrixXi F;
+    Eigen::MatrixXi F_exp = Eigen::MatrixXi(8,3);
 
+    P << 0,1,2,3,4,5,6,7,8,9;
+    
     V << 0.0, 0.0, 0.0,
       -0.1, 1.0, 0.0,
       0.1, 2.0, 0.0,
@@ -262,7 +272,7 @@ namespace {
       -1.1, -1.2, 0.0,
       -2.0, 0.3, 0.0;
 
-    P_exp << 0, 1, 2,
+    F_exp << 0, 1, 2,
       3, 4, 5,
       5, 6, 7,
       7, 8, 9,
@@ -271,8 +281,40 @@ namespace {
       0, 3, 5,
       5, 7, 0;
     
-    EXPECT_TRUE(Calc::triangulate(V, P));
-    EXPECT_EQ(P, P_exp);
+    EXPECT_TRUE(Calc::triangulate(V, P, F));
+    EXPECT_EQ(F, F_exp);
+  }
+
+  // triangulate path with hole
+  TEST_F(CalcTest, TriangulateHole)
+  {
+    Eigen::MatrixXd V = Eigen::MatrixXd(8,3);
+    Eigen::VectorXi P = Eigen::VectorXi(10); // path
+    Eigen::MatrixXi F;
+    Eigen::MatrixXi F_exp = Eigen::MatrixXi(8,3);
+
+    P << 0,1,2,3,4,5,6,7,4,3;
+    
+    V << 0.0, 0.0, 0.0,
+      2.0, 0.0, 0.0,
+      2.0, 2.0, 0.0,
+      0.0, 2.0, 0.0,
+      0.5, 1.5, 0.0,
+      1.5, 1.5, 0.0,
+      1.5, 0.5, 0.0,
+      0.5, 0.5, 0.0;
+
+    F_exp << 2, 3, 4,
+      7, 4, 3,
+      2, 4, 5,
+      7, 3, 0,
+      1, 2, 5,
+      6, 7, 0,
+      1, 5, 6,
+      6, 0, 1;
+
+    EXPECT_TRUE(Calc::triangulate(V, P, F));
+    //EXPECT_EQ(F, F_exp);
   }
 
   // normal for three points in 3d space
@@ -567,7 +609,7 @@ namespace {
   // next point
   TEST_F(CalcTest, nextPoint)
   {
-    Eigen::MatrixXd P = Eigen::MatrixXd(10,3);
+    Eigen::VectorXi P = Eigen::VectorXi(10);
     std::set<int> skip;
     int i;
 

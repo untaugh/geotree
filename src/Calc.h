@@ -59,35 +59,12 @@ namespace Calc
   // in f2 : indicies of face 2
   bool equal(Vector3i f1, Vector3i f2);
 
-  // divide : divide triangular by path into polygons
-  // in V        : verticies
-  // in F        : face
-  // in P        : path dividing face
-  // out P1      : resulting part 1
-  // out P2      : resulting part 2
-  //void divide(const MatrixXd V,
-  //	      const Vector3i F,
-  //	      const MatrixXi P,
-  //	      VectorXi P1,
-  //	      VectorXi P2);
-
-  // triangulate : divide triangular face by path and triangulate 
-  // in V        : verticies
-  // in F        : face
-  // in P        : path dividing face
-  // out F1      : resulting part 1
-  // out F2      : resulting part 2
-  //void triangulate(const MatrixXd V,
-  //		   const Vector3i F,
-  //		   const MatrixXi P,
-  //		   MatrixXi F1,
-  //		   MatrixXi F2);
-
   // triangulate : triangulate path in 3d space, points in one plane
   // ret         : true if successfull
-  // in P        : path
+  // in V        : verticies
+  // in P        : path indicies
   // out F       : face indicies
-  bool triangulate(const MatrixXd P, MatrixXi &F);
+  bool triangulate(const MatrixXd V, const VectorXi P, MatrixXi &F);
 
   // normal : get notmal for three points in 3d space
   // ret    : normal
@@ -130,9 +107,10 @@ namespace Calc
 
   // next    : next point in list
   // ret     : true if successfull
+  // in P    : List of points in path
   // out i   : start looking from index
   // in skip : skip these points
-  bool next(MatrixXd P, int &i, std::set<int> skip);
+  bool next(VectorXi P, int &i, std::set<int> skip);
 
   // connected : list face connected to this face
   // ret       : the list
