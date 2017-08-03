@@ -1,6 +1,6 @@
 #include "Calc.h"
 #include <iostream>
-#include <set>
+#include <Eigen/Dense>
 
 namespace Calc
 {
@@ -272,10 +272,10 @@ namespace Calc
 	//std::cout << "while:" <<  count << std::endl;
 	//std::cout << "skip:" <<  skip.size() << std::endl;
 
-	for (int s : skip)
-	  {
+	//for (int s : skip)
+	//{
 	    //std::cout << s << ", ";	    
-	  }
+	    //}
 	//std::cout << std::endl;
 	if (c++ > 30)
 	  {
@@ -379,7 +379,7 @@ namespace Calc
       {
 	Vector3d v3 = v1a - v2a; // line 1 to 2
 	Vector3d v4 = v1.normalized() * v3.dot(v1.normalized()); // project v3 to line
-	Vector3d v5 = v1a + v4;
+	//Vector3d v5 = v1a + v4;
 	//std::cout << v3 << ", " << v4 << std::endl;
 	if (v1.norm() < v4.norm())
 	  {

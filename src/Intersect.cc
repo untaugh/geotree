@@ -85,7 +85,7 @@ void Intersections::add(Geometry &g1, Geometry &g2)
   // add face offset for second geometry
   int offset = g1.F.rows();
   
-  for (int i=0; i< this->I.size(); i++)
+  for (unsigned i=0; i< this->I.size(); i++)
     {
       if (this->I[i].index == 1)
 	{
@@ -136,7 +136,7 @@ bool Intersections::getPathsNext(int index, int face, std::vector<int> &path, st
   if (path.size() == 0)
     {
       // find an edge point
-      for (int i=0; i<I.size(); i++)
+      for (unsigned i=0; i<I.size(); i++)
 	{
 	  if ( (I[i].segment[0] == face || I[i].segment[1] == face) &&
 	       index != I[i].index )
@@ -148,7 +148,7 @@ bool Intersections::getPathsNext(int index, int face, std::vector<int> &path, st
 	}
 
       // find an inner start point
-      for (int i=0; i<I.size(); i++)
+      for (unsigned i=0; i<I.size(); i++)
 	{
 	  if ( I[i].plane == face && I[i].index == index)
 	    {
@@ -229,7 +229,7 @@ bool Intersections::getPathsNext(int index, int face, std::vector<int> &path, st
   std::cout << "Cutting plane: " << plane_cut << std::endl;	
   
   // get mid or end point
-  for (int i=0; i<I.size(); i++)
+  for (unsigned i=0; i<I.size(); i++)
     {
       // point exists
       if ( std::find(path.begin(), path.end(), i) != path.end() )
@@ -247,7 +247,7 @@ bool Intersections::getPathsNext(int index, int face, std::vector<int> &path, st
     }
 
   // get end point on edge
-  for (int i=0; i<I.size(); i++)
+  for (unsigned i=0; i<I.size(); i++)
     {
       // point exists
       if ( std::find(path.begin(), path.end(), i) != path.end() )
@@ -501,10 +501,10 @@ void Intersections::divide(int index, int face, MatrixXi &F1, MatrixXi &F2)
 	  // int closest;
 	  // double distance = I[path[0]];
 	    
-	  for (int i : path)
-	    {
+	  // for (int i : path)
+	  //   {
 	      
-	    }
+	  //   }
 	}
       else
 	{
