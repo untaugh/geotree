@@ -88,7 +88,8 @@ namespace Calc
   // in v3  : vertex 3 of face
   // in p   : point to test
   bool inside(Vector3d v1, Vector3d v2, Vector3d v3, Vector3d p);
-
+  bool inside(Vector3d v1, Vector3d v2, Vector3d v3, MatrixXd V, VectorXi P);
+  
   // angle : angle between segments in radians from 0 to pi
   // ret   : angle in degrees
   // in v1  : point 1
@@ -125,4 +126,22 @@ namespace Calc
   // out B1      : point 1 of box
   // out B2      : point 2 of box
   void boundingBox(MatrixXd V, MatrixXi F, Vector3d &B1, Vector3d &B2);
+
+  // winding : winding number of path
+  // ret     : winding number
+  // in V    : list of verticies
+  // in P    : path
+  int winding(MatrixXd V, VectorXi P);
+
+  // crossing : crossing number of path
+  // ret      : crossing number
+  // in V     : list of verticies
+  // in P     : path
+  int crossing(MatrixXd V, VectorXi P);
+
+  // intersect : Does line and segment intersect
+  // ret       : true if yes
+  // in l1, l2 : line
+  // in s1, s2 : segment
+  bool intersect(Vector2d l1, Vector2d l2, Vector2d s1, Vector2d s2, int &wind);
 }

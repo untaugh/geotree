@@ -1,6 +1,7 @@
 #include "Calc.h"
 #include <iostream>
 #include <Eigen/Dense>
+#include "Log.h"
 
 namespace Calc
 {
@@ -249,11 +250,29 @@ namespace Calc
 
   bool triangulate(const MatrixXd V, const VectorXi P, MatrixXi &F)
   {
+
+    std::cout << "Triangulate:" << std::endl;
+
     // skip list
     std::set <int> skip;
 
     Vector3d up = -normal(V.row(P[0]), V.row(P[1]), V.row(P[2]));
 
+    // if number of crossings is odd
+    int winding = crossing(V,P);
+    std::cout << "cross: " << winding << std::endl;
+
+    if (winding > 0)
+      {
+	up = -up;
+      }
+    
+    // if (crossing(V,P) % 2)
+    //   {
+    // 	std::cout << "Crossing odd: " << crossing(V,P) << std::endl;	    
+    // 	up = -up;
+    //   }
+    
     //std::cout << "up:" << up.transpose() << std::endl;
     
     MatrixXi tmp = MatrixXi(P.size(), 3);
@@ -272,15 +291,16 @@ namespace Calc
 	//std::cout << "while:" <<  count << std::endl;
 	//std::cout << "skip:" <<  skip.size() << std::endl;
 
-	//for (int s : skip)
-	//{
+	for (int s : skip)
+	{
 	    //std::cout << s << ", ";	    
-	    //}
+	}
 	//std::cout << std::endl;
-	if (c++ > 30)
+	if (c++ > P.rows())
 	  {
 	    return false;
 	  }
+	
 	if (! Calc::next(P, i, skip))
 	  {
 	    //std::cout << "1" << std::endl;
@@ -308,9 +328,9 @@ namespace Calc
 	p3 = V.row(P[i]);
 	n3 = i;
 
-	//std::cout << "n1 " << n1 << std::endl;
-	//std::cout << "n2 " << n2 << std::endl;
-	//std::cout << "n3 " << n3 << std::endl;
+	std::cout << "n1 " << n1 << std::endl;
+	std::cout << "n2 " << n2 << std::endl;
+	std::cout << "n3 " << n3 << std::endl;
 
 	if (n1 == n3)
 	  {
@@ -319,9 +339,9 @@ namespace Calc
 	    continue;
 	  }
 	// are any points inside?
-	if ( inside(p1, p2, p3, V) )
+	if ( inside(p1, p2, p3, V, P) )
 	  {
-	    //std::cout << "a point is inside" << std::endl;
+	    std::cout << "a point is inside" << std::endl;
 	    i = n2;
 	    continue;
 	  }
@@ -331,18 +351,21 @@ namespace Calc
 	// is angle greater than 180?
 	if ( a >= M_PI )
 	  {
-	    //std::cout << "angle is greater than 180" << std::endl;
+	    std::cout << "angle is greater than 180" << std::endl;
 	    i = n2;
 	    continue;
 	  }
 
 	// create triangle
-	tmp.row(count++) = Vector3i(n1, n2, n3);
+	tmp.row(count++) = Vector3i(P[n1], P[n2], P[n3]);
 
-	//std::cout << "added:" <<  tmp.row(count-1)<< std::endl;
+	std::cout << "added:" <<  tmp.row(count-1)<< std::endl;
 	    
 	// skip point
 	skip.insert(n2);
+
+	// reset counter
+	c = 0;
       }
 
     //std::cout << "count:" << count << std::endl;
@@ -473,6 +496,18 @@ namespace Calc
     return true;
   }
 
+  bool inside(Vector3d v1, Vector3d v2, Vector3d v3, MatrixXd V, VectorXi P)
+  {
+    MatrixXd V2(P.rows(), 3);
+
+    for (int i=0; i<P.rows(); i++)
+      {
+	V2.row(i) = V.row(P[i]);
+      }
+
+    return inside(v1, v2, v3, V2);
+  }
+  
   bool inside(Vector3d v1, Vector3d v2, Vector3d v3, MatrixXd P)
   {
     // iterate points
@@ -613,5 +648,136 @@ namespace Calc
 	      }
 	  }
       }
+  }
+
+  int crossing(MatrixXd V, VectorXi P)
+  {
+    //Vector3d up = -normal(V.row(P[0]), V.row(P[1]), V.row(P[2]));
+
+    std::cout << "Crossing: "<< std::endl;
+
+    Vector2d p1, p2, p3, v1, v2;
+    
+    p1 << V.row(P[0])[0], V.row(P[0])[1];
+    p2 << V.row(P[1])[0], V.row(P[1])[1];
+    p3 << V.row(P[2])[0], V.row(P[2])[1];
+
+    v1 = p2 - p1;
+    v2 = p3 - p2;
+
+    double a1 = atan2(v1[1], v1[0]);
+    double a2 = atan2(v2[1], v2[0]);
+
+    bool invert = a1 > a2;
+
+    std::cout << " angles: " << a1 << ", " << a2 << std::endl;
+
+    int wind = 0;
+    
+    for (int i=1; i<(P.size() - 1); i++)
+      {
+
+	Vector2d l1, l2, s1, s2;
+	l1 << V.row(P[0])[0], V.row(P[0])[1];
+	l2 << V.row(P[1])[0], V.row(P[1])[1]; 
+	s1 << V.row(P[i])[0], V.row(P[i])[1];
+	s2 << V.row(P[i+1])[0], V.row(P[i+1])[1]; 
+	
+	if ( intersect( l1, l2, s1, s2, wind ) ) 
+	  {
+	    //std::cout << "Intersect: " << i << std::endl;
+	    //crossing++;
+	  }
+	std::cout << i << " Wind:" << wind << std::endl;
+      }
+
+    return wind;
+  }
+  
+  int winding(MatrixXd V, VectorXi P)
+  {
+
+    for (int i=0; i<(P.size()); i++)
+      {
+	V.row(P[i]);
+	
+
+      }
+    return 0;
+  }
+
+  bool intersect(Vector2d l1, Vector2d l2, Vector2d s1, Vector2d s2, int &wind)
+  {
+    Geotree::Log().Get(LOG_DEBUG) << "test";
+    
+    std::cout << "Intersect:" << std::endl;
+    bool retval = false;
+    Vector2d v1 = l1 - l2;
+    Vector2d v3;
+    v3 << v1[1], -v1[0]; // rotate 90
+    Vector2d v2 = s1 - s2;
+    
+    double y1 = l1[1] + v1[1]/v1[0] * (s1[0] - l1[0]);
+    double y2 = l1[1] + v1[1]/v1[0] * (s2[0] - l1[0]);
+
+    double x1 = l1[0] + v3[0]/v3[1] * (s1[1] - l1[1]);
+    double x2 = l1[0] + v3[0]/v3[1] * (s2[1] - l1[1]);
+
+    double x = s1[0] + v2[0]/v2[1] * (l1[1] - s1[1]);
+    double y = s1[1] + v2[1]/v2[0] * (l1[0] - s1[0]);
+
+    std::cout << " xy:" << x << " " << y << std::endl;
+
+    if (l1 == s1)
+      {
+	return false;
+      }
+    
+    //if ((s1[1] == y1) || (s2[1] == y2))
+    // {
+	//std::cout << "point is on line" << std::endl;
+    // }
+    
+    //    if ((s1[0] > x1) != (s2[0] > x2))
+
+    if ( ((s1[0] >= x1) && (s2[0] < x2)) ||
+	 ((s1[0] <= x1) && (s2[0] > x2)))      
+      {
+	std::cout << " cross y axis: " << x1 << ", " << x2 << std::endl;
+	
+	if ( (s1[0] > x1) != (y > l1[1]) )
+	  {
+	    wind++;
+	  }
+	else
+	  {
+	    wind--; 
+	  }
+	retval = true;
+      }
+    
+    if ( ((s1[1] >= y1) && (s2[1] < y2)) ||
+	 ((s1[1] <= y1) && (s2[1] > y2)))
+      {
+
+	std::cout << " cross x axis: " << y1 << ", " << y2 << std::endl;
+
+	if (x > l1[0])
+	  {
+	    std::cout << "x > l1[0]" << std::endl;
+	  }
+	
+	if ((s2[1] > y2) != (x < l1[0]) )
+	  {
+	    wind--;
+	  }
+	else
+	  {
+	    wind++;	    
+	  }
+	retval = true;
+      }
+    
+    return retval;
   }
 }

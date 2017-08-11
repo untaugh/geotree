@@ -205,6 +205,7 @@ namespace {
     V << 0,0,0, 1,0,0, 0.7,0.7,0, 0,1,0;
     P << 0,1,2,3;
     F_exp << 0,1,2, 2,3,0;
+    EXPECT_EQ(Calc::crossing(V,P),0);
     EXPECT_TRUE(Calc::triangulate(V, P, F));
     EXPECT_EQ(F, F_exp);
 
@@ -218,6 +219,23 @@ namespace {
     V << 0,0,0, 0,1,0, 0.0,0.7,0.3, 0,0,1.6;
     F_exp << 0,1,2, 2,3,0;
     EXPECT_TRUE(Calc::triangulate(V, P, F));
+    EXPECT_EQ(F, F_exp);
+  }
+
+  // triangulate path outside
+  TEST_F(CalcTest, TriangulateOutside)
+  {
+    Eigen::MatrixXd V = Eigen::MatrixXd(6,3); // verticies
+    Eigen::VectorXi P = Eigen::VectorXi(6); // path
+    Eigen::MatrixXi F; // resulting faces
+    Eigen::MatrixXi F_exp = Eigen::MatrixXi(4,3); // expected
+
+    V << 0,0,0, 0.5,0.1,0, 0.1,0.5,0, 0,0.1,0, 0,1,0, 1,0,0;
+    P << 0,1,2,3,4,5;
+    F_exp << 2,3,4, 5,0,1, 1,2,4, 4,5,1;
+    EXPECT_EQ(1, Calc::crossing(V,P));
+    EXPECT_TRUE(Calc::triangulate(V, P, F));
+    EXPECT_EQ(F.rows(),4);
     EXPECT_EQ(F, F_exp);
   }
 
@@ -570,6 +588,16 @@ namespace {
     v3 << 2.0, 0.0, 0.0;
     up << 0.0, 0.0, 1.0;
     EXPECT_DOUBLE_EQ(Calc::angle(v1,v2,v3, up), M_PI);
+
+    v1 << 0.0, 0.0, 0.0;
+    v2 <<  -0.1, 1.0, 0.0;
+    v3 << 0.1, 2.0, 0.0;
+    EXPECT_LE(Calc::angle(v1,v2,v3, up), M_PI);
+
+    v1 << 0.0, 0.0, 0.0;
+    v2 <<  -0.1, 1.0, 0.0;
+    v3 << -0.3, 2.0, 0.0;
+    EXPECT_GE(Calc::angle(v1,v2,v3, up), M_PI);
   }
 
   // angle between segments
@@ -761,5 +789,154 @@ namespace {
     Calc::boundingBox(V, F, B1, B2);
     EXPECT_EQ(B1, B1_exp);
     EXPECT_EQ(B2, B2_exp);
+  }
+
+  // line intersect
+  TEST_F(CalcTest, IntersectLineSegment)
+  {
+    Vector2d l1, l2, s1, s2;
+
+    int wind;
+
+    wind = 0;
+    l1 << 0.0, 0.0; l2 << 1.0, 1.0; s1 << 2.0, -1.0; s2 << -1.0, 3.0;
+    EXPECT_TRUE(Calc::intersect(l1, l2, s1, s2, wind));
+    EXPECT_EQ(wind, -1);
+    wind = 0;
+    EXPECT_TRUE(Calc::intersect(l1, l2, s2, s1, wind)); // swap s1,s2
+    EXPECT_EQ(wind, 1);
+
+    // from the line
+    wind = 0;
+    l1 << 0.0, 0.0; l2 << 1.0, 1.0; s1 << 2.0, 2.0; s2 << 3.0, 0.0;
+    EXPECT_TRUE(Calc::intersect(l1, l2, s1, s2, wind));
+    EXPECT_EQ(wind, 1);
+    wind = 0;
+    // to the line
+    EXPECT_FALSE(Calc::intersect(l1, l2, s2, s1, wind)); //swap s1,s2
+    EXPECT_EQ(wind, 0);
+    s2 << 1.0, 3.0;
+    wind = 0;
+    // from the line
+    EXPECT_TRUE(Calc::intersect(l1, l2, s1, s2, wind));
+    EXPECT_EQ(wind, -1);
+
+    // same line
+    l1 << 0.0, 0.0; l2 << 1.0, 0.0; s1 << 0.0, 0.0; s2 << 1.0, 0.0;
+    EXPECT_FALSE(Calc::intersect(l1, l2, s1, s2, wind));
+
+    // same start
+    l1 << 0.0, 0.0; l2 << 1.0, 0.0; s1 << 0.0, 0.0; s2 << 0.0, 1.0;
+    EXPECT_FALSE(Calc::intersect(l1, l2, s1, s2, wind));
+    
+    l1 << 0.0, 0.0; l2 << 1.0, 0.0; s1 << 0.0, -1.0; s2 << 0.0, 1.0;
+    EXPECT_TRUE(Calc::intersect(l1, l2, s1, s2, wind));
+
+    l1 << 0.0, 0.0; l2 << 1.0, 1.0; s1 << 1.0, -1.0; s2 << -1.0, 1.0;
+    EXPECT_TRUE(Calc::intersect(l1, l2, s1, s2, wind));
+
+    wind = 0;
+    l1 << 0.0, 0.0; l2 << 1.0, 0.0; s1 << 0.0, 1.0; s2 << 1.0, 1.0;
+    EXPECT_TRUE(Calc::intersect(l1, l2, s1, s2, wind));
+    EXPECT_EQ(wind, 1);
+
+    // large number
+    wind = 0;
+    l1 << 12345678.0, 12345678.0; l2 << 12345678.5, 12345678.5;
+    s1 << 12345679.0, 12345678.0; s2 << 12345679.0, 12345680.0;
+    EXPECT_TRUE(Calc::intersect(l1, l2, s1, s2, wind));
+    EXPECT_EQ(wind, -1);
+    wind = 0;
+    EXPECT_TRUE(Calc::intersect(l1, l2, s2, s1, wind));
+    EXPECT_EQ(wind, 1);
+
+    // winding number x
+    l1 << 0.0, 0.0; l2 << 1.0, 0.0; 
+    wind = 0;
+    s1 << 1.0, -1.0; s2 << 1.0, 1.0;
+    EXPECT_TRUE(Calc::intersect(l1, l2, s1, s2, wind));
+    EXPECT_EQ(wind, -1);
+    wind = 0;
+    s1 << -1.0, -1.0; s2 << -1.0, 1.0;
+    EXPECT_TRUE(Calc::intersect(l1, l2, s1, s2, wind));
+    EXPECT_EQ(wind, 1);
+    wind = 0;
+    s1 << 1.0, 1.0; s2 << 1.0, -1.0;
+    EXPECT_TRUE(Calc::intersect(l1, l2, s1, s2, wind));
+    EXPECT_EQ(wind, 1);
+    wind = 0;
+    s1 << -1.0, 1.0; s2 << -1.0, -1.0;
+    EXPECT_TRUE(Calc::intersect(l1, l2, s1, s2, wind));
+    EXPECT_EQ(wind, -1);
+
+    // winding number y
+    wind = 0;
+    s1 << 1.0, -1.0; s2 << -1.0, -1.0;
+    EXPECT_TRUE(Calc::intersect(l1, l2, s1, s2, wind));
+    EXPECT_EQ(wind, 1);
+    wind = 0;
+    EXPECT_TRUE(Calc::intersect(l1, l2, s2, s1, wind));
+    EXPECT_EQ(wind, -1);
+    wind = 0;
+    s1 << -1.0, 1.0; s2 << 1.0, 1.0;
+    EXPECT_TRUE(Calc::intersect(l1, l2, s1, s2, wind));
+    EXPECT_EQ(wind, 1);
+    wind = 0;
+    EXPECT_TRUE(Calc::intersect(l1, l2, s2, s1, wind));
+    EXPECT_EQ(wind, -1);
+
+    // winding number xy
+    wind = 0;
+    s1 << 1.0, -1.0; s2 << -2.0, 1.0;
+    EXPECT_TRUE(Calc::intersect(l1, l2, s1, s2, wind));
+    EXPECT_EQ(wind, 2);
+    wind = 0;
+    s1 << 1.0, -1.0; s2 << -1.0, 2.0;
+    EXPECT_TRUE(Calc::intersect(l1, l2, s1, s2, wind));
+    EXPECT_EQ(wind, -2);
+
+    wind = 0;
+    l1 << 0.0, 0.0; l2 << -0.1, 1.0; s1 << -1.0, 1.0; s2 << 1.0, 1.0;
+    EXPECT_TRUE(Calc::intersect(l1, l2, s1, s2, wind));
+    EXPECT_EQ(wind, 1);
+  }
+
+  TEST_F(CalcTest, Crossing)
+  {
+
+    MatrixXd V(24,3);
+    VectorXi P1(8);
+    VectorXi P2(13);
+    
+    V <<   0,   0,  0,
+      0,  10,   0,
+      10,  10,   0,
+      10,   0,   0,
+      0,   0,  10,
+      0,  10,  10,
+      10,  10,  10,
+      10,   0,  10,
+      1,   1,   8,
+      1,   2,   8,
+      11,   2,   8,
+      11,   1,   8,
+      1,   1,   9,
+      1,   2,   9,
+      11,   2,   9,
+      11,   1,   9,
+      10, 1.9,   8,
+      10,   2,   8,
+      10,   1,   8,
+      10,   2, 8.1,
+      10,   2,   9,
+      10,   1, 8.9,
+      10,   1,   9,
+      10, 1.9,   9;
+    
+    P1 << 16, 17, 19, 20, 23, 22, 21, 18;
+    P2 << 16, 17, 19, 20, 23, 22, 21, 18, 3, 6, 7, 3, 18;
+    
+    std::cout << Calc::crossing(V, P1) << std::endl;
+    std::cout << Calc::crossing(V, P2) << std::endl;
   }
 }

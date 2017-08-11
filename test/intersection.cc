@@ -10,6 +10,22 @@ using namespace Eigen;
 
 namespace {
   class IntersectionTest : public ::testing::Test {
+
+  protected:
+    IntersectionTest()
+    {
+    // testverticies << 0.0, 0.0, 0.0,
+    // 		     0.0, 1.0, 0.0,
+    // 		     1.0, 0.0, 0.0;
+
+    // testpath1 << 0,1,2;
+    // testpath2 << 0,2,1;
+    
+    }
+    MatrixXd testverticies = MatrixXd(3,3);
+    // VectorXi testpath1(3);
+    // VectorXi testpath2(3);
+    
   };
 
   // Intersections between four triangular faces
@@ -19,23 +35,22 @@ namespace {
     std::vector<std::vector<int>> paths;
     std::vector<int> path;
 
-    I->add(0, 0, Vector2i(3,4), Vector3d(1,1,0));
-    I->add(1, 3, Vector2i(0,1), Vector3d(1,0,0));
-    I->add(1, 4, Vector2i(0,1), Vector3d(2,0,0));
-    I->add(0, 1, Vector2i(3,4), Vector3d(3,0,0));
+    I->add(0, Vector2i(3,4), Vector3d(1,1,0));
+    I->add(3, Vector2i(0,1), Vector3d(1,0,0));
+    I->add(4, Vector2i(0,1), Vector3d(2,0,0));
+    I->add(1, Vector2i(3,4), Vector3d(3,0,0));
 
     // test numPoints
-    EXPECT_EQ(I->numPoints(0), 2);
-    EXPECT_EQ(I->numPoints(1), 2);
-
+    EXPECT_EQ(I->I.size(), 4);
+    
     // test getPaths
-    paths = I->getPaths(0,0);
+    paths = I->getPaths(0);
     path = {1,0,2};
-    EXPECT_EQ(paths[0], path);
+    EXPECT_EQ(path, paths[0]);
     path = {1,2,0};
-    EXPECT_NE(paths[0], path);
+    EXPECT_NE(path, paths[0]);
 
-    paths = I->getPaths(1,3);
+    paths = I->getPaths(3);
     path = {0,1,3};
     EXPECT_EQ(paths[0], path);
 
@@ -48,47 +63,47 @@ namespace {
   }
 
   // Intersections between a few triangular faces
-  TEST_F(IntersectionTest, test1)
+  TEST_F(IntersectionTest, DISABLED_test1)
   {
     Intersections * I = new Intersections();
     std::vector<std::vector<int>> paths;
     std::vector<int> path;
 
-    I->add(1, 1, Vector2i(1,2), Vector3d(5,0,0));
-    I->add(0, 1, Vector2i(0,1), Vector3d(4,0,0));
-    I->add(1, 2, Vector2i(2,3), Vector3d(3,0,0));
-    I->add(0, 2, Vector2i(1,2), Vector3d(2,0,0));
-    I->add(0, 3, Vector2i(2,3), Vector3d(1,0,0));
-    I->add(0, 4, Vector2i(9,8), Vector3d(9,0,0));
-    I->add(0, 4, Vector2i(8,11), Vector3d(7,0,0));
+    I->add(1, Vector2i(3,4), Vector3d(5,0,0));
+    I->add(1, Vector2i(4,5), Vector3d(5,0,0));
+    I->add(2, Vector2i(5,6), Vector3d(4,0,0));
+    I->add(3, Vector2i(0,1), Vector3d(1,0,0));
+    I->add(21, Vector2i(0,20), Vector3d(1,0,0));
+    I->add(5, Vector2i(1,2), Vector3d(9,0,0));
+    I->add(5, Vector2i(9,8), Vector3d(9,0,0));
+    I->add(5, Vector2i(8,11), Vector3d(7,0,0));
 
     // test numPoints
-    EXPECT_EQ(I->numPoints(0), 5);
-    EXPECT_EQ(I->numPoints(1), 2);
+    EXPECT_EQ(I->I.size(), 7);
 
     // test getPaths
-    paths = I->getPaths(1,1);
-    path = {1,0,3};
+    paths = I->getPaths(1);
+    path = {3,0,1,4};
     EXPECT_EQ(paths[0], path);
-    path = {1,3,0};
+    path = {3,0,4,1};
     EXPECT_NE(paths[0], path);
 
-    paths = I->getPaths(1,2);
+    paths = I->getPaths(3);
     path = {3,2,4};
     EXPECT_EQ(paths[0], path);
 
-    paths = I->getPaths(0,2);
+    paths = I->getPaths(2);
     path = {0,3,2};
     EXPECT_EQ(paths[0], path);
 
-    paths = I->getPaths(1,8);
+    paths = I->getPaths(8);
     path = {5,6};
     EXPECT_EQ(paths[0], path);
 
-    paths = I->getPaths(1,11);
+    paths = I->getPaths(11);
     EXPECT_EQ(paths.size(), 0);
 
-    paths = I->getPaths(1,120);
+    paths = I->getPaths(120);
     EXPECT_EQ(paths.size(), 0);
     
     // test getPoints
@@ -114,45 +129,57 @@ namespace {
 
     I->add(*c1->g, *t->g);
 
-    std::set <int> Fi, Fo, Ft, F_tot, F_exp;
+    std::set <unsigned> Fi, Fo, Ft, F_tot, F_exp, div1, div2;
 
     for (int i=0; i<12; i++)
       {
 	F_exp.insert(i);
       }
+
+    bool ret = I->getIntersectingFaces(Ft);
+
+    EXPECT_EQ(Ft.size(), 9);
+
+    for (unsigned f : Ft)
+      {
+	I->divide(f, div1, div2);
+      }
+
     
-    I->faceInfo(0, Fi, Fo, Ft);
-    F_tot.insert(Fi.begin(), Fi.end());
-    F_tot.insert(Fo.begin(), Fo.end());
-    F_tot.insert(Ft.begin(), Ft.end());
-    EXPECT_EQ(Fi.size(), 0);
-    EXPECT_EQ(Fo.size(), 11);
-    EXPECT_EQ(Ft.size(), 1);
+
+    
+    // I->faceInfo(0, Fi, Fo, Ft);
+    // F_tot.insert(Fi.begin(), Fi.end());
+    // F_tot.insert(Fo.begin(), Fo.end());
+    // F_tot.insert(Ft.begin(), Ft.end());
+    // EXPECT_EQ(Fi.size(), 0);
+    // EXPECT_EQ(Fo.size(), 11);
+    // EXPECT_EQ(Ft.size(), 1);
     //EXPECT_EQ(F_tot, F_exp);
 
     // divide faces
-    Eigen::MatrixXi F1,F2;
+    // Eigen::MatrixXi F1,F2;
     
-    for(int f : Ft)
-      {
-	I->divide(0, f, F1, F2);
-      }
+    // for(int f : Ft)
+    //   {
+    // 	I->divide(0, f, F1, F2);
+    //   }
 
-    Fi.clear(); Fo.clear(); Ft.clear();
-    I->faceInfo(1, Fi, Fo, Ft);
-    F_tot.insert(Fi.begin(), Fi.end());
-    F_tot.insert(Fo.begin(), Fo.end());
-    F_tot.insert(Ft.begin(), Ft.end());
-    EXPECT_EQ(Fi.size(), 2);
-    EXPECT_EQ(Fo.size(), 2);
-    EXPECT_EQ(Ft.size(), 8);
+    // Fi.clear(); Fo.clear(); Ft.clear();
+    // I->faceInfo(1, Fi, Fo, Ft);
+    // F_tot.insert(Fi.begin(), Fi.end());
+    // F_tot.insert(Fo.begin(), Fo.end());
+    // F_tot.insert(Ft.begin(), Ft.end());
+    // EXPECT_EQ(Fi.size(), 2);
+    // EXPECT_EQ(Fo.size(), 2);
+    // EXPECT_EQ(Ft.size(), 8);
     //EXPECT_EQ(F_tot, F_exp);
 
     // divide faces
-    for(int f : Ft)
-      {
-	I->divide(1, f, F1, F2);
-      }
+    // for(int f : Ft)
+    //   {
+    // 	I->divide(1, f, F1, F2);
+    //   }
   }
 
   // get faces of outside/inside/intersection
@@ -177,24 +204,24 @@ namespace {
 	F_exp.insert(i);
       }
     
-    I->faceInfo(0, Fi, Fo, Ft);
-    F_tot.insert(Fi.begin(), Fi.end());
-    F_tot.insert(Fo.begin(), Fo.end());
-    F_tot.insert(Ft.begin(), Ft.end());
-    EXPECT_EQ(0, Fi.size());
-    EXPECT_EQ(6, Fo.size());
-    EXPECT_EQ(6, Ft.size());
-    EXPECT_EQ(F_tot, F_exp);
+    // I->faceInfo(0, Fi, Fo, Ft);
+    // F_tot.insert(Fi.begin(), Fi.end());
+    // F_tot.insert(Fo.begin(), Fo.end());
+    // F_tot.insert(Ft.begin(), Ft.end());
+    // EXPECT_EQ(0, Fi.size());
+    // EXPECT_EQ(6, Fo.size());
+    // EXPECT_EQ(6, Ft.size());
+    // EXPECT_EQ(F_tot, F_exp);
 
-    Fi.clear(); Fo.clear(); Ft.clear();
-    I->faceInfo(1, Fi, Fo, Ft);
-    F_tot.insert(Fi.begin(), Fi.end());
-    F_tot.insert(Fo.begin(), Fo.end());
-    F_tot.insert(Ft.begin(), Ft.end());
-    EXPECT_EQ(0, Fi.size());
-    EXPECT_EQ(6, Fo.size());
-    EXPECT_EQ(6, Ft.size());
-    EXPECT_EQ(F_tot, F_exp);
+    // Fi.clear(); Fo.clear(); Ft.clear();
+    // I->faceInfo(1, Fi, Fo, Ft);
+    // F_tot.insert(Fi.begin(), Fi.end());
+    // F_tot.insert(Fo.begin(), Fo.end());
+    // F_tot.insert(Ft.begin(), Ft.end());
+    // EXPECT_EQ(0, Fi.size());
+    // EXPECT_EQ(6, Fo.size());
+    // EXPECT_EQ(6, Ft.size());
+    // EXPECT_EQ(F_tot, F_exp);
   }
 
   TEST_F(IntersectionTest, addGeometryBasic)
@@ -212,10 +239,9 @@ namespace {
     I->add(*c1->g, *t->g);
 
     // test numPoints
-    EXPECT_EQ(I->numPoints(0), 7);
-    EXPECT_EQ(I->numPoints(1), 7);
-
-    int gxSize = I->g1.V.rows() + I->g1.V.rows() + I->numPoints(0) + I->numPoints(1);
+    EXPECT_EQ(I->I.size(), 14);
+    
+    int gxSize = I->g1.V.rows() + I->g1.V.rows() + I->I.size();
     EXPECT_EQ(gxSize, I->gx.V.rows());
 
     Vector3d V_exp, V_res;
@@ -234,17 +260,7 @@ namespace {
 
     V_exp = I->I.back().point;
     V_res = I->gx.V.row(8+8+13);
-    EXPECT_EQ(V_exp, V_res);
-    
-    // get intermediate geometries
-    Eigen::MatrixXd V;
-    Eigen::MatrixXi F1i;
-    Eigen::MatrixXi F1o;
-    Eigen::MatrixXi F2i;
-    Eigen::MatrixXi F2o;
-    
-    I->get(V, F1o, F1i, F2o, F2i);
-    
+    EXPECT_EQ(V_exp, V_res);    
   }
 
   TEST_F(IntersectionTest, DISABLED_invalidGeometries)
@@ -272,6 +288,12 @@ namespace {
     //EXPECT_EQ(I->numPoints(1), 3);
 
 
+  }
+
+  // find normal, which side of polygon is inside
+  TEST_F(IntersectionTest, FindNormal)
+  {
+    
   }
 
 }

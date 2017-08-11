@@ -28,6 +28,8 @@ void Intersections::add(Geometry &g1, Geometry &g2)
   Calc::getFaceSegments(F1, S1);
   Calc::getFaceSegments(F2, S2);
 
+  int offset = g1.F.rows();
+  
   for (int i=0; i<F1.rows(); i++)
     {
       for (int j=0; j<S2.rows(); j++)
@@ -49,12 +51,15 @@ void Intersections::add(Geometry &g1, Geometry &g2)
 
 	  if (ret)
 	    {
-	      Intersect is = {0, i, S2.row(j), v};
+	      Vector2i S = S2.row(j);
+	      S[0] += offset;
+	      S[1] += offset;
+	      Intersect is = {i, S, v};
 	      I.push_back(is);
 	    }
 	}	  
     }
-
+  
   for (int i=0; i<F2.rows(); i++)
     {
       for (int j=0; j<S1.rows(); j++)
@@ -76,27 +81,26 @@ void Intersections::add(Geometry &g1, Geometry &g2)
 
 	  if (ret)
 	    {
-	      Intersect is = {1, i, S1.row(j), v};
+	      Intersect is = {i+offset, S1.row(j), v};
 	      I.push_back(is);
 	    }
 	}
     }
 
   // add face offset for second geometry
-  int offset = g1.F.rows();
   
-  for (unsigned i=0; i< this->I.size(); i++)
-    {
-      if (this->I[i].index == 1)
-	{
-	  this->I[i].plane += offset;
-	}
-      else
-	{
-	  this->I[i].segment[0] += offset;
-	  this->I[i].segment[1] += offset;
-	}
-    }
+  // for (unsigned i=0; i< this->I.size(); i++)
+  //   {
+  //     if (this->I[i].index == 1)
+  // 	{
+  // 	  this->I[i].plane += offset;
+  // 	}
+  //     else
+  // 	{
+  // 	  this->I[i].segment[0] += offset;
+  // 	  this->I[i].segment[1] += offset;
+  // 	}
+  //   }
 
   // add to gx
   MatrixXd V; 
@@ -109,28 +113,14 @@ void Intersections::add(Geometry &g1, Geometry &g2)
   this->gx.add(G_is);
 }
 
-int Intersections::numPoints(int index)
+void Intersections::add(int plane, Vector2i segment, Vector3d point)
 {
-  int count = 0;
-
-  for (Intersect i : I)
-    {
-      if (index == i.index)
-	{
-	  count++;
-	}
-    }
-  return count;
-}
-
-void Intersections::add(int index, int plane, Vector2i segment, Vector3d point)
-{
-  Intersect is = {index, plane, segment, point};
+  Intersect is = {plane, segment, point};
 
   this->I.push_back(is);
 }
 
-bool Intersections::getPathsNext(int index, int face, std::vector<int> &path, std::vector <Intersect> I)
+bool Intersections::getPathsNext(int face, std::vector<int> &path, std::vector <Intersect> I)
 {
   // get first point
   if (path.size() == 0)
@@ -138,8 +128,7 @@ bool Intersections::getPathsNext(int index, int face, std::vector<int> &path, st
       // find an edge point
       for (unsigned i=0; i<I.size(); i++)
 	{
-	  if ( (I[i].segment[0] == face || I[i].segment[1] == face) &&
-	       index != I[i].index )
+	  if ( (I[i].segment[0] == face || I[i].segment[1] == face) )
 	    {
 	      std::cout << "Start edge: " << i << std::endl;
 	      path.push_back(i);
@@ -150,7 +139,7 @@ bool Intersections::getPathsNext(int index, int face, std::vector<int> &path, st
       // find an inner start point
       for (unsigned i=0; i<I.size(); i++)
 	{
-	  if ( I[i].plane == face && I[i].index == index)
+	  if ( I[i].plane == face )
 	    {
 	      std::cout << "Start inner: " << i << std::endl;
 	      path.push_back(i);
@@ -165,16 +154,16 @@ bool Intersections::getPathsNext(int index, int face, std::vector<int> &path, st
 
   int path_prev = path.back();
   int path_prev_prev = -1;
-  std::cout << "Last point: " << path_prev << std::endl;
+  std::cout << "Previous point: " << path_prev << std::endl;
   if (path.size() > 1)
     {
       path_prev_prev = path[path.size()-2];
-      std::cout << "Point before last: " << path_prev_prev << std::endl;
+      std::cout << "Point before previous: " << path_prev_prev << std::endl;
     }
   int plane_cut; // face of cutting plane
 
   // last point was an inner point
-  if (I[path_prev].index == index)
+  if (I[path_prev].plane == face)
     {
       // no second point, go any direction
       if (path_prev_prev < 0)
@@ -185,7 +174,7 @@ bool Intersections::getPathsNext(int index, int face, std::vector<int> &path, st
       else
 	{
 	  // point before last was inner
-	  if (I[path_prev_prev].index == index)
+	  if (I[path_prev_prev].plane == face)
 	    {
 	      // don't get face in last and before last 
 	      if ( I[path_prev_prev].segment[0] == I[path_prev].segment[0] ||
@@ -204,7 +193,7 @@ bool Intersections::getPathsNext(int index, int face, std::vector<int> &path, st
 		}
 	      
 	    }
-	  else
+	    else
 	    {
 	      if ( I[path_prev_prev].plane == I[path_prev].segment[0] )
 		{
@@ -226,7 +215,8 @@ bool Intersections::getPathsNext(int index, int face, std::vector<int> &path, st
     {
       plane_cut = I[path_prev].plane;
     }
-  std::cout << "Cutting plane: " << plane_cut << std::endl;	
+  
+  std::cout << "Cutting plane: " << plane_cut << std::endl;
   
   // get mid or end point
   for (unsigned i=0; i<I.size(); i++)
@@ -238,7 +228,7 @@ bool Intersections::getPathsNext(int index, int face, std::vector<int> &path, st
 	}
       
       if ( (I[i].segment[0] == plane_cut || I[i].segment[1] == plane_cut ) &&
-	   I[i].index == index && I[i].plane == face)
+	   I[i].plane == face)
 	{
 	  std::cout << "Adding mid: " << i << std::endl;
 	  path.push_back(i);
@@ -256,7 +246,7 @@ bool Intersections::getPathsNext(int index, int face, std::vector<int> &path, st
 	}
       
       if ( (I[i].segment[0] == face || I[i].segment[1] == face) &&
-	   index != I[i].index && I[i].plane == plane_cut)
+	   I[i].plane == plane_cut)
 	{
 	  std::cout << "Adding end: " << i << std::endl;
 	  path.push_back(i);
@@ -269,16 +259,16 @@ bool Intersections::getPathsNext(int index, int face, std::vector<int> &path, st
   
 }
 
-std::vector<std::vector<int>> Intersections::getPaths(int index, int face)
+std::vector<std::vector<int>> Intersections::getPaths(int face)
 {
   std::vector<std::vector<int>> paths;
   std::vector<int> path;
 
   bool ret = true;
-
+  
   while (ret)
     {
-      ret = getPathsNext(index, face, path, this->I);
+      ret = getPathsNext(face, path, this->I);
     }
 
   // one point is no path
@@ -291,7 +281,7 @@ std::vector<std::vector<int>> Intersections::getPaths(int index, int face)
 
 void Intersections::getPoints(Eigen::MatrixXd &points)
 {
-  int n = numPoints(0) + numPoints(1);
+  int n = this->I.size();
   points = Eigen::MatrixXd(n, 3);
 
   for (int i=0; i<n; i++)
@@ -300,223 +290,319 @@ void Intersections::getPoints(Eigen::MatrixXd &points)
     }
 }
 
-void Intersections::get(MatrixXd V, MatrixXi F1o, MatrixXi F1i, MatrixXi F2o, MatrixXi F2i)
-{
-  
-}
+// void Intersections::divide(int index, int face, MatrixXi &F1, MatrixXi &F2)
+// {
 
-void Intersections::faceInfo(int index, std::set<int> &Fi, std::set<int> &Fo, std::set<int> &Ft)
+//   int c = 0;
+//   for (Intersect i: I )
+//     {
+//       std::cout << c++;
+//       std::cout << " index: " << i.index;
+//       std::cout << ", plane: " << i.plane;
+//       std::cout << ", segment: " << i.segment.transpose();
+//       std::cout << ", point: " << i.point.transpose() << std::endl;
+//     }
+  
+//   std::vector<std::vector<int>> paths = getPaths(index,face);
+
+//   std::cout << "divide: " << face << std::endl;
+	
+//   for (std::vector<int> path: paths)
+//     {
+//       std::cout << "path:" << std::endl;
+
+//       int start = path.front();
+//       int end = path.back();
+      
+//       MatrixXd P1,P2;
+//       getPoints(P1);	      
+//       P2 = P1;
+      
+//       // path from edge to edge
+//       if ( I[start].index != index && I[end].index != index)
+// 	{
+// 	  // start and end on same edge
+// 	  if (I[start].segment == I[end].segment)
+// 	    {
+// 	      std::cout << "Start end on same edge." << std::endl;
+// 	    }
+// 	  else
+// 	    {
+// 	      std::cout << "Edge to edge" << std::endl;
+	      
+// 	      MatrixXd V;
+// 	      MatrixXi F;
+// 	      int sharedVertex, singleVertex1, singleVertex2;
+// 	      unsigned int start1, start2, end1, end2;
+
+// 	      if (index == 0)
+// 		{
+// 		  V = g1.V;
+// 		  F = g1.F;
+// 		}
+// 	      else
+// 		{
+// 		  V = g2.V;
+// 		  F = g2.F;
+// 		}
+	      
+// 	      Calc::toSegment(F, I[start].segment[0], I[start].segment[1],
+// 			      start1, start2);
+// 	      Calc::toSegment(F, I[end].segment[0], I[end].segment[1],
+// 			      end1, end2);
+	      
+// 	      if (start1 == end1)
+// 		{
+// 		  sharedVertex = start1;
+// 		  singleVertex1 = end2;
+// 		  singleVertex2 = start2;
+// 		}
+// 	      else if (start1 == end2)
+// 		{
+// 		  sharedVertex = start1;
+// 		  singleVertex1 = end1;
+// 		  singleVertex2 = start2;
+// 		}
+// 	      else if (start2 == end1)
+// 		{
+// 		  sharedVertex = start2;
+// 		  singleVertex1 = end2;
+// 		  singleVertex2 = start1;
+// 		}
+// 	      else if (start2 == end2)
+// 		{
+// 		  sharedVertex = start2;
+// 		  singleVertex1 = end1;
+// 		  singleVertex2 = start1;
+// 		}
+// 	      else
+// 		{
+// 		  std::cout << "Invalid path." << std::endl; 		  
+// 		}
+	      	      
+// 	      // path1 is path + shared vertex
+// 	      P1.conservativeResize(P1.rows()+1, NoChange);
+// 	      P1.row(P1.rows()-1) << V.row(sharedVertex);
+// 	      //path + 
+// 	      std::cout << P1 << std::endl;
+
+// 	      // path2 is path + other 
+// 	      P2.conservativeResize(P2.rows()+2, NoChange);
+// 	      P2.row(P2.rows()-2) << V.row(singleVertex1);
+// 	      P2.row(P2.rows()-1) << V.row(singleVertex2);
+// 	      std::cout << P2 << std::endl;
+// 	    }
+// 	}
+//       // path inside face
+//       else if (I[start].index == index && I[end].index == index)
+// 	{
+// 	  std::cout << "Path inside face." << std::endl;
+
+// 	  //MatrixXd V;
+// 	  //MAtrixXi F;
+	  
+// 	  // if (index == 0)
+// 	  //   {
+// 	  //     V = g1.V;
+// 	  //     F = g1.F;
+// 	  //   }
+// 	  // else
+// 	  //   {
+// 	  //     V = g2.V;
+// 	  //     F = g2.F;
+// 	  //   }
+
+// 	  // find closest point
+// 	  // Vector3d p = V.row(F.row(face)[0]);
+// 	  // int closest;
+// 	  // double distance = I[path[0]];
+	    
+// 	  // for (int i : path)
+// 	  //   {
+	      
+// 	  //   }
+// 	}
+//       else
+// 	{
+// 	  std::cout << "Invalid path." << std::endl;
+// 	}
+      
+//       for (int i: path)
+// 	{
+// 	  std::cout << i
+// 		    << " plane: " << this->I[i].plane
+// 		    << ", segment: " << this->I[i].segment.transpose()
+// 		    << " point: " << this->I[i].point.transpose() << std::endl;
+// 	}
+//     }
+// }
+
+bool Intersections::getIntersectingFaces(std::set <unsigned> &faces)
 {
-  // get intersecting faces
+  faces.clear();
+
   for (Intersect i : this->I)
     {
-      if (i.index == index)
-	{
-	  Ft.insert(i.plane);
-	}
-      else
-	{
-	  Ft.insert(i.segment[0]);
-	  Ft.insert(i.segment[1]);
-	}
+      faces.insert(i.plane);
+      faces.insert(i.segment[0]);
+      faces.insert(i.segment[1]);
     }
 
-  std::cout << "Ft: " << std::endl;
-  for (int i : Ft)
-    {
-      std::cout << i << std::endl;
-    }
-
-  // more faces
-  int starti;
-  std::set <int> c1, c2;
-  MatrixXi F;
-  
-  if (index == 0)
-    {
-      F = g1.F;
-    }
-  else
-    {
-      F = g2.F;
-    }
-
-  F = gx.F;
-
-  // first set
-  for (starti=0; starti<F.rows(); starti++)
-    {
-      if (! Ft.count(starti))
-	{
-	  break;
-	}
-    }
-  
-  c1 = Calc::connected(F, Ft, starti);
-
-  // second set
-  for (starti=0; starti<F.rows(); starti++)
-    {
-      if (! Ft.count(starti) && ! c1.count(starti))
-	{
-	  break;
-	}
-    }
-
-  // second set not found
-  if (starti < F.rows())
-    {
-      c2 = Calc::connected(F, Ft, starti);
-    }
-  
-  Fo = c1;
-  Fi = c2;  
+  return true;  
 }
 
-
-void Intersections::divide(int index, int face, MatrixXi &F1, MatrixXi &F2)
+void Intersections::divide(int face, std::set <unsigned> div1, std::set <unsigned> div2)
 {
+  std::vector<std::vector<int>> paths = getPaths(face);
 
-  int c = 0;
-  for (Intersect i: I )
-    {
-      std::cout << c++;
-      std::cout << " index: " << i.index;
-      std::cout << ", plane: " << i.plane;
-      std::cout << ", segment: " << i.segment.transpose();
-      std::cout << ", point: " << i.point.transpose() << std::endl;
-    }
+  int offset = this->g1.V.rows() + this->g2.V.rows();
   
-  std::vector<std::vector<int>> paths = getPaths(index,face);
+  std::cout << "Face " << face << ": ";
+  
+  // for (int i : paths[0])
+  //   {
+  //     std::cout << i+offset << ", ";
+  //   }
+  // std::cout << std::endl;
 
-  std::cout << "divide: " << face << std::endl;
-	
-  for (std::vector<int> path: paths)
+  for ( std::vector<int> path : paths)
     {
-      std::cout << "path:" << std::endl;
+      // paths
+      std::vector <int> P1, P2;
+	      
+      Intersect * start = &this->I[path.front()];
+      Intersect * end = &this->I[path.back()];
 
-      int start = path.front();
-      int end = path.back();
-      
-      MatrixXd P1,P2;
-      getPoints(P1);	      
-      P2 = P1;
-      
-      // path from edge to edge
-      if ( I[start].index != index && I[end].index != index)
+      if ( start->plane == face && end->plane == face )
 	{
-	  // start and end on same edge
-	  if (I[start].segment == I[end].segment)
+	  std::cout << "Path lies inside face" << std::endl;
+
+	  // find closest point to first point in face
+	  Vector3d v = this->gx.V.row(this->gx.F.row(face)[0]);
+	  int near_point = path.front();
+	  double d = (v - this->I[near_point].point).norm();
+
+	  for (int i=0; i<path.size(); i++)
 	    {
-	      std::cout << "Start end on same edge." << std::endl;
+	      double d_new = (v - this->I[i].point).norm();
+
+	      if (d_new < d)
+		{
+		  near_point = i;
+		}
+	    }
+	  std::cout << "Nearest point " << near_point + offset << "." << std::endl;
+
+	  // create paths
+	  for (int i: path)
+	    {
+	      P1.push_back(i+offset);
+	      P2.push_back(i+offset);
+
+	      if (i == near_point)
+		{
+		  P2.push_back(this->gx.F.row(face)[0]);
+		  P2.push_back(this->gx.F.row(face)[1]);
+		  P2.push_back(this->gx.F.row(face)[2]);
+		  P2.push_back(this->gx.F.row(face)[0]);
+		  P2.push_back(i+offset);
+		}
+	    }
+	}
+      else if ( (start->segment[0] == face || start->segment[1] == face) &&
+		(end->segment[0] == face || end->segment[1] == face) )
+	{
+	  if (start->segment == end->segment)
+	    {
+	      std::cout << "Path starts and ends on same edge.." << std::endl;
 	    }
 	  else
 	    {
-	      std::cout << "Edge to edge" << std::endl;
-	      
-	      MatrixXd V;
-	      MatrixXi F;
-	      int sharedVertex, singleVertex1, singleVertex2;
-	      unsigned int start1, start2, end1, end2;
+	      std::cout << "Path goes from edge to edge." << std::endl;
 
-	      if (index == 0)
-		{
-		  V = g1.V;
-		  F = g1.F;
-		}
-	      else
-		{
-		  V = g2.V;
-		  F = g2.F;
-		}
+	      int sharedVertex, singleVertex1, singleVertex2; 
+	      unsigned int ps1, ps2, pe1, pe2;
 	      
-	      Calc::toSegment(F, I[start].segment[0], I[start].segment[1],
-			      start1, start2);
-	      Calc::toSegment(F, I[end].segment[0], I[end].segment[1],
-			      end1, end2);
-	      
-	      if (start1 == end1)
+	      Calc::toSegment(this->gx.F, start->segment[0], start->segment[1],
+			      ps1, ps2);
+	      Calc::toSegment(this->gx.F, end->segment[0], end->segment[1],
+			      pe1, pe2);
+
+	      if (ps1 == pe1)
 		{
-		  sharedVertex = start1;
-		  singleVertex1 = end2;
-		  singleVertex2 = start2;
+		  sharedVertex = ps1;
+		  singleVertex1 = pe2;
+		  singleVertex2 = ps2;
 		}
-	      else if (start1 == end2)
+	      else if (ps1 == pe2)
 		{
-		  sharedVertex = start1;
-		  singleVertex1 = end1;
-		  singleVertex2 = start2;
+		  sharedVertex = ps1;
+		  singleVertex1 = pe1;
+		  singleVertex2 = ps2;
 		}
-	      else if (start2 == end1)
+	      else if (ps2 == pe1)
 		{
-		  sharedVertex = start2;
-		  singleVertex1 = end2;
-		  singleVertex2 = start1;
+		  sharedVertex = ps2;
+		  singleVertex1 = pe2;
+		  singleVertex2 = ps1;
 		}
-	      else if (start2 == end2)
+	      else if (ps2 == pe2)
 		{
-		  sharedVertex = start2;
-		  singleVertex1 = end1;
-		  singleVertex2 = start1;
+		  sharedVertex = ps2;
+		  singleVertex1 = pe1;
+		  singleVertex2 = ps1;
 		}
 	      else
 		{
 		  std::cout << "Invalid path." << std::endl; 		  
 		}
-	      	      
-	      // path1 is path + shared vertex
-	      P1.conservativeResize(P1.rows()+1, NoChange);
-	      P1.row(P1.rows()-1) << V.row(sharedVertex);
-	      //path + 
-	      std::cout << P1 << std::endl;
 
-	      // path2 is path + other 
-	      P2.conservativeResize(P2.rows()+2, NoChange);
-	      P2.row(P2.rows()-2) << V.row(singleVertex1);
-	      P2.row(P2.rows()-1) << V.row(singleVertex2);
-	      std::cout << P2 << std::endl;
+	      for (int i: path)
+		{
+		  P1.push_back(i+offset);
+		  P2.push_back(i+offset);
+		}
+
+	      P1.push_back(sharedVertex);
+	      P2.push_back(singleVertex1);
+	      P2.push_back(singleVertex2);
+
 	    }
-	}
-      // path inside face
-      else if (I[start].index == index && I[end].index == index)
-	{
-	  std::cout << "Path inside face." << std::endl;
-
-	  //MatrixXd V;
-	  //MAtrixXi F;
-	  
-	  // if (index == 0)
-	  //   {
-	  //     V = g1.V;
-	  //     F = g1.F;
-	  //   }
-	  // else
-	  //   {
-	  //     V = g2.V;
-	  //     F = g2.F;
-	  //   }
-
-	  // find closest point
-	  // Vector3d p = V.row(F.row(face)[0]);
-	  // int closest;
-	  // double distance = I[path[0]];
-	    
-	  // for (int i : path)
-	  //   {
-	      
-	  //   }
 	}
       else
 	{
-	  std::cout << "Invalid path." << std::endl;
+	  std::cout << "Invalid path." << std::endl;	  
 	}
+      std::cout << "V: " << this->gx.V << std::endl;
       
-      for (int i: path)
-	{
-	  std::cout << i
-		    << " plane: " << this->I[i].plane
-		    << ", segment: " << this->I[i].segment.transpose()
-		    << " point: " << this->I[i].point.transpose() << std::endl;
-	}
-    }
+      std::cout << "P1: ";
+      for (int i : P1) std::cout << i << ", ";
+      std::cout << std::endl;
+
+      std::cout << "P2: ";
+      for (int i : P2) std::cout << i << ", ";
+      std::cout << std::endl;
+
+      Eigen::Map<const RowVectorXi> Pv1(P1.data(), P1.size());
+      Eigen::Map<const RowVectorXi> Pv2(P2.data(), P2.size());
+
+      std::cout << "Pv1: " << Pv1 << std::endl;
+      std::cout << "Pv2: " << Pv2 << std::endl;      
+      //std::cout << "gxV: " << this->gx.V << std::endl;      
+      
+      MatrixXi F1, F2;
+
+      
+      
+      Calc::triangulate(this->gx.V, Pv1, F1);
+      Calc::triangulate(this->gx.V, Pv2, F2);
+
+      std::cout << "F1: " << F1 << std::endl;
+      std::cout << "F2: " << F2 << std::endl;
+      //Eigen::Map<const Vector3i, 1, 3> Pv(pi, 1,3);
+
+      ///      Eigen::VectorXi Pv1(P1.data());
+      //Eigen::VectorXi Pv2(P2.data()); 
+      
+    }  
 }

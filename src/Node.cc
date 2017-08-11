@@ -17,19 +17,19 @@ void Node::build()
 {
   for (Node * n : this->children)
     {
-      // if (TranslateNode * t = dynamic_cast<TranslateNode*>(n))
-      // 	{
-      // 	  //std::cout << "This is a translate node"<< std::endl;
-      // 	}
-      // else if (UnionNode * t = dynamic_cast<UnionNode*>(n))
-      // 	{
-      // 	  //std::cout << "This is a union node"<< std::endl;
-      // 	}
+      if (TranslateNode * t = dynamic_cast<TranslateNode*>(n))
+      	{
+      	  //std::cout << "This is a translate node"<< std::endl;
+      	}
+      else if (UnionNode * t = dynamic_cast<UnionNode*>(n))
+      	{
+      	  //std::cout << "This is a union node"<< std::endl;
+      	}
 
-      // else
-      // 	{
-      // 	  //std::cout << "This is a node"<< std::endl;
-      // 	}
+      else
+      	{
+      	  //std::cout << "This is a node"<< std::endl;
+      	}
       n->build();
     }
 }
@@ -56,6 +56,32 @@ void TranslateNode::build()
 
 void UnionNode::build()
 {
+  Node::build();
+
+  int Vsize=0;
+  int Fsize=0;
+  
+  for (Node * n : this->children)
+    {
+      Vsize += n->g->V.rows();
+      Fsize += n->g->F.rows();
+    }
+
+  Eigen::MatrixXd V(Vsize,3);
+  Eigen::MatrixXi F(Fsize,3);
+  
+  Vsize=0;
+  Fsize=0;
+  for (Node * n : this->children)
+    {
+      V.block(Vsize,0,n->g->V.rows(),3) = n->g->V;
+      F.block(Fsize,0,n->g->F.rows(),3) = n->g->F;
+      Vsize += n->g->V.rows();
+      Fsize += n->g->F.rows();
+      delete n->g;
+    }
+  
+  this->g = new Geometry(V,F);
 
 }
 /* * * 
@@ -88,7 +114,7 @@ CubeNode::CubeNode(double x, double y, double z)
     4,5,6,
     4,6,7;
 
-  this->g = new Geometry(V,F);  
+  this->g = new Geometry(V,F);
 }
 
 /* * * 
