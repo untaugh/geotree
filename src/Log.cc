@@ -21,7 +21,7 @@ namespace Geotree {
   {
     std::time_t end_time = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
 
-    os << "- " << std::s(&end_time);
+    //    os << "- " << std::s(&end_time);
 
     return os;
   }

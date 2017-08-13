@@ -706,6 +706,11 @@ namespace Calc
     return 0;
   }
 
+  bool intersect(const Segment line, const Segment segment, int &winding)
+  {
+    return intersect(line.row(0), line.row(1), segment.row(0), segment.row(1), winding);
+  }
+  
   bool intersect(Vector2d l1, Vector2d l2, Vector2d s1, Vector2d s2, int &wind)
   {
     Geotree::Log().Get(LOG_DEBUG) << "test";
@@ -731,53 +736,106 @@ namespace Calc
     if (l1 == s1)
       {
 	return false;
-      }
+      }    
     
-    //if ((s1[1] == y1) || (s2[1] == y2))
-    // {
-	//std::cout << "point is on line" << std::endl;
-    // }
-    
-    //    if ((s1[0] > x1) != (s2[0] > x2))
-
-    if ( ((s1[0] >= x1) && (s2[0] < x2)) ||
-	 ((s1[0] <= x1) && (s2[0] > x2)))      
+    if ( (s1[1] >= y1) && (s2[1] < y2) && (x > l1[0]) )
       {
-	std::cout << " cross y axis: " << x1 << ", " << x2 << std::endl;
-	
-	if ( (s1[0] > x1) != (y > l1[1]) )
-	  {
-	    wind++;
-	  }
-	else
-	  {
-	    wind--; 
-	  }
+	std::cout << " cross x axis: " << x1 << ", " << x2 << std::endl;
+
+	wind++;
+	retval = true;
+      }
+
+    if ( (s1[1] < y1) && (s2[1] >= y2) && (x > l1[0]) )
+      {
+    	std::cout << " cross x axis: " << x1 << ", " << x2 << std::endl;
+
+    	wind--;
+	retval = true;
+      }
+
+    if ( (s1[1] <= y1) && (s2[1] > y2) && (x < l1[0]) )
+      {
+	std::cout << " cross x axis: " << x1 << ", " << x2 << std::endl;
+
+	wind++;
+	retval = true;
+      }
+
+    if ( (s1[1] > y1) && (s2[1] <= y2) && (x < l1[0]) )
+      {
+	std::cout << " cross x axis: " << x1 << ", " << x2 << std::endl;
+
+	wind--;
 	retval = true;
       }
     
-    if ( ((s1[1] >= y1) && (s2[1] < y2)) ||
-	 ((s1[1] <= y1) && (s2[1] > y2)))
+    
+    if ( (s1[0] > x1) && (s2[0] <= x2) && (y > l1[0]) )
       {
+	std::cout << " cross y axis: " << y1 << ", " << y2 << std::endl;
 
-	std::cout << " cross x axis: " << y1 << ", " << y2 << std::endl;
+	wind--;
+	retval = true;
+      }
 
-	if (x > l1[0])
-	  {
-	    std::cout << "x > l1[0]" << std::endl;
-	  }
-	
-	if ((s2[1] > y2) != (x < l1[0]) )
-	  {
-	    wind--;
-	  }
-	else
-	  {
-	    wind++;	    
-	  }
+    if ( (s1[0] <= x1) && (s2[0] > x2) && (y > l1[0]) )
+      {	
+	std::cout << " cross y axis: " << y1 << ", " << y2 << std::endl;
+
+    	wind++;
+	retval = true;
+      }
+
+    if ( (s1[0] < x1) && (s2[0] >= x2) && (y < l1[0]) )
+      {
+	std::cout << " cross y axis: " << y1 << ", " << y2 << std::endl;
+
+	wind--;
+	retval = true;
+      }
+
+    if ( (s1[0] >= x1) && (s2[0] < x2) && (y < l1[0]) )
+      {
+	std::cout << " cross y axis: " << y1 << ", " << y2 << std::endl;
+
+	wind++;
 	retval = true;
       }
     
     return retval;
+  }
+
+  Axis minAxis(const Verticies V, const Faces F)
+  {
+    Vertex B1, B2;    
+    boundingBox(V, F, B1, B2);
+
+    double size_x = abs(B1[0] - B2[0]);
+    double size_y = abs(B1[1] - B2[1]);
+    double size_z = abs(B1[2] - B2[2]);
+
+    if (size_x < size_y)
+      {
+	if (size_x < size_z)
+	  {
+	    return AXIS_X;
+	  }
+	else
+	  {
+	    return AXIS_Z;
+	  }
+      }
+    else
+      {
+	if (size_y < size_z)
+	  {
+	    return AXIS_Y;
+	  }
+	else
+	  {
+	    return AXIS_Z;
+	  }
+      }
   }
 }

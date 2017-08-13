@@ -791,8 +791,222 @@ namespace {
     EXPECT_EQ(B2, B2_exp);
   }
 
-  // line intersect
+  // project 3d path in plane to 2d path, widest axes
+  // not preserving size
+  TEST_F(CalcTest, DropAxisBasic)
+  {
+    Eigen::MatrixXd V = Eigen::MatrixXd(3,3);
+    Eigen::MatrixXi F = Eigen::MatrixXi(1,3);    
+
+    V << 0.0, 0.0, 0.0,
+      1.0, 0.0, 0.1,
+      0.0, 1.0, 0.1;
+    F << 0,1,2;
+
+    EXPECT_EQ(Calc::minAxis(V, F), AXIS_Z);
+
+    V << 0.0, 0.0, 0.0,
+      2.0, 0.0, 5.0,
+      0.0, 1.0, 5.0;
+    F << 0,1,2;
+
+    EXPECT_EQ(Calc::minAxis(V, F), AXIS_Y);
+
+    V << 0.0, 0.0, 0.0,
+      1.0, 0.0, 5.0,
+      0.0, 2.0, 5.0;
+    F << 0,1,2;
+
+    EXPECT_EQ(Calc::minAxis(V, F), AXIS_X);    
+  }
+  
   TEST_F(CalcTest, IntersectLineSegment)
+  {
+    Segment line, segment;
+    int winding;
+
+    // no intersect
+    winding = 0;
+    line << 0.0, 0.0, 1.0, 1.0;
+    segment << 0.0, 1.0, 1.0, 2.0;
+    EXPECT_FALSE(Calc::intersect(line, segment, winding));
+    EXPECT_EQ(winding, 0);
+
+    // intersect
+    winding = 0;
+    line << 0.0, 0.0, 1.0, 1.0;
+    segment << 1.0, 0.0, 1.0, 3.0;
+    EXPECT_TRUE(Calc::intersect(line, segment, winding));
+    EXPECT_EQ(winding, -1);
+
+    // from X line
+    winding = 0;
+    line << 0.0, 0.0, 1.0, 0.0; // same
+    segment << 1.0, 0.0, 1.0, 1.0;
+    EXPECT_FALSE(Calc::intersect(line, segment, winding));
+    EXPECT_EQ(winding, 0);
+
+    winding = 0;
+    segment << 1.0, 0.0, 1.0, -1.0;
+    EXPECT_TRUE(Calc::intersect(line, segment, winding));
+    EXPECT_EQ(winding, 1);
+
+    winding = 0;
+    segment << -1.0, 0.0, -1.0, 1.0;
+    EXPECT_TRUE(Calc::intersect(line, segment, winding));
+    EXPECT_EQ(winding, 1);
+
+    winding = 0;
+    segment << -1.0, 0.0, -1.0, -1.0;
+    EXPECT_FALSE(Calc::intersect(line, segment, winding));
+    EXPECT_EQ(winding, 0);
+
+    winding = 0;
+    segment << 1.0, 0.0, -1.0, 1.0;
+    EXPECT_TRUE(Calc::intersect(line, segment, winding));
+    EXPECT_EQ(winding, -1);
+
+    winding = 0;
+    segment << 1.0, 0.0, -1.0, -1.0;
+    EXPECT_TRUE(Calc::intersect(line, segment, winding));
+    EXPECT_EQ(winding, 2);
+    
+    // from Y line
+    winding = 0;
+    segment << 0.0, 1.0, 1.0, 1.0;
+    EXPECT_TRUE(Calc::intersect(line, segment, winding));
+    EXPECT_EQ(winding, 1);
+
+    winding = 0;
+    segment << 0.0, 1.0, -1.0, 1.0;
+    EXPECT_FALSE(Calc::intersect(line, segment, winding));
+    EXPECT_EQ(winding, 0);
+
+    winding = 0;
+    segment << 0.0, -1.0, -1.0, -1.0;
+    EXPECT_TRUE(Calc::intersect(line, segment, winding));
+    EXPECT_EQ(winding, 1);
+
+    winding = 0;
+    segment << 0.0, -1.0, 1.0, -1.0;
+    EXPECT_FALSE(Calc::intersect(line, segment, winding));
+    EXPECT_EQ(winding, 0);
+
+    winding = 0;
+    segment << 0.0, 1.0, -1.0, -1.0;
+    EXPECT_TRUE(Calc::intersect(line, segment, winding));
+    EXPECT_EQ(winding, -1);
+
+    winding = 0;
+    segment << 0.0, 1.0, 1.0, -1.0;
+    EXPECT_TRUE(Calc::intersect(line, segment, winding));
+    EXPECT_EQ(winding, 2);    
+
+    // segment on line
+    winding = 0;
+    line << 0.0, 0.0, 1.0, 0.0; 
+    segment << 1.0, 0.0, 2.0, 0.0;
+    EXPECT_FALSE(Calc::intersect(line, segment, winding));
+    EXPECT_EQ(winding, 0);
+
+    // large number
+    winding = 0;
+    line << 12345678.0, 12345678.0, 12345678.5, 12345678.5;
+    segment << 12345679.0, 12345678.0, 12345679.0, 12345680.0;
+    EXPECT_TRUE(Calc::intersect(line, segment, winding));
+    EXPECT_EQ(winding, -1);
+    winding = 0;
+    segment << 12345679.0, 12345680.0, 12345679.0, 12345678.0; // swap
+    EXPECT_TRUE(Calc::intersect(line, segment, winding));
+    EXPECT_EQ(winding, 1);
+
+    // same start
+    winding = 0;
+    line << 0.0, 0.0, 1.0, 0.0; 
+    segment << 0.0, 0.0, 0.0, 1.0;
+    EXPECT_FALSE(Calc::intersect(line, segment, winding));
+    EXPECT_EQ(winding, 0);
+
+    // no line
+    winding = 0;
+    line << 1.0, 0.0, 1.0, 0.0; 
+    segment << 2.0, 0.0, 1.0, 1.0;
+    EXPECT_FALSE(Calc::intersect(line, segment, winding));
+    EXPECT_EQ(winding, 0);
+
+    // no segment
+    winding = 0;
+    line << 0.0, 0.0, 1.0, 0.0; 
+    segment << 2.0, 0.0, 2.0, 0.0;
+    EXPECT_FALSE(Calc::intersect(line, segment, winding));
+    EXPECT_EQ(winding, 0);
+
+    // to X line
+    winding = 0;
+    line << 0.0, 0.0, 1.0, 0.0; // same
+    segment << 1.0, 1.0, 1.0, 0.0;
+    EXPECT_FALSE(Calc::intersect(line, segment, winding));
+    EXPECT_EQ(winding, 0);
+
+    winding = 0;
+    segment << 1.0, -1.0, 1.0, 0.0;
+    EXPECT_TRUE(Calc::intersect(line, segment, winding));
+    EXPECT_EQ(winding, -1);
+
+    winding = 0;
+    segment << -1.0, 1.0, -1.0, 0.0;
+    EXPECT_TRUE(Calc::intersect(line, segment, winding));
+    EXPECT_EQ(winding, -1);
+
+    winding = 0;
+    segment << -1.0, -1.0, -1.0, 0.0;
+    EXPECT_FALSE(Calc::intersect(line, segment, winding));
+    EXPECT_EQ(winding, 0);
+
+    winding = 0;
+    segment << -1.0, 1.0, 1.0, 0.0;
+    EXPECT_TRUE(Calc::intersect(line, segment, winding));
+    EXPECT_EQ(winding, 1);
+
+    winding = 0;
+    segment << -1.0, -1.0, 1.0, 0.0;
+    EXPECT_TRUE(Calc::intersect(line, segment, winding));
+    EXPECT_EQ(winding, -2);
+
+    // to Y line
+    winding = 0;
+    segment << 1.0, 1.0, 0.0, 1.0;
+    EXPECT_TRUE(Calc::intersect(line, segment, winding));
+    EXPECT_EQ(winding, -1);
+
+    winding = 0;
+    segment << -1.0, 1.0, 0.0, 1.0;
+    EXPECT_FALSE(Calc::intersect(line, segment, winding));
+    EXPECT_EQ(winding, 0);
+
+    winding = 0;
+    segment << -1.0, -1.0, 0.0, -1.0;
+    EXPECT_TRUE(Calc::intersect(line, segment, winding));
+    EXPECT_EQ(winding, -1);
+
+    winding = 0;
+    segment << 1.0, -1.0, 0.0, -1.0;
+    EXPECT_FALSE(Calc::intersect(line, segment, winding));
+    EXPECT_EQ(winding, 0);
+
+    winding = 0;
+    segment << -1.0, -1.0, 0.0, 1.0;
+    EXPECT_TRUE(Calc::intersect(line, segment, winding));
+    EXPECT_EQ(winding, 1);
+
+    winding = 0;
+    segment << 1.0, -1.0, 0.0, 1.0;
+    EXPECT_TRUE(Calc::intersect(line, segment, winding));
+    EXPECT_EQ(winding, -2);
+  }
+  
+  // line intersect
+  TEST_F(CalcTest, DISABLED_IntersectLineSegment2)
   {
     Vector2d l1, l2, s1, s2;
 
@@ -900,7 +1114,7 @@ namespace {
     EXPECT_TRUE(Calc::intersect(l1, l2, s1, s2, wind));
     EXPECT_EQ(wind, 1);
   }
-
+  
   TEST_F(CalcTest, Crossing)
   {
 

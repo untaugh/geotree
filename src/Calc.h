@@ -3,6 +3,19 @@
 
 using namespace Eigen;
 
+typedef Vector2d Point;
+typedef Vector3d Vertex;
+typedef Matrix2d Segment;
+typedef MatrixXd Verticies;
+typedef MatrixXi Faces;
+
+enum Axis
+  {
+    AXIS_X,
+    AXIS_Y,
+    AXIS_Z,
+  };
+
 namespace Calc
 {
   // getSegments : Get segments of triangular faces
@@ -144,4 +157,17 @@ namespace Calc
   // in l1, l2 : line
   // in s1, s2 : segment
   bool intersect(Vector2d l1, Vector2d l2, Vector2d s1, Vector2d s2, int &wind);
+
+  // intersect   : Does line and segment intersect
+  // ret         : true if yes
+  // in line     : line in direction of segment
+  // in segment  : segment
+  // out winding : winding number
+  bool intersect(const Segment line, const Segment segment, int &winding);
+
+  // dropAxis : Return smalles axes
+  // ret      : smallest axis of three
+  // in V
+  // in F
+  Axis minAxis(const Verticies V, const Faces F);
 }
