@@ -502,8 +502,8 @@ void Intersections::divide(int face, std::set <unsigned> div1, std::set <unsigne
 	      if (i == near_point)
 		{
 		  P2.push_back(this->gx.F.row(face)[0]);
-		  P2.push_back(this->gx.F.row(face)[1]);
 		  P2.push_back(this->gx.F.row(face)[2]);
+		  P2.push_back(this->gx.F.row(face)[1]);
 		  P2.push_back(this->gx.F.row(face)[0]);
 		  P2.push_back(i+offset);
 		}
@@ -597,8 +597,8 @@ void Intersections::divide(int face, std::set <unsigned> div1, std::set <unsigne
       Calc::triangulate(this->gx.V, Pv1, F1);
       Calc::triangulate(this->gx.V, Pv2, F2);
 
-      std::cout << "F1: " << F1 << std::endl;
-      std::cout << "F2: " << F2 << std::endl;
+      //std::cout << "F1: " << F1 << std::endl;
+      //std::cout << "F2: " << F2 << std::endl;
       //Eigen::Map<const Vector3i, 1, 3> Pv(pi, 1,3);
 
       ///      Eigen::VectorXi Pv1(P1.data());

@@ -5,15 +5,17 @@ using namespace Eigen;
 
 typedef Vector2d Point;
 typedef Vector3d Vertex;
+typedef Vector3i Face;
 typedef Matrix2d Segment;
 typedef MatrixXd Verticies;
 typedef MatrixXi Faces;
+typedef VectorXi Path;
 
 enum Axis
   {
-    AXIS_X,
-    AXIS_Y,
-    AXIS_Z,
+    AXIS_X = 0,
+    AXIS_Y = 1,
+    AXIS_Z = 2
   };
 
 namespace Calc
@@ -111,6 +113,10 @@ namespace Calc
   // in up  : planeup vector
   double angle(Vector3d v1, Vector3d v2, Vector3d v3, Vector3d up);
 
+  // angle : angle between 2d vectors
+  // ret   : angle
+  double angle(Point p0, Point p1);
+  
   // inside : any point inside triangle
   // ret    : true if yes
   // in v1  : vertex 1 of face
@@ -156,7 +162,7 @@ namespace Calc
   // ret       : true if yes
   // in l1, l2 : line
   // in s1, s2 : segment
-  bool intersect(Vector2d l1, Vector2d l2, Vector2d s1, Vector2d s2, int &wind);
+  //bool intersect(Vector2d l1, Vector2d l2, Vector2d s1, Vector2d s2, int &wind);
 
   // intersect   : Does line and segment intersect
   // ret         : true if yes

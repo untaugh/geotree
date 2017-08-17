@@ -1,5 +1,4 @@
 #include "gtest/gtest.h"
-
 #include "Calc.h"
 #include <Eigen/Core>
 
@@ -205,13 +204,15 @@ namespace {
     V << 0,0,0, 1,0,0, 0.7,0.7,0, 0,1,0;
     P << 0,1,2,3;
     F_exp << 0,1,2, 2,3,0;
-    EXPECT_EQ(Calc::crossing(V,P),0);
+    EXPECT_EQ(Calc::winding(V,P),-1);
     EXPECT_TRUE(Calc::triangulate(V, P, F));
     EXPECT_EQ(F, F_exp);
 
     // reverse
     V << 0,0,0, 0,1,0, 0.7,0.7,0, 1,0,0;
+    F = Faces();;
     F_exp << 0,1,2, 2,3,0;
+    EXPECT_EQ(Calc::winding(V,P),1);
     EXPECT_TRUE(Calc::triangulate(V, P, F));
     EXPECT_EQ(F, F_exp);
 
@@ -220,8 +221,69 @@ namespace {
     F_exp << 0,1,2, 2,3,0;
     EXPECT_TRUE(Calc::triangulate(V, P, F));
     EXPECT_EQ(F, F_exp);
+
+    // backwards
+    V << 0,0,0, 1,0,0,  -1.0,-0.1,0.0, 1,1,0;
+    F_exp << 0,1,2, 2,3,0;
+    EXPECT_TRUE(Calc::triangulate(V, P, F));
+    EXPECT_EQ(F, F_exp);
+
+    // 180 start
+    V << 0,0,0, 1,0,0, 2,0,0, 1,1,0;
+    F_exp << 1,2,3, 3,0,1;
+    EXPECT_TRUE(Calc::triangulate(V, P, F));
+    EXPECT_EQ(F, F_exp);
+
+    // normal calc 180 test1
+    V << 0,0,0, 1,0,0, 0,1,0, -1,0,0;
+    F_exp << 0,1,2, 2,3,0;
+    EXPECT_TRUE(Calc::triangulate(V, P, F));
+    EXPECT_EQ(F, F_exp);
+
+    // normal calc 180 test2
+    V << 0,0,0, 1,0,0, 0,-1,0, -1,0,0;
+    F_exp << 0,1,2, 2,3,0;
+    EXPECT_TRUE(Calc::triangulate(V, P, F));
+    EXPECT_EQ(F, F_exp);
   }
 
+  TEST_F(CalcTest, TriangulateNormalTest)
+  {
+    Verticies V(6,3);
+    Path P(6);
+    Faces F; 
+    Faces F_exp(4,3);
+    
+    V << 0,0,0, 1,0,0, 2,-1,0, 2,1,0, 1,2,0, 0,1,0;
+    P << 0,1,2,3,4,5;
+    F_exp << 1,2,3, 3,4,5, 5,0,1, 1,3,5;
+    EXPECT_EQ(-1, Calc::winding(V,P));
+    EXPECT_TRUE(Calc::triangulate(V, P, F));
+    EXPECT_EQ(F, F_exp);
+
+    V << 0,0,0, 1,0,0, 2,-1,0, 2,1,0, 1,2,0, -0.1,0,0;
+    P << 0,1,2,3,4,5;
+    F_exp << 1,2,3, 3,4,5, 3,5,0, 1,3,0;
+    EXPECT_EQ(-2, Calc::winding(V,P));
+    EXPECT_TRUE(Calc::triangulate(V, P, F));
+    EXPECT_EQ(F, F_exp);
+
+    // normal != 0,0,0?
+    V << 0,0,0, 1,0,0, 2,0.1,0, 2,1,0, 1,2,0, -0.1,0.001,0;
+    P << 0,1,2,3,4,5;
+    F_exp << 0,1,2, 2,3,4, 4,5,0, 0,2,4;
+    EXPECT_EQ(-2, Calc::winding(V,P));
+    EXPECT_TRUE(Calc::triangulate(V, P, F));
+    EXPECT_EQ(F, F_exp);
+
+    // normal = 0,0,0?
+    V << 0,0,0, 1,0,0, 2,0.1,0, 2,1,0, 1,2,0, -0.1,0,0;
+    P << 0,1,2,3,4,5;
+    F_exp << 0,1,2, 2,3,4, 4,5,0, 0,2,4;
+    EXPECT_EQ(-2, Calc::winding(V,P));
+    EXPECT_TRUE(Calc::triangulate(V, P, F));
+    EXPECT_EQ(F, F_exp);
+  }
   // triangulate path outside
   TEST_F(CalcTest, TriangulateOutside)
   {
@@ -233,7 +295,7 @@ namespace {
     V << 0,0,0, 0.5,0.1,0, 0.1,0.5,0, 0,0.1,0, 0,1,0, 1,0,0;
     P << 0,1,2,3,4,5;
     F_exp << 2,3,4, 5,0,1, 1,2,4, 4,5,1;
-    EXPECT_EQ(1, Calc::crossing(V,P));
+    EXPECT_EQ(1, Calc::winding(V,P));
     EXPECT_TRUE(Calc::triangulate(V, P, F));
     EXPECT_EQ(F.rows(),4);
     EXPECT_EQ(F, F_exp);
@@ -251,6 +313,7 @@ namespace {
     P << 0,1,2,3;
     F_exp << 1,2,3, 3,0,1;
     EXPECT_TRUE(Calc::triangulate(V, P, F));
+    ASSERT_EQ(F.size(), F_exp.size());
     EXPECT_EQ(F, F_exp);
   }
 
@@ -298,9 +361,10 @@ namespace {
       7, 9, 0,
       0, 3, 5,
       5, 7, 0;
-    
-    EXPECT_TRUE(Calc::triangulate(V, P, F));
-    EXPECT_EQ(F, F_exp);
+
+    EXPECT_EQ(4, Calc::winding(V, P));
+    //EXPECT_TRUE(Calc::triangulate(V, P, F));
+    //EXPECT_EQ(F, F_exp);
   }
 
   // triangulate path with hole
@@ -600,6 +664,52 @@ namespace {
     EXPECT_GE(Calc::angle(v1,v2,v3, up), M_PI);
   }
 
+  TEST_F(CalcTest, Angle2D)
+  {
+    Point p0, p1;
+
+    // p0 at x=1
+    p0 << 1.0, 0.0; p1 << 0.0, 1.0;
+    EXPECT_EQ(M_PI/2, Calc::angle(p0, p1));
+
+    p0 << 1.0, 0.0; p1 << 1.0, 0.0;
+    EXPECT_EQ(0, Calc::angle(p0, p1));
+
+    p0 << 1.0, 0.0; p1 << 0.0, -1.0;
+    EXPECT_EQ(-M_PI/2, Calc::angle(p0, p1));
+
+    p0 << 1.0, 0.0; p1 << 1.0, 1.0;
+    EXPECT_EQ(M_PI/4, Calc::angle(p0, p1));
+
+    p0 << 1.0, 0.0; p1 << 1.0, -1.0;
+    EXPECT_EQ(-M_PI/4, Calc::angle(p0, p1));
+
+    p0 << 1.0, 0.0; p1 << -1.0, 1.0;
+    EXPECT_EQ(M_PI*3/4, Calc::angle(p0, p1));
+
+    p0 << 1.0, 0.0; p1 << -1.0, -1.0;
+    EXPECT_EQ(-M_PI*3/4, Calc::angle(p0, p1));
+
+    p0 << 1.0, 0.0; p1 << 0.5, sqrt(3)/2;
+    EXPECT_EQ(M_PI/3, Calc::angle(p0, p1));
+
+    p0 << 1.0, 0.0; p1 << 0.5, -sqrt(3)/2;
+    EXPECT_EQ(-M_PI/3, Calc::angle(p0, p1));
+
+    // p0 not x=0
+    p0 << -1.0, 0.0; p1 << 0.0, 1.0;
+    EXPECT_EQ(-M_PI/2, Calc::angle(p0, p1));
+
+    p0 << -1.0, 0.0; p1 << 0.0, -1.0;
+    EXPECT_EQ(M_PI/2, Calc::angle(p0, p1));
+
+    p0 << -1.0, 1.0; p1 << -1.0, -1.0;
+    EXPECT_EQ(M_PI/2, Calc::angle(p0, p1));
+
+    p0 << -1.0, -1.0; p1 << -1.0, 1.0;
+    EXPECT_EQ(-M_PI/2, Calc::angle(p0, p1));
+  }
+  
   // angle between segments
   TEST_F(CalcTest, AngleLoop)
   {
@@ -791,33 +901,72 @@ namespace {
     EXPECT_EQ(B2, B2_exp);
   }
 
+  // vary dimension
+  TEST_F(CalcTest, BoundingBoxDimension)
+  {
+    Verticies V(6,3);
+    Path P;
+    Vertex B1,B2, B1_exp, B2_exp;
+    V << 0.0, 10.0, 800.0,
+      1.0, 20.0, 600.0,
+      5.0, 50.0, 200.0,
+      4.0, 40.0, 100.0,
+      3.0, 60.0, 300.0,
+      2.0, 70.0, 400.0;
+
+    P = Path(3);
+    P << 0,1,2;
+    B1_exp << 0.0, 10.0, 200.0;
+    B2_exp << 5.0, 50.0, 800.0;
+    Calc::boundingBox(V, P, B1, B2);
+    EXPECT_EQ(B1_exp, B1);
+    EXPECT_EQ(B2_exp, B2);
+
+    P = Path(6);
+    P << 0,1,2,3,4,5;
+    B1_exp << 0.0, 10.0, 100.0;
+    B2_exp << 5.0, 70.0, 800.0;
+    Calc::boundingBox(V, P, B1, B2);
+    EXPECT_EQ(B1_exp, B1);
+    EXPECT_EQ(B2_exp, B2);
+
+    Faces F = Faces(2,3);
+    P << 0,1,2,3,4,5;
+    B1_exp << 0.0, 10.0, 100.0;
+    B2_exp << 5.0, 70.0, 800.0;
+    Calc::boundingBox(V, F, B1, B2);
+    EXPECT_EQ(B1_exp, B1);
+    EXPECT_EQ(B2_exp, B2);
+    
+  }
+
   // project 3d path in plane to 2d path, widest axes
   // not preserving size
   TEST_F(CalcTest, DropAxisBasic)
   {
-    Eigen::MatrixXd V = Eigen::MatrixXd(3,3);
-    Eigen::MatrixXi F = Eigen::MatrixXi(1,3);    
+    Verticies V(3,3);
+    Path P(3);    
 
     V << 0.0, 0.0, 0.0,
       1.0, 0.0, 0.1,
       0.0, 1.0, 0.1;
-    F << 0,1,2;
+    P << 0,1,2;
 
-    EXPECT_EQ(Calc::minAxis(V, F), AXIS_Z);
+    EXPECT_EQ(Calc::minAxis(V, P), AXIS_Z);
 
     V << 0.0, 0.0, 0.0,
       2.0, 0.0, 5.0,
       0.0, 1.0, 5.0;
-    F << 0,1,2;
+    P << 0,1,2;
 
-    EXPECT_EQ(Calc::minAxis(V, F), AXIS_Y);
+    EXPECT_EQ(Calc::minAxis(V, P), AXIS_Y);
 
     V << 0.0, 0.0, 0.0,
       1.0, 0.0, 5.0,
       0.0, 2.0, 5.0;
-    F << 0,1,2;
+    P << 0,1,2;
 
-    EXPECT_EQ(Calc::minAxis(V, F), AXIS_X);    
+    EXPECT_EQ(Calc::minAxis(V, P), AXIS_X);
   }
   
   TEST_F(CalcTest, IntersectLineSegment)
@@ -1003,116 +1152,94 @@ namespace {
     segment << 1.0, -1.0, 0.0, 1.0;
     EXPECT_TRUE(Calc::intersect(line, segment, winding));
     EXPECT_EQ(winding, -2);
+
+    //
+    winding = 0;
+    line << 0.0, 0.0, 0.0, 1.0;
+    segment << -1.0, 1.0, 1.0, 1.0;
+    EXPECT_TRUE(Calc::intersect(line, segment, winding));
+    EXPECT_EQ(winding, 1);
+    // V << 0.0, 0.0, 0.0,
+    //   -0.1, 1.0, 0.0,
+    //   0.1, 2.0, 0.0,
+    //   0.5, 0.5, 0.0,
+    //   0.8, 2.4, 0.0,
+    //   0.9, 0.3, 0.0,
+    //   0.7, -0.4, 0.0,
+    //   -1.0, -1.0, 0.0,
+    //   -1.1, -1.2, 0.0,
+    //   -2.0, 0.3, 0.0;
+
+    winding = 0;
+    line << 0.0, 0.0, -0.1, 1.0;
+    segment << 0.9, 0.3,
+      0.7, -0.4;
+    EXPECT_TRUE(Calc::intersect(line, segment, winding));
+    EXPECT_EQ(winding, 1);
+
+    segment << -0.1, 1.0,
+      0.0, 2.0;
+    EXPECT_TRUE(Calc::intersect(line, segment, winding));
+    EXPECT_EQ(winding, 2);
   }
   
-  // line intersect
-  TEST_F(CalcTest, DISABLED_IntersectLineSegment2)
+  TEST_F(CalcTest, WindingBasic)
   {
-    Vector2d l1, l2, s1, s2;
+    Verticies V(3,3);
+    Path P(3);
 
-    int wind;
+    P << 0,1,2;
+    V << 0.0, 0.0, 0.0,
+      1.0, 0.0, 0.0,
+      1.0, 1.0, 0.0;
+    EXPECT_EQ(0, Calc::winding(V, P));
 
-    wind = 0;
-    l1 << 0.0, 0.0; l2 << 1.0, 1.0; s1 << 2.0, -1.0; s2 << -1.0, 3.0;
-    EXPECT_TRUE(Calc::intersect(l1, l2, s1, s2, wind));
-    EXPECT_EQ(wind, -1);
-    wind = 0;
-    EXPECT_TRUE(Calc::intersect(l1, l2, s2, s1, wind)); // swap s1,s2
-    EXPECT_EQ(wind, 1);
+    V << 0.0, 0.0, 0.0,
+      1.0, 0.0, 0.0,
+      1.0, -1.0, 0.0;
+    EXPECT_EQ(1, Calc::winding(V, P));
 
-    // from the line
-    wind = 0;
-    l1 << 0.0, 0.0; l2 << 1.0, 1.0; s1 << 2.0, 2.0; s2 << 3.0, 0.0;
-    EXPECT_TRUE(Calc::intersect(l1, l2, s1, s2, wind));
-    EXPECT_EQ(wind, 1);
-    wind = 0;
-    // to the line
-    EXPECT_FALSE(Calc::intersect(l1, l2, s2, s1, wind)); //swap s1,s2
-    EXPECT_EQ(wind, 0);
-    s2 << 1.0, 3.0;
-    wind = 0;
-    // from the line
-    EXPECT_TRUE(Calc::intersect(l1, l2, s1, s2, wind));
-    EXPECT_EQ(wind, -1);
+    V << 0.0, 0.0, 0.0,
+      0.0, 1.0, 0.0,
+      -1.0, 1.0, 0.0;
+    EXPECT_EQ(0, Calc::winding(V, P));
 
-    // same line
-    l1 << 0.0, 0.0; l2 << 1.0, 0.0; s1 << 0.0, 0.0; s2 << 1.0, 0.0;
-    EXPECT_FALSE(Calc::intersect(l1, l2, s1, s2, wind));
+    V << 1.0, 0.0, 0.0,
+      0.0, 0.0, 0.0,
+      0.0, 1.0, 0.0;
+    EXPECT_EQ(1, Calc::winding(V, P));
 
-    // same start
-    l1 << 0.0, 0.0; l2 << 1.0, 0.0; s1 << 0.0, 0.0; s2 << 0.0, 1.0;
-    EXPECT_FALSE(Calc::intersect(l1, l2, s1, s2, wind));
+    // xz
+    V << 0.0, 0.0, 1.0,
+      0.0, 0.0, -1.0,
+      1.0, 0.0, -1.0;
+    EXPECT_EQ(0, Calc::winding(V, P));
+
+    // yz
+    V << 0.0, 1.0, 0.0,
+      0.0, 0.0, 0.0,
+      0.0, 0.0, 1.0;
+    EXPECT_EQ(1, Calc::winding(V, P));
+  }
+  
+  TEST_F(CalcTest, Winding)
+  {
+    Verticies V(10,3);
+    Path P(10);
+
+    P << 0,1,2,3,4,5,6,7,8,9;
     
-    l1 << 0.0, 0.0; l2 << 1.0, 0.0; s1 << 0.0, -1.0; s2 << 0.0, 1.0;
-    EXPECT_TRUE(Calc::intersect(l1, l2, s1, s2, wind));
-
-    l1 << 0.0, 0.0; l2 << 1.0, 1.0; s1 << 1.0, -1.0; s2 << -1.0, 1.0;
-    EXPECT_TRUE(Calc::intersect(l1, l2, s1, s2, wind));
-
-    wind = 0;
-    l1 << 0.0, 0.0; l2 << 1.0, 0.0; s1 << 0.0, 1.0; s2 << 1.0, 1.0;
-    EXPECT_TRUE(Calc::intersect(l1, l2, s1, s2, wind));
-    EXPECT_EQ(wind, 1);
-
-    // large number
-    wind = 0;
-    l1 << 12345678.0, 12345678.0; l2 << 12345678.5, 12345678.5;
-    s1 << 12345679.0, 12345678.0; s2 << 12345679.0, 12345680.0;
-    EXPECT_TRUE(Calc::intersect(l1, l2, s1, s2, wind));
-    EXPECT_EQ(wind, -1);
-    wind = 0;
-    EXPECT_TRUE(Calc::intersect(l1, l2, s2, s1, wind));
-    EXPECT_EQ(wind, 1);
-
-    // winding number x
-    l1 << 0.0, 0.0; l2 << 1.0, 0.0; 
-    wind = 0;
-    s1 << 1.0, -1.0; s2 << 1.0, 1.0;
-    EXPECT_TRUE(Calc::intersect(l1, l2, s1, s2, wind));
-    EXPECT_EQ(wind, -1);
-    wind = 0;
-    s1 << -1.0, -1.0; s2 << -1.0, 1.0;
-    EXPECT_TRUE(Calc::intersect(l1, l2, s1, s2, wind));
-    EXPECT_EQ(wind, 1);
-    wind = 0;
-    s1 << 1.0, 1.0; s2 << 1.0, -1.0;
-    EXPECT_TRUE(Calc::intersect(l1, l2, s1, s2, wind));
-    EXPECT_EQ(wind, 1);
-    wind = 0;
-    s1 << -1.0, 1.0; s2 << -1.0, -1.0;
-    EXPECT_TRUE(Calc::intersect(l1, l2, s1, s2, wind));
-    EXPECT_EQ(wind, -1);
-
-    // winding number y
-    wind = 0;
-    s1 << 1.0, -1.0; s2 << -1.0, -1.0;
-    EXPECT_TRUE(Calc::intersect(l1, l2, s1, s2, wind));
-    EXPECT_EQ(wind, 1);
-    wind = 0;
-    EXPECT_TRUE(Calc::intersect(l1, l2, s2, s1, wind));
-    EXPECT_EQ(wind, -1);
-    wind = 0;
-    s1 << -1.0, 1.0; s2 << 1.0, 1.0;
-    EXPECT_TRUE(Calc::intersect(l1, l2, s1, s2, wind));
-    EXPECT_EQ(wind, 1);
-    wind = 0;
-    EXPECT_TRUE(Calc::intersect(l1, l2, s2, s1, wind));
-    EXPECT_EQ(wind, -1);
-
-    // winding number xy
-    wind = 0;
-    s1 << 1.0, -1.0; s2 << -2.0, 1.0;
-    EXPECT_TRUE(Calc::intersect(l1, l2, s1, s2, wind));
-    EXPECT_EQ(wind, 2);
-    wind = 0;
-    s1 << 1.0, -1.0; s2 << -1.0, 2.0;
-    EXPECT_TRUE(Calc::intersect(l1, l2, s1, s2, wind));
-    EXPECT_EQ(wind, -2);
-
-    wind = 0;
-    l1 << 0.0, 0.0; l2 << -0.1, 1.0; s1 << -1.0, 1.0; s2 << 1.0, 1.0;
-    EXPECT_TRUE(Calc::intersect(l1, l2, s1, s2, wind));
-    EXPECT_EQ(wind, 1);
+    V << 0.0, 0.0, 0.0,
+      -0.1, 1.0, 0.0,
+      0.1, 2.0, 0.0,
+      0.5, 0.5, 0.0,
+      0.8, 2.4, 0.0,
+      0.9, 0.3, 0.0,
+      0.7, -0.4, 0.0,
+      -1.0, -1.0, 0.0,
+      -1.1, -1.2, 0.0,
+      -2.0, 0.3, 0.0;
+    
   }
   
   TEST_F(CalcTest, Crossing)
@@ -1150,7 +1277,7 @@ namespace {
     P1 << 16, 17, 19, 20, 23, 22, 21, 18;
     P2 << 16, 17, 19, 20, 23, 22, 21, 18, 3, 6, 7, 3, 18;
     
-    std::cout << Calc::crossing(V, P1) << std::endl;
-    std::cout << Calc::crossing(V, P2) << std::endl;
+    std::cout << Calc::winding(V, P1) << std::endl;
+    std::cout << Calc::winding(V, P2) << std::endl;
   }
 }

@@ -5,9 +5,9 @@
 
 namespace Calc
 {
-  void getSegments(MatrixXi &F, MatrixXi &S)
+  void getSegments(Faces &F, Faces &S)
   {
-    S = MatrixXi(F.rows()*3,2);
+    S = Faces(F.rows()*3,2);
     
     for (int i=0; i < F.rows(); i++)
       {
@@ -20,7 +20,7 @@ namespace Calc
       }
   }
 
-  unsigned int sharedSegments(Vector3i F1, Vector3i F2)
+  unsigned int sharedSegments(Face F1, Face F2)
   {
     if ( (F1[0] == F2[0] && F1[1] == F2[1] && F1[2] == F2[2]) ||
 	 (F1[0] == F2[1] && F1[1] == F2[0] && F1[2] == F2[2]) ||
@@ -57,12 +57,12 @@ namespace Calc
     return 0;
   }
   
-  void getFaceSegments(MatrixXi &F, MatrixXi &Fo)
+  void getFaceSegments(Faces &F, Faces &Fo)
   {
     // number of segments
     unsigned int n;
     n = ((F.rows()+1)/2)*3;
-    Fo = MatrixXi(n,2);
+    Fo = Faces(n,2);
 
     //std::cout << "n " << n << std::endl;	  
     
@@ -87,7 +87,7 @@ namespace Calc
       }
   }
 
-  void toSegment(MatrixXi &F, unsigned int f1, unsigned int f2,
+  void toSegment(Faces &F, unsigned int f1, unsigned int f2,
 		 unsigned int &s1, unsigned int &s2)
   {
     int i;
@@ -124,23 +124,23 @@ namespace Calc
       }
   }
 
-  bool getIntersection(MatrixXd F, MatrixXd segment, Vector3d &point)
+  bool getIntersection(Verticies F, Verticies segment, Vertex &point)
   {
     // verticies of face
-    Vector3d p1 = F.row(0);
-    Vector3d p2 = F.row(1);
-    Vector3d p3 = F.row(2);
+    Vertex p1 = F.row(0);
+    Vertex p2 = F.row(1);
+    Vertex p3 = F.row(2);
 
     // verticies of segment
-    Vector3d s1 = segment.row(0);
-    Vector3d s2 = segment.row(1);
+    Vertex s1 = segment.row(0);
+    Vertex s2 = segment.row(1);
     
     // normal
-    Vector3d n = Calc::normal(p1, p2, p3);
+    Vertex n = Calc::normal(p1, p2, p3);
 
     // calculate u and w
-    Vector3d u = s2 - s1;
-    Vector3d w = s1 - p1;
+    Vertex u = s2 - s1;
+    Vertex w = s1 - p1;
 
     // calculate D and N
     float D = n.dot(u);
@@ -151,7 +151,7 @@ namespace Calc
       {
 	return false;
       }
-  
+
     float sI = N/D;
     
     //std::cout << "sI " << sI << std::endl;
@@ -176,29 +176,29 @@ namespace Calc
       }
   }
   
-  bool getIntersection(MatrixXd &V1, MatrixXi &F1,
-		       MatrixXd &V2, MatrixXi &F2,
+  bool getIntersection(Verticies &V1, Faces &F1,
+		       Verticies &V2, Faces &F2,
 		       unsigned int f1,
 		       unsigned int f2a, unsigned int f2b,
-		       Vector3d &p)
+		       Vertex &p)
   {
-    Vector3i f = F1.row(f1);
-    Vector3d p1 = V1.row(f[0]);
-    Vector3d p2 = V1.row(f[1]);
-    Vector3d p3 = V1.row(f[2]);
+    Face f = F1.row(f1);
+    Vertex p1 = V1.row(f[0]);
+    Vertex p2 = V1.row(f[1]);
+    Vertex p3 = V1.row(f[2]);
 
     // face indicies to segment verticies
     unsigned int n1,n2;
     toSegment(F2, f2a, f2b, n1, n2);
-    Vector3d s1 = V2.row(n1);
-    Vector3d s2 = V2.row(n2);
+    Vertex s1 = V2.row(n1);
+    Vertex s2 = V2.row(n2);
 
     // normal
-    Vector3d n = Calc::normal(p1,p2,p3);
+    Vertex n = Calc::normal(p1,p2,p3);
 
     // calculate u and w
-    Vector3d u = s2 - s1;
-    Vector3d w = s1 - p1;
+    Vertex u = s2 - s1;
+    Vertex w = s1 - p1;
 
     // calculate D and N
     float D = n.dot(u);
@@ -234,7 +234,7 @@ namespace Calc
       }
   }
 
-  bool equal(Vector3i f1, Vector3i f2)
+  bool equal(Face f1, Face f2)
   {
     if ( (f1(0) == f2(0) && f1(1) == f2(1) && f1(2) == f2(2)) ||
   	 (f1(0) == f2(0) && f1(2) == f2(2) && f1(1) == f2(1)) ||
@@ -248,34 +248,61 @@ namespace Calc
     return false;  
   }
 
-  bool triangulate(const MatrixXd V, const VectorXi P, MatrixXi &F)
+  bool triangulate(const Verticies V, const Path P, Faces &F)
   {
-
-    std::cout << "Triangulate:" << std::endl;
+    //std::cout << "Triangulate:" << std::endl;
 
     // skip list
     std::set <int> skip;
 
-    Vector3d up = -normal(V.row(P[0]), V.row(P[1]), V.row(P[2]));
+    Vertex up = normal(V.row(P[0]), V.row(P[1]), V.row( P.tail(1)[0] ));
 
-    // if number of crossings is odd
-    int winding = crossing(V,P);
-    std::cout << "cross: " << winding << std::endl;
+    // min axis
+    Axis minaxis = minAxis(V,P);
+    Axis axis1, axis2;
+    
+    if (minaxis == AXIS_X)
+      {
+	axis1 = AXIS_Y;
+	axis2 = AXIS_Z;
+      }
+    else if (minaxis == AXIS_Y)
+      {
+	axis1 = AXIS_X;
+	axis2 = AXIS_Z;
+      }
+    else
+      {
+	axis1 = AXIS_X;
+	axis2 = AXIS_Y;
+      }
 
-    if (winding > 0)
+    // reference line
+    Segment line;
+    Point vp0, vp1, vp2, v0, v1;
+    vp0 << V.row(P[0])[axis1], V.row(P[0])[axis2];
+    vp1 << V.row(P[1])[axis1], V.row(P[1])[axis2];
+    vp2 << V.row(P.tail(1)[0])[axis1], V.row(P.tail(1)[0])[axis2];
+
+    v0 = vp1 - vp0;
+    v1 = vp2 - vp0;
+
+    double a2 = angle(v0,v1);
+
+    // winding
+    int wind = winding(V,P);
+
+    Geotree::Log().Get(LOG_DEBUG)
+      << "Triangulate: "  << "w:" << wind
+      << ", a:" << a2
+      << ", up:" << up.transpose();
+    
+    if ( wind <= 0 || a2 < 0 )
       {
 	up = -up;
       }
     
-    // if (crossing(V,P) % 2)
-    //   {
-    // 	std::cout << "Crossing odd: " << crossing(V,P) << std::endl;	    
-    // 	up = -up;
-    //   }
-    
-    //std::cout << "up:" << up.transpose() << std::endl;
-    
-    MatrixXi tmp = MatrixXi(P.size(), 3);
+    Faces tmp = Faces(P.size(), 3);
 
     int count = 0;
 
@@ -284,20 +311,22 @@ namespace Calc
     bool done = false;
 
     int n1, n2, n3;
-    Eigen::Vector3d p1,p2,p3;
+    Vertex p1,p2,p3;
     
     while (!done)
       {
 	//std::cout << "while:" <<  count << std::endl;
 	//std::cout << "skip:" <<  skip.size() << std::endl;
 
-	for (int s : skip)
+	//for (int s : skip)
 	{
 	    //std::cout << s << ", ";	    
 	}
 	//std::cout << std::endl;
 	if (c++ > P.rows())
 	  {
+	    Geotree::Log().Get(LOG_DEBUG)
+	  << "  failed.";
 	    return false;
 	  }
 	
@@ -328,9 +357,9 @@ namespace Calc
 	p3 = V.row(P[i]);
 	n3 = i;
 
-	std::cout << "n1 " << n1 << std::endl;
-	std::cout << "n2 " << n2 << std::endl;
-	std::cout << "n3 " << n3 << std::endl;
+	//std::cout << "n1 " << n1 << std::endl;
+	//std::cout << "n2 " << n2 << std::endl;
+	//std::cout << "n3 " << n3 << std::endl;
 
 	if (n1 == n3)
 	  {
@@ -341,31 +370,34 @@ namespace Calc
 	// are any points inside?
 	if ( inside(p1, p2, p3, V, P) )
 	  {
-	    std::cout << "a point is inside" << std::endl;
+	    //std::cout << "a point is inside" << std::endl;
 	    i = n2;
 	    continue;
 	  }
 	
 	double a = angle(p1,p2,p3,up);
-	//std::cout << "angle:" << a << std::endl;
+	std::cout << "angle:" << a << std::endl;
 	// is angle greater than 180?
 	if ( a >= M_PI )
 	  {
-	    std::cout << "angle is greater than 180" << std::endl;
+	    //std::cout << "angle is greater than 180" << std::endl;
 	    i = n2;
 	    continue;
 	  }
 
 	// create triangle
-	tmp.row(count++) = Vector3i(P[n1], P[n2], P[n3]);
+	tmp.row(count++) = Face(P[n1], P[n2], P[n3]);
 
-	std::cout << "added:" <<  tmp.row(count-1)<< std::endl;
+	//	std::cout << "added:" <<  tmp.row(count-1)<< std::endl;
 	    
 	// skip point
 	skip.insert(n2);
 
 	// reset counter
 	c = 0;
+
+	Geotree::Log().Get(LOG_DEBUG)
+	  << "  added:" << tmp.row(count-1);
       }
 
     //std::cout << "count:" << count << std::endl;
@@ -374,35 +406,33 @@ namespace Calc
     return true;
   }
   
-  Vector3d normal(Vector3d v1, Vector3d v2, Vector3d v3)
+  Vertex normal(Vertex v1, Vertex v2, Vertex v3)
   {
-    Vector3d va = v2 - v1;
-    Vector3d vb = v3 - v1;
+    Vertex va = v2 - v1;
+    Vertex vb = v3 - v1;
 
-    Vector3d n = va.cross(vb);
-
-    n.normalize();
+    return va.cross(vb).normalized();
 
     //std::cout << n.transpose() << std::endl;
 	
-    return n;
+    //return n;
   }
 
-  double distance(Vector3d v1a, Vector3d v1b, Vector3d v2a, Vector3d v2b)
+  double distance(Vertex v1a, Vertex v1b, Vertex v2a, Vertex v2b)
   { 
     // direction of segments
-    Vector3d v1 = v1a - v1b;
-    Vector3d v2 = v2a - v2b;
+    Vertex v1 = v1a - v1b;
+    Vertex v2 = v2a - v2b;
 
     // vector perpendicular to both lines
-    Vector3d n = v1.cross(v2);
+    Vertex n = v1.cross(v2);
 
     // segments are parallell
     if (n.norm() == 0.0)
       {
-	Vector3d v3 = v1a - v2a; // line 1 to 2
-	Vector3d v4 = v1.normalized() * v3.dot(v1.normalized()); // project v3 to line
-	//Vector3d v5 = v1a + v4;
+	Vertex v3 = v1a - v2a; // line 1 to 2
+	Vertex v4 = v1.normalized() * v3.dot(v1.normalized()); // project v3 to line
+	//Vertex v5 = v1a + v4;
 	//std::cout << v3 << ", " << v4 << std::endl;
 	if (v1.norm() < v4.norm())
 	  {
@@ -414,10 +444,10 @@ namespace Calc
       }
     
     // nearest points
-    Vector3d n2 = v2.cross(n);
-    Vector3d n1 = v1.cross(n);
-    Vector3d p1 =  v1a + ( (v2a - v1a).dot(n2) / v1.dot(n2) ) * v1;
-    Vector3d p2 =  v2a + ( (v1a - v2a).dot(n1) / v2.dot(n1) ) * v2;
+    Vertex n2 = v2.cross(n);
+    Vertex n1 = v1.cross(n);
+    Vertex p1 =  v1a + ( (v2a - v1a).dot(n2) / v1.dot(n2) ) * v1;
+    Vertex p2 =  v2a + ( (v1a - v2a).dot(n1) / v2.dot(n1) ) * v2;
     
     // std::cout << "closest point s1: " << ps1.transpose() << std::endl
     // 	      << "closest point s2: " << ps2.transpose() << std::endl;
@@ -434,8 +464,8 @@ namespace Calc
     // std::cout << "a1: " << a1 << std::endl
     // 	      << "a2: " << a2 << std::endl;
 
-    //Vector3d p1 = ps1;
-    //Vector3d p2 = ps2;
+    //Vertex p1 = ps1;
+    //Vertex p2 = ps2;
 
     // v2a is closest point
     if (a2 < 0.0)
@@ -469,19 +499,19 @@ namespace Calc
     //return D;
   }
   
-  bool inside(Vector3d v1, Vector3d v2, Vector3d v3, Vector3d p)
+  bool inside(Vertex v1, Vertex v2, Vertex v3, Vertex p)
   {
     // normal
-    Vector3d n = Calc::normal(v1,v2,v3);
+    Vertex n = Calc::normal(v1,v2,v3);
 
     // Test if point is inside triangle  
-    Vector3d e1 = v2 - v1;
-    Vector3d e2 = v3 - v2;
-    Vector3d e3 = v1 - v3;
+    Vertex e1 = v2 - v1;
+    Vertex e2 = v3 - v2;
+    Vertex e3 = v1 - v3;
     
-    Vector3d c1 = p - v1;
-    Vector3d c2 = p - v2;
-    Vector3d c3 = p - v3;
+    Vertex c1 = p - v1;
+    Vertex c2 = p - v2;
+    Vertex c3 = p - v3;
 
     double r1 = n.dot(e1.cross(c1));
     double r2 = n.dot(e2.cross(c2));
@@ -496,9 +526,9 @@ namespace Calc
     return true;
   }
 
-  bool inside(Vector3d v1, Vector3d v2, Vector3d v3, MatrixXd V, VectorXi P)
+  bool inside(Vertex v1, Vertex v2, Vertex v3, Verticies V, VectorXi P)
   {
-    MatrixXd V2(P.rows(), 3);
+    Verticies V2(P.rows(), 3);
 
     for (int i=0; i<P.rows(); i++)
       {
@@ -508,12 +538,12 @@ namespace Calc
     return inside(v1, v2, v3, V2);
   }
   
-  bool inside(Vector3d v1, Vector3d v2, Vector3d v3, MatrixXd P)
+  bool inside(Vertex v1, Vertex v2, Vertex v3, Verticies P)
   {
     // iterate points
     for (int i=0; i<P.rows(); i++)
       {
-	Vector3d p = P.row(i);
+	Vertex p = P.row(i);
 
 	// don't test triangle points
 	if (! (p == v1 || p == v2 || p == v3))
@@ -529,12 +559,38 @@ namespace Calc
     return false;
   }
 
-  double angle(Vector3d v1, Vector3d v2, Vector3d v3, Vector3d up)
+  double angle(Point p0, Point p1)
   {
-    Vector3d va = v2 - v1;
-    Vector3d vb = v2 - v3;
+    double a0 = atan2(p0[1], p0[0]);
+    double a1 = atan2(p1[1], p1[0]);
+    double a = a1 - a0;
+    
+    if (a < -M_PI)
+      {
+	a += M_PI;
+	a = -a;
+      }
 
-    Vector3d n = va.cross(vb);
+    if (a > M_PI)
+      {
+	a -= M_PI;
+	a = -a;
+      }
+
+    Geotree::Log().Get(LOG_DEBUG)
+      << "angle: a0:" << a0
+      << ", a1:" << a1
+      << ", a" << a;
+    
+    return a;
+  }
+  
+  double angle(Vertex v1, Vertex v2, Vertex v3, Vertex up)
+  {
+    Vertex va = v2 - v1;
+    Vertex vb = v2 - v3;
+
+    Vertex n = va.cross(vb);
 
     double d = va.dot(vb);
 
@@ -544,11 +600,6 @@ namespace Calc
       {
 	angle += M_PI * 2;
       }
-
-    //std::cout << "angle:" << angle << std::endl;
-    //std::cout << v1.transpose() << std::endl;
-    //std::cout << v2.transpose() << std::endl;
-    //std::cout << v3.transpose() << std::endl;
     
     return angle;
   }
@@ -579,7 +630,7 @@ namespace Calc
   }
 
   // all connected to this point
-  static std::set <int> connectedFace(MatrixXi F, std::set <int> skip, Vector3i f)
+  static std::set <int> connectedFace(Faces F, std::set <int> skip, Face f)
   {
     std::set <int> list;
 
@@ -602,7 +653,7 @@ namespace Calc
     return list;
   }
       
-  std::set <int> connected(MatrixXi F, std::set <int> skip, int index)
+  std::set <int> connected(Faces F, std::set <int> skip, int index)
   {
     std::set <int> list, ret;
 
@@ -627,8 +678,8 @@ namespace Calc
 
     return list;
   }
-
-  void boundingBox(MatrixXd V, MatrixXi F, Vector3d &B1, Vector3d &B2)
+  
+  void boundingBox(Verticies V, Faces F, Vertex &B1, Vertex &B2)
   {
     // initial values
     B1 = V.row(F.row(0)[0]);
@@ -637,179 +688,157 @@ namespace Calc
     for (int i=0; i<F.rows(); i++)
       {
 	// verticies in face
-	for (int j=0; j<3; j++)
+	for (int j=0; j<F.cols(); j++)
 	  {
-	    Vector3d v = V.row(F.row(i)[j]);
-	    // elements of vertex
+	    int p = F.row(i)[j];
+	    
 	    for (int k=0; k<3; k++)
 	      {
-		B1[k] = std::min(B1[k], v[k]);
-		B2[k] = std::max(B2[k], v[k]);
+		B1[k] = std::min(B1[k], V.row(p)[k]);
+		B2[k] = std::max(B2[k], V.row(p)[k]);
 	      }
 	  }
       }
   }
-
-  int crossing(MatrixXd V, VectorXi P)
+  
+  int winding(Verticies V, Path P)
   {
-    //Vector3d up = -normal(V.row(P[0]), V.row(P[1]), V.row(P[2]));
-
-    std::cout << "Crossing: "<< std::endl;
-
-    Vector2d p1, p2, p3, v1, v2;
+    // skip one axis
+    Axis minaxis = minAxis(V,P);
+    Axis axis1, axis2;
     
-    p1 << V.row(P[0])[0], V.row(P[0])[1];
-    p2 << V.row(P[1])[0], V.row(P[1])[1];
-    p3 << V.row(P[2])[0], V.row(P[2])[1];
+    if (minaxis == AXIS_X)
+      {
+	axis1 = AXIS_Y;
+	axis2 = AXIS_Z;
+      }
+    else if (minaxis == AXIS_Y)
+      {
+	axis1 = AXIS_X;
+	axis2 = AXIS_Z;
+      }
+    else
+      {
+	axis1 = AXIS_X;
+	axis2 = AXIS_Y;
+      }
 
-    v1 = p2 - p1;
-    v2 = p3 - p2;
+    // reference line
+    Segment line;
 
-    double a1 = atan2(v1[1], v1[0]);
-    double a2 = atan2(v2[1], v2[0]);
-
-    bool invert = a1 > a2;
-
-    std::cout << " angles: " << a1 << ", " << a2 << std::endl;
-
-    int wind = 0;
+    line << V.row(P[0])[axis1], V.row(P[0])[axis2],
+      V.row(P[1])[axis1], V.row(P[1])[axis2];
     
+    // calculate winding
+    Segment segment;
+    int winding = 0;
     for (int i=1; i<(P.size() - 1); i++)
       {
-
-	Vector2d l1, l2, s1, s2;
-	l1 << V.row(P[0])[0], V.row(P[0])[1];
-	l2 << V.row(P[1])[0], V.row(P[1])[1]; 
-	s1 << V.row(P[i])[0], V.row(P[i])[1];
-	s2 << V.row(P[i+1])[0], V.row(P[i+1])[1]; 
+	segment << V.row(P[i])[axis1], V.row(P[i])[axis2],
+	  V.row(P[i+1])[axis1], V.row(P[i+1])[axis2];
 	
-	if ( intersect( l1, l2, s1, s2, wind ) ) 
-	  {
-	    //std::cout << "Intersect: " << i << std::endl;
-	    //crossing++;
-	  }
-	std::cout << i << " Wind:" << wind << std::endl;
+	intersect(line, segment, winding);
       }
-
-    return wind;
-  }
-  
-  int winding(MatrixXd V, VectorXi P)
-  {
-
-    for (int i=0; i<(P.size()); i++)
-      {
-	V.row(P[i]);
-	
-
-      }
-    return 0;
+    return winding;
   }
 
   bool intersect(const Segment line, const Segment segment, int &winding)
-  {
-    return intersect(line.row(0), line.row(1), segment.row(0), segment.row(1), winding);
-  }
-  
-  bool intersect(Vector2d l1, Vector2d l2, Vector2d s1, Vector2d s2, int &wind)
-  {
-    Geotree::Log().Get(LOG_DEBUG) << "test";
-    
-    std::cout << "Intersect:" << std::endl;
+  {    
     bool retval = false;
-    Vector2d v1 = l1 - l2;
-    Vector2d v3;
-    v3 << v1[1], -v1[0]; // rotate 90
-    Vector2d v2 = s1 - s2;
+    Point v1, v1_r, v2;
+
+    v1 = line.row(0) - line.row(1);
     
-    double y1 = l1[1] + v1[1]/v1[0] * (s1[0] - l1[0]);
-    double y2 = l1[1] + v1[1]/v1[0] * (s2[0] - l1[0]);
+    v2 = segment.row(0) - segment.row(1);
+    
+    if ((v1[0] < 0))
+      {
+	v1_r << v1[1], -v1[0];
+      }
+    else
+      {
+	v1_r = v1;
+	v1 << v1_r[1], -v1_r[0];
+      }
+    
+    double y1 = line.row(0)[1] + v1[1]/v1[0] * (segment.row(0)[0] - line.row(0)[0]);
+    double y2 = line.row(0)[1] + v1[1]/v1[0] * (segment.row(1)[0] - line.row(0)[0]);
 
-    double x1 = l1[0] + v3[0]/v3[1] * (s1[1] - l1[1]);
-    double x2 = l1[0] + v3[0]/v3[1] * (s2[1] - l1[1]);
+    double x1 = line.row(0)[0] + v1_r[0]/v1_r[1] * (segment.row(0)[1] - line.row(0)[1]);
+    double x2 = line.row(0)[0] + v1_r[0]/v1_r[1] * (segment.row(1)[1] - line.row(0)[1]);
 
-    double x = s1[0] + v2[0]/v2[1] * (l1[1] - s1[1]);
-    double y = s1[1] + v2[1]/v2[0] * (l1[0] - s1[0]);
+    double x = segment.row(0)[0] + v2[0]/v2[1] * (line.row(0)[1] - segment.row(0)[1]);
+    double y = segment.row(0)[1] + v2[1]/v2[0] * (line.row(0)[0] - segment.row(0)[0]);
 
-    std::cout << " xy:" << x << " " << y << std::endl;
-
-    if (l1 == s1)
+    Geotree::Log().Get(LOG_DEBUG)
+      << "Intersect: "
+      << "y1:" << y1 << ", y2:" << y2
+      << ", x1:" << x1 << ", x2:" << x2
+      << ", x:" << x << ", y:" << y
+      << ", w:" << winding;
+    
+    if (line.row(0) == segment.row(0))
       {
 	return false;
       }    
-    
-    if ( (s1[1] >= y1) && (s2[1] < y2) && (x > l1[0]) )
+
+    if ( (segment.row(0)[1] < y1) != (segment.row(1)[1] < y2) && (x > line.row(0)[0]) )
       {
-	std::cout << " cross x axis: " << x1 << ", " << x2 << std::endl;
-
-	wind++;
-	retval = true;
+    	if (segment.row(1)[1] < y2)
+    	  {
+    	    winding++;
+    	  }
+    	else
+    	  {
+    	    winding--;
+    	  }
+    	retval = true;
       }
-
-    if ( (s1[1] < y1) && (s2[1] >= y2) && (x > l1[0]) )
+    else if ( (segment.row(0)[1] > y1) != (segment.row(1)[1] > y2) && (x < line.row(0)[0]) )
       {
-    	std::cout << " cross x axis: " << x1 << ", " << x2 << std::endl;
-
-    	wind--;
-	retval = true;
+    	if (segment.row(1)[1] > y2)
+    	  {
+    	    winding++;
+    	  }
+    	else
+    	  {
+    	    winding--;
+    	  }
+    	retval = true;
       }
 
-    if ( (s1[1] <= y1) && (s2[1] > y2) && (x < l1[0]) )
+    if ( (segment.row(0)[0] < x1) != (segment.row(1)[0] < x2) && (y < line.row(0)[1]) )
       {
-	std::cout << " cross x axis: " << x1 << ", " << x2 << std::endl;
-
-	wind++;
-	retval = true;
+    	if (segment.row(1)[0] < x2)
+    	  {
+    	    winding++;
+    	  }
+    	else
+    	  {
+    	    winding--;
+    	  }
+    	retval = true;
       }
-
-    if ( (s1[1] > y1) && (s2[1] <= y2) && (x < l1[0]) )
+    else if ( (segment.row(0)[0] > x1) != (segment.row(1)[0] > x2) && (y > line.row(0)[1]) )
       {
-	std::cout << " cross x axis: " << x1 << ", " << x2 << std::endl;
-
-	wind--;
-	retval = true;
+    	if (segment.row(1)[0] > x2)
+    	  {
+    	    winding++;
+    	  }
+    	else
+    	  {
+    	    winding--;
+    	  }
+    	retval = true;
       }
-    
-    
-    if ( (s1[0] > x1) && (s2[0] <= x2) && (y > l1[0]) )
-      {
-	std::cout << " cross y axis: " << y1 << ", " << y2 << std::endl;
-
-	wind--;
-	retval = true;
-      }
-
-    if ( (s1[0] <= x1) && (s2[0] > x2) && (y > l1[0]) )
-      {	
-	std::cout << " cross y axis: " << y1 << ", " << y2 << std::endl;
-
-    	wind++;
-	retval = true;
-      }
-
-    if ( (s1[0] < x1) && (s2[0] >= x2) && (y < l1[0]) )
-      {
-	std::cout << " cross y axis: " << y1 << ", " << y2 << std::endl;
-
-	wind--;
-	retval = true;
-      }
-
-    if ( (s1[0] >= x1) && (s2[0] < x2) && (y < l1[0]) )
-      {
-	std::cout << " cross y axis: " << y1 << ", " << y2 << std::endl;
-
-	wind++;
-	retval = true;
-      }
-    
+        
     return retval;
   }
 
-  Axis minAxis(const Verticies V, const Faces F)
+  Axis minAxis(const Verticies V, const Faces P)
   {
     Vertex B1, B2;    
-    boundingBox(V, F, B1, B2);
+    boundingBox(V, P, B1, B2);
 
     double size_x = abs(B1[0] - B2[0]);
     double size_y = abs(B1[1] - B2[1]);
