@@ -255,8 +255,23 @@ namespace Calc
     // skip list
     std::set <int> skip;
 
-    Vertex up = normal(V.row(P[0]), V.row(P[1]), V.row( P.tail(1)[0] ));
+    unsigned int pathIndex = P.size();
 
+    Vertex up(0,0,0);
+
+    while( up == Vertex(0,0,0) && pathIndex > 1)
+      {
+	pathIndex--;
+	up = normal(V.row(P[0]), V.row(P[1]), V.row( P[pathIndex] ));
+      }
+
+    if (pathIndex < 2)
+      {
+	Geotree::Log().Get(LOG_ERROR)
+	  << "Unable to construct normal.";
+	return false;
+      }
+    
     // min axis
     Axis minaxis = minAxis(V,P);
     Axis axis1, axis2;
@@ -282,7 +297,7 @@ namespace Calc
     Point vp0, vp1, vp2, v0, v1;
     vp0 << V.row(P[0])[axis1], V.row(P[0])[axis2];
     vp1 << V.row(P[1])[axis1], V.row(P[1])[axis2];
-    vp2 << V.row(P.tail(1)[0])[axis1], V.row(P.tail(1)[0])[axis2];
+    vp2 << V.row(P.tail(1)[0])[axis1], V.row(P[pathIndex])[axis2];
 
     v0 = vp1 - vp0;
     v1 = vp2 - vp0;
@@ -376,7 +391,7 @@ namespace Calc
 	  }
 	
 	double a = angle(p1,p2,p3,up);
-	std::cout << "angle:" << a << std::endl;
+	//std::cout << "angle:" << a << std::endl;
 	// is angle greater than 180?
 	if ( a >= M_PI )
 	  {
@@ -408,18 +423,51 @@ namespace Calc
   
   Vertex normal(Vertex v1, Vertex v2, Vertex v3)
   {
-    Vertex va = v2 - v1;
-    Vertex vb = v3 - v1;
-
-    return va.cross(vb).normalized();
-
-    //std::cout << n.transpose() << std::endl;
-	
-    //return n;
+    return (v2 - v1).cross(v3 - v1).normalized();
   }
 
+  // distance from point to segment
+  double distance(Vertex point, Vertex seg0, Vertex seg1)    
+  {
+    // zero length
+    if (seg0 == seg1)
+      {
+	return (point - seg0).norm();
+      }
+
+    Vertex v = seg1 - seg0;
+    Vertex v_p0 = seg0 - point;
+    Vertex v_p1 = seg1 - point;
+
+    double d_seg0 = v_p0.dot(v)/v.dot(v);
+    double d_seg1 = v_p1.dot(v)/v.dot(v);
+
+    double d = ( v_p0 - (d_seg0 * v) ).norm(); // point to line
+
+    // point to segment end points
+    if ( (d_seg0 > 1.0 || d_seg0 < 0.0) &&
+	 (d_seg1 > 1.0 || d_seg1 < 0.0) )
+      {
+	if ( v_p0.norm() < v_p1.norm())
+	  {
+	    d = v_p0.norm();
+	  }
+	else
+	  {
+	    d = v_p1.norm();
+	  }
+      }
+
+    Geotree::Log().Get(LOG_DEBUG)
+      << "distance: "
+      << "point:(" << point.transpose() << "), seg0:(" << seg0.transpose()
+      << "), seg1:(" << seg1.transpose() << "), d:" << d;
+    
+    return d;
+  }
+  
   double distance(Vertex v1a, Vertex v1b, Vertex v2a, Vertex v2b)
-  { 
+  {
     // direction of segments
     Vertex v1 = v1a - v1b;
     Vertex v2 = v2a - v2b;
@@ -428,24 +476,42 @@ namespace Calc
     Vertex n = v1.cross(v2);
 
     // segments are parallell
-    if (n.norm() == 0.0)
+    float dot  = v1.normalized().dot(v2.normalized());
+
+    // parallel and zero length lines
+    if (dot == 1 || dot == -1 || v1a == v1b || v2a == v2b)
       {
-	Vertex v3 = v1a - v2a; // line 1 to 2
-	Vertex v4 = v1.normalized() * v3.dot(v1.normalized()); // project v3 to line
-	//Vertex v5 = v1a + v4;
-	//std::cout << v3 << ", " << v4 << std::endl;
-	if (v1.norm() < v4.norm())
+	double d, d_tmp;
+
+	d = distance(v1a, v2a, v2b);
+
+	d_tmp = distance(v1b, v2a, v2b);
+
+	if (d_tmp < d)
 	  {
-	    return 2.0;
+	    d = d_tmp;
 	  }
-	
-	return (v4 - v2a).norm();
-	//return -1;
+
+	d_tmp = distance(v2a, v1a, v1b);
+
+	if (d_tmp < d)
+	  {
+	    d = d_tmp;
+	  }
+
+	d_tmp = distance(v2b, v1a, v1b);
+
+	if (d_tmp < d)
+	  {
+	    d = d_tmp;
+	  }
+
+	return d;	 
       }
     
     // nearest points
-    Vertex n2 = v2.cross(n);
     Vertex n1 = v1.cross(n);
+    Vertex n2 = v2.cross(n);
     Vertex p1 =  v1a + ( (v2a - v1a).dot(n2) / v1.dot(n2) ) * v1;
     Vertex p2 =  v2a + ( (v1a - v2a).dot(n1) / v2.dot(n1) ) * v2;
     
@@ -577,7 +643,7 @@ namespace Calc
 	a = -a;
       }
 
-    Geotree::Log().Get(LOG_DEBUG)
+    Geotree::Log().Get(LOG_VERBOSE)
       << "angle: a0:" << a0
       << ", a1:" << a1
       << ", a" << a;

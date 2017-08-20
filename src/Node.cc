@@ -19,13 +19,14 @@ void Node::build()
     {
       if (TranslateNode * t = dynamic_cast<TranslateNode*>(n))
       	{
+	  t = NULL;
       	  //std::cout << "This is a translate node"<< std::endl;
       	}
       else if (UnionNode * t = dynamic_cast<UnionNode*>(n))
       	{
+	  t = NULL;
       	  //std::cout << "This is a union node"<< std::endl;
       	}
-
       else
       	{
       	  //std::cout << "This is a node"<< std::endl;

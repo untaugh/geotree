@@ -3,6 +3,7 @@
 #include "Validate.h"
 #include <algorithm>
 #include <iostream>
+#include <Log.h>
 
 void Intersections::add(Geometry &g1, Geometry &g2)
 {
@@ -11,7 +12,7 @@ void Intersections::add(Geometry &g1, Geometry &g2)
     {
       return;
     }
-  
+
   this->g1 = g1;
   this->g2 = g2;
 
@@ -130,7 +131,6 @@ bool Intersections::getPathsNext(int face, std::vector<int> &path, std::vector <
 	{
 	  if ( (I[i].segment[0] == face || I[i].segment[1] == face) )
 	    {
-	      std::cout << "Start edge: " << i << std::endl;
 	      path.push_back(i);
 	      return true;
 	    }
@@ -141,25 +141,23 @@ bool Intersections::getPathsNext(int face, std::vector<int> &path, std::vector <
 	{
 	  if ( I[i].plane == face )
 	    {
-	      std::cout << "Start inner: " << i << std::endl;
 	      path.push_back(i);
 	      return true;
 	    }
 	}
 
       // no start point found
-      std::cout << "No start found." << std::endl;
       return false;      
     }
 
   int path_prev = path.back();
   int path_prev_prev = -1;
-  std::cout << "Previous point: " << path_prev << std::endl;
+
   if (path.size() > 1)
     {
       path_prev_prev = path[path.size()-2];
-      std::cout << "Point before previous: " << path_prev_prev << std::endl;
     }
+  
   int plane_cut; // face of cutting plane
 
   // last point was an inner point
@@ -168,7 +166,7 @@ bool Intersections::getPathsNext(int face, std::vector<int> &path, std::vector <
       // no second point, go any direction
       if (path_prev_prev < 0)
 	{
-	  std::cout << "No second point." << std::endl;
+	  // no second point
 	  plane_cut = I[path_prev].segment[0];
 	}
       else
@@ -216,8 +214,6 @@ bool Intersections::getPathsNext(int face, std::vector<int> &path, std::vector <
       plane_cut = I[path_prev].plane;
     }
   
-  std::cout << "Cutting plane: " << plane_cut << std::endl;
-  
   // get mid or end point
   for (unsigned i=0; i<I.size(); i++)
     {
@@ -230,7 +226,7 @@ bool Intersections::getPathsNext(int face, std::vector<int> &path, std::vector <
       if ( (I[i].segment[0] == plane_cut || I[i].segment[1] == plane_cut ) &&
 	   I[i].plane == face)
 	{
-	  std::cout << "Adding mid: " << i << std::endl;
+	  // adding mid
 	  path.push_back(i);
 	  return true;
 	}
@@ -248,13 +244,12 @@ bool Intersections::getPathsNext(int face, std::vector<int> &path, std::vector <
       if ( (I[i].segment[0] == face || I[i].segment[1] == face) &&
 	   I[i].plane == plane_cut)
 	{
-	  std::cout << "Adding end: " << i << std::endl;
+	  // adding end
 	  path.push_back(i);
 	  return true;
 	}
     }
 
-  std::cout << "No point found." << std::endl;
   return false;
   
 }
@@ -271,6 +266,18 @@ std::vector<std::vector<int>> Intersections::getPaths(int face)
       ret = getPathsNext(face, path, this->I);
     }
 
+  // log path
+  Geotree::Log * log = new Geotree::Log();
+
+  log->Get(LOG_DEBUG) << "getPaths: ";
+
+  for (int i: path)
+    {
+      log->Get(LOG_DEBUG) << i << ", ";      
+    }
+    
+  delete log;
+  
   // one point is no path
   if (path.size() > 1)
     {
@@ -457,13 +464,7 @@ void Intersections::divide(int face, std::set <unsigned> div1, std::set <unsigne
 
   int offset = this->g1.V.rows() + this->g2.V.rows();
   
-  std::cout << "Face " << face << ": ";
-  
-  // for (int i : paths[0])
-  //   {
-  //     std::cout << i+offset << ", ";
-  //   }
-  // std::cout << std::endl;
+  Geotree::Log().Get(LOG_DEBUG) << "divide: " << face;
 
   for ( std::vector<int> path : paths)
     {
@@ -475,14 +476,13 @@ void Intersections::divide(int face, std::set <unsigned> div1, std::set <unsigne
 
       if ( start->plane == face && end->plane == face )
 	{
-	  std::cout << "Path lies inside face" << std::endl;
-
+	  Geotree::Log().Get(LOG_DEBUG) << " Inside face.";
 	  // find closest point to first point in face
 	  Vector3d v = this->gx.V.row(this->gx.F.row(face)[0]);
 	  int near_point = path.front();
 	  double d = (v - this->I[near_point].point).norm();
 
-	  for (int i=0; i<path.size(); i++)
+	  for (unsigned int i=0; i<path.size(); i++)
 	    {
 	      double d_new = (v - this->I[i].point).norm();
 
@@ -491,7 +491,6 @@ void Intersections::divide(int face, std::set <unsigned> div1, std::set <unsigne
 		  near_point = i;
 		}
 	    }
-	  std::cout << "Nearest point " << near_point + offset << "." << std::endl;
 
 	  // create paths
 	  for (int i: path)
@@ -514,11 +513,11 @@ void Intersections::divide(int face, std::set <unsigned> div1, std::set <unsigne
 	{
 	  if (start->segment == end->segment)
 	    {
-	      std::cout << "Path starts and ends on same edge.." << std::endl;
+	      Geotree::Log().Get(LOG_DEBUG) << " Same edge.";
 	    }
 	  else
 	    {
-	      std::cout << "Path goes from edge to edge." << std::endl;
+	      Geotree::Log().Get(LOG_DEBUG) << " Eedge to edge.";
 
 	      int sharedVertex, singleVertex1, singleVertex2; 
 	      unsigned int ps1, ps2, pe1, pe2;
@@ -554,7 +553,7 @@ void Intersections::divide(int face, std::set <unsigned> div1, std::set <unsigne
 		}
 	      else
 		{
-		  std::cout << "Invalid path." << std::endl; 		  
+		  Geotree::Log().Get(LOG_ERROR) << "Invalid path.";
 		}
 
 	      for (int i: path)
@@ -571,38 +570,33 @@ void Intersections::divide(int face, std::set <unsigned> div1, std::set <unsigne
 	}
       else
 	{
-	  std::cout << "Invalid path." << std::endl;	  
+	  Geotree::Log().Get(LOG_ERROR) << "Invalid path.";
 	}
-      std::cout << "V: " << this->gx.V << std::endl;
-      
-      std::cout << "P1: ";
-      for (int i : P1) std::cout << i << ", ";
-      std::cout << std::endl;
 
-      std::cout << "P2: ";
-      for (int i : P2) std::cout << i << ", ";
-      std::cout << std::endl;
+      Geotree::Log * log = new Geotree::Log();
+
+      log->Get(LOG_DEBUG) << " path1: ";
+
+      for (int i : P1)
+	{
+	  log->Get(LOG_DEBUG) << i << ", ";
+	}
+
+      log->Get(LOG_DEBUG) << std::endl << " path2: ";
+
+      for (int i : P2)
+	{
+	  log->Get(LOG_DEBUG) << i << ", ";
+	}
+
+      delete log;
 
       Eigen::Map<const RowVectorXi> Pv1(P1.data(), P1.size());
       Eigen::Map<const RowVectorXi> Pv2(P2.data(), P2.size());
-
-      std::cout << "Pv1: " << Pv1 << std::endl;
-      std::cout << "Pv2: " << Pv2 << std::endl;      
-      //std::cout << "gxV: " << this->gx.V << std::endl;      
       
       MatrixXi F1, F2;
-
-      
       
       Calc::triangulate(this->gx.V, Pv1, F1);
       Calc::triangulate(this->gx.V, Pv2, F2);
-
-      //std::cout << "F1: " << F1 << std::endl;
-      //std::cout << "F2: " << F2 << std::endl;
-      //Eigen::Map<const Vector3i, 1, 3> Pv(pi, 1,3);
-
-      ///      Eigen::VectorXi Pv1(P1.data());
-      //Eigen::VectorXi Pv2(P2.data()); 
-      
     }  
 }

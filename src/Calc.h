@@ -96,6 +96,8 @@ namespace Calc
   // in v2b   : segment 2 end
   double distance(Vector3d v1a, Vector3d v1b, Vector3d v2a, Vector3d v2b);
 
+  double distance(Vertex point, Vertex seg0, Vertex seg1);
+
   // inside : point inside triangle
   // ret    : true if yes
   // in v1  : vertex 1 of face

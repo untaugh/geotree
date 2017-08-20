@@ -137,7 +137,7 @@ namespace {
       }
 
     bool ret = I->getIntersectingFaces(Ft);
-
+    EXPECT_TRUE(ret);
     EXPECT_EQ(Ft.size(), 9);
 
     for (unsigned f : Ft)

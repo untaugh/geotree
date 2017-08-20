@@ -263,7 +263,7 @@ namespace {
 
     V << 0,0,0, 1,0,0, 2,-1,0, 2,1,0, 1,2,0, -0.1,0,0;
     P << 0,1,2,3,4,5;
-    F_exp << 1,2,3, 3,4,5, 3,5,0, 1,3,0;
+    F_exp << 1,2,3, 3,4,5, 0,1,3, 3,5,0;
     EXPECT_EQ(-2, Calc::winding(V,P));
     EXPECT_TRUE(Calc::triangulate(V, P, F));
     EXPECT_EQ(F, F_exp);
@@ -272,7 +272,7 @@ namespace {
     V << 0,0,0, 1,0,0, 2,0.1,0, 2,1,0, 1,2,0, -0.1,0.001,0;
     P << 0,1,2,3,4,5;
     F_exp << 0,1,2, 2,3,4, 4,5,0, 0,2,4;
-    EXPECT_EQ(-2, Calc::winding(V,P));
+    EXPECT_EQ(-1, Calc::winding(V,P));
     EXPECT_TRUE(Calc::triangulate(V, P, F));
     EXPECT_EQ(F, F_exp);
 
@@ -283,6 +283,11 @@ namespace {
     EXPECT_EQ(-2, Calc::winding(V,P));
     EXPECT_TRUE(Calc::triangulate(V, P, F));
     EXPECT_EQ(F, F_exp);
+
+    // no normal, all on same line
+    V << 0,0,0, 1,0,0, 2,0,0, -3,0,0, 10,0,0, -0.1,0,0;
+    P << 0,1,2,3,4,5;
+    EXPECT_FALSE(Calc::triangulate(V, P, F));
   }
   // triangulate path outside
   TEST_F(CalcTest, TriangulateOutside)
@@ -498,7 +503,7 @@ namespace {
   }
 
   // parallell and point segments
-  TEST_F(CalcTest, DISABLED_DistanceSegmentsOther)
+  TEST_F(CalcTest, DistanceSegmentsOther)
   {
     Eigen::Vector3d v1a; // segment 1 start
     Eigen::Vector3d v1b; // segment 1 end
@@ -514,11 +519,19 @@ namespace {
     d = Calc::distance(v1a, v1b, v2a, v2b);
     EXPECT_DOUBLE_EQ(0.5, d);
 
+    // parallel z
+    v1a << 0.0, 0.0, 0.0;
+    v1b << 0.0, 0.0, 1.0;
+    v2a << 2.0, 3.0, 0.0;
+    v2b << 2.0, 3.0, 0.5;
+    d = Calc::distance(v1a, v1b, v2a, v2b);
+    EXPECT_DOUBLE_EQ(Vertex(2,3,0).norm(), d);
+
     // parallel
-    v1b << 0.0, 0.0, 0.0;
+    v1a << 0.0, 0.0, 0.0;
     v1b << 1.1, 2.3, 4.2;
     v2a << 0.0, 0.0, 0.0;
-    v2b = v1a * -2;
+    v2b = v1b * 2;
 
     v1a += Vector3d(4,5,6);
     v1b += Vector3d(4,5,6);
@@ -526,31 +539,58 @@ namespace {
     v2b += Vector3d(10,3,1);
     
     d = Calc::distance(v1a, v1b, v2a, v2b);
-    EXPECT_DOUBLE_EQ(0.5, d);
+    EXPECT_DOUBLE_EQ(7.074289188518077, d);
 
     // parallel same
     v1a << 0.0, 0.0, 0.0;
     v1b << 1.0, 0.0, 0.0;
-    v2a << 0.0, 0.5, 0.0;
-    v2b << 1.0, 0.5, 0.0;
-    d = Calc::distance(v1a, v1b, v1a, v1b);
+    v2a << 0.0, 0.0, 0.0;
+    v2b << 1.0, 0.0, 0.0;
+    d = Calc::distance(v1a, v1b, v2a, v2b);
     EXPECT_DOUBLE_EQ(0.0, d);
 
     // parallel not same
     v1a << 1.0, 0.0, 0.0;
     v1b << 2.0, 0.0, 0.0;
-    v2a << -1.0, 0.5, 0.0;
-    v2b << -2.0, 0.5, 0.0;
-    d = Calc::distance(v1a, v1b, v1a, v1b);
-    EXPECT_DOUBLE_EQ(2.0, d);
-    
+    v2a << -2.0, 0.0, 0.0;
+    v2b << -3.0, 0.0, 0.0;
+    d = Calc::distance(v1a, v1b, v2a, v2b);
+    EXPECT_DOUBLE_EQ(3.0, d);
+
     // not segment
     v1a << 1.0, 1.0, 0.0;
     v1b << 1.0, 1.0, 0.0;
     v2a << 0.0, 0.0, 0.0;
     v2b << 2.0, 0.0, 0.0;
-    d = Calc::distance(v1a, v1b, v1a, v1b);
+    d = Calc::distance(v1a, v1b, v2a, v2b);
     EXPECT_DOUBLE_EQ(1.0, d);
+    d = Calc::distance(v2a, v2b, v1a, v1b);
+    EXPECT_DOUBLE_EQ(1.0, d);
+
+    // both zero length
+    v1a << 1.0, 1.0, 0.0;
+    v1b << 1.0, 1.0, 0.0;
+    v2a << 2.0, 0.0, 0.0;
+    v2b << 2.0, 0.0, 0.0;
+    d = Calc::distance(v1a, v1b, v2a, v2b);
+    EXPECT_DOUBLE_EQ(sqrt(2.0), d);
+
+  }
+
+  TEST_F(CalcTest, DistancePointSegment)
+  {
+    Vertex point, seg0, seg1;
+
+    point << 1.0, 0.0, 0.0;
+    seg0 << -1.0, 0.0, 0.0;
+    seg1 << -2.0, 0.0, 0.0;
+    EXPECT_EQ(2.0, Calc::distance(point, seg0, seg1));
+
+    // zero length
+    point << 1.0, 0.0, 0.0;
+    seg0 << 2.0, 0.0, 0.0;
+    seg1 << 2.0, 0.0, 0.0;
+    EXPECT_EQ(1.0, Calc::distance(point, seg0, seg1));
   }
 
   // is point inside triangular face
@@ -1275,9 +1315,6 @@ namespace {
       10, 1.9,   9;
     
     P1 << 16, 17, 19, 20, 23, 22, 21, 18;
-    P2 << 16, 17, 19, 20, 23, 22, 21, 18, 3, 6, 7, 3, 18;
-    
-    std::cout << Calc::winding(V, P1) << std::endl;
-    std::cout << Calc::winding(V, P2) << std::endl;
+    P2 << 16, 17, 19, 20, 23, 22, 21, 18, 3, 6, 7, 3, 18;    
   }
 }

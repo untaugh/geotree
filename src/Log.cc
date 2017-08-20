@@ -13,16 +13,32 @@ namespace Geotree {
   Log::~Log()
   {
     os << std::endl;
-    fprintf(stderr, "%s", os.str().c_str());
+
+    if (messageLevel < LOG_VERBOSE)
+      {
+	fprintf(stderr, "%s", os.str().c_str());
+      }
     fflush(stderr);
   }
   
   std::ostringstream& Log::Get(LOG_LEVEL level)
   {
-    std::time_t end_time = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+    //std::time_t end_time = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+
+    switch (level)
+      {
+      case LOG_DEBUG: break;
+      case LOG_INFO: break;
+      case LOG_VERBOSE: break;	  
+      case LOG_ERROR:
+	{
+	  os << "ERROR: ";
+	  break;
+	}
+      }
 
     //    os << "- " << std::s(&end_time);
-
+    messageLevel = level;
     return os;
   }
 

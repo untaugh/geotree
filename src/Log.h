@@ -3,7 +3,8 @@
 enum LOG_LEVEL {
   LOG_ERROR,
   LOG_INFO,
-  LOG_DEBUG
+  LOG_DEBUG,
+  LOG_VERBOSE
 };
 
 namespace Geotree {
