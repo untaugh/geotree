@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Node.h"
+#include "Intersect.h"
 
 class Geotree
 {

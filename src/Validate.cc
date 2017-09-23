@@ -129,46 +129,12 @@ bool Geotree::Validate::planar(MatrixXd P)
   
   for (int i=3; i<P.rows(); i++)
     {
-      Vector3d normal = Calc::normal(P.row(0), P.row(1), P.row(i));
-      
-      Vector3d normal2 = -normal;
-
-      long int tmp1[3];
-      tmp1[0] = *(long int*) &normal_ref[0];
-      tmp1[1] = *(long int*) &normal_ref[1];
-      tmp1[2] = *(long int*) &normal_ref[2];
-
-      long int tmp2[3];
-      tmp2[0] = *(long int*) &normal[0];
-      tmp2[1] = *(long int*) &normal[1];
-      tmp2[2] = *(long int*) &normal[2];
-      
-      long int tmp3[3];
-      tmp3[0] = *(long int*) &normal2[0];
-      tmp3[1] = *(long int*) &normal2[1];
-      tmp3[2] = *(long int*) &normal2[2];
-
-      // printf("\nnormal_ref:    0x%lX, 0x%lx, 0x%lx\n", tmp1[0], tmp1[1], tmp1[2]);
-      // printf("normal:        0x%lX, 0x%lx, 0x%lx\n", tmp2[0], tmp2[1], tmp2[2]);
-      // printf("normal2:       0x%lX, 0x%lx, 0x%lx\n", tmp3[0], tmp3[1], tmp3[2]);
-
-      // printf("\nnormal_ref:    %ld, %ld, %ld\n", tmp1[0], tmp1[1], tmp1[2]);
-      // printf("normal:        %ld, %ld, %ld\n", tmp2[0], tmp2[1], tmp2[2]);
-      // printf("normal2:       %ld, %ld, %ld\n", tmp3[0], tmp3[1], tmp3[2]);
-      
-      // printf("calc0:    0x%ld\n", abs(tmp1[0] - tmp2[0]));
-      // printf("calc0:    0x%ld\n", abs(tmp1[0] - tmp3[0]));
-      // printf("calc1:    0x%ld\n", abs(tmp1[1] - tmp2[1]));
-      // printf("calc1:    0x%ld\n", abs(tmp1[1] - tmp3[1]));
-      // printf("calc2:    0x%ld\n", abs(tmp1[2] - tmp2[2]));
-      // printf("calc2:    0x%ld\n", abs(tmp1[2] - tmp3[2]));
-      
-      if ( (abs(tmp1[0] - tmp2[0]) > 2 ||
-	    abs(tmp1[1] - tmp2[1]) > 2 ||
-	    abs(tmp1[2] - tmp2[2]) > 2) &&
-	   (abs(tmp1[0] - tmp3[0]) > 2 ||
-	    abs(tmp1[1] - tmp3[1]) > 2 ||
-	    abs(tmp1[2] - tmp3[2]) > 2) )
+      double dot = normal_ref.dot((P.row(i) - P.row(0)));
+      if (dot == 0.0)
+	{
+	  continue;
+	}
+      else
 	{
 	  return false;
 	}      
@@ -176,32 +142,4 @@ bool Geotree::Validate::planar(MatrixXd P)
 
   return true;
 
-}
-
-bool Geotree::Validate::intersect(Vector3d v1a, Vector3d v1b, Vector3d v2a, Vector3d v2b)
-{
-  
-  return true;
-}
-
-bool Geotree::Validate::intersect(MatrixXd P)
-{
-  for (int i=0; i<P.rows(); i++)
-    {      
-      for (int j=0; j<P.rows(); j++)
-	{
-	  if (i == j || (i+1)%P.rows() ==j || (j+1)%P.rows() == i)
-	    {
-	      continue;
-	    }
-	  double d = Calc::distance(P.row(i), P.row((i+1)%P.rows()),
-			      P.row(j), P.row((j+1)%P.rows()));
-	  if (d < 0.00000000001)
-	    {
-	      return true;
-	    }
-	}
-      
-    }
-  return false;
 }

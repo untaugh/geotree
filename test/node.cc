@@ -48,9 +48,9 @@ namespace {
     
     Geometry *g = new Geometry(V,F);
 
-    GeometryNode *n = new GeometryNode(g);
+    GeometryNode *n = new GeometryNode(*g);
 
-    EXPECT_EQ(3, n->g->V.rows());
+    EXPECT_EQ(3, n->g.V.rows());
   }
 
   // union between separate 2d geometries
@@ -70,8 +70,8 @@ namespace {
     Geometry *g1 = new Geometry(V1,F1);
     Geometry *g2 = new Geometry(V2,F2);
 
-    GeometryNode *n1 = new GeometryNode(g1);
-    GeometryNode *n2 = new GeometryNode(g2);
+    GeometryNode *n1 = new GeometryNode(*g1);
+    GeometryNode *n2 = new GeometryNode(*g2);
     UnionNode *n3 = new UnionNode();
     
     n3->add(n1);
@@ -80,20 +80,20 @@ namespace {
 
     n3->build();
     
-    EXPECT_EQ(6, n3->g->V.rows());
-    EXPECT_EQ(2, n3->g->F.rows());
+    EXPECT_EQ(6, n3->g.V.rows());
+    EXPECT_EQ(2, n3->g.F.rows());
 
     Eigen::MatrixXd v(1,3);
     Eigen::MatrixXi f(1,3);
 
     v << 0.5, 0.0, 0.0;
-    EXPECT_EQ(v, n3->g->V.row(1));
+    EXPECT_EQ(v, n3->g.V.row(1));
 
     v << -0.1, -0.5, 0.0;
-    EXPECT_EQ(v, n3->g->V.row(5));
+    EXPECT_EQ(v, n3->g.V.row(5));
     
     f << 2,1,0;
-    EXPECT_EQ(f, n3->g->F.row(1));
+    EXPECT_EQ(f, n3->g.F.row(1));
   }
 
   // tall union tree
@@ -105,7 +105,7 @@ namespace {
     F << 0,1,2;
     
     Geometry *g = new Geometry(V, F);
-    GeometryNode *n = new GeometryNode(g);
+    GeometryNode *n = new GeometryNode(*g);
 
     UnionNode *n1 = new UnionNode();
     n1->add(n);
@@ -120,17 +120,17 @@ namespace {
 
     n5->build();
 
-    EXPECT_EQ(3, n5->g->V.rows());
-    EXPECT_EQ(1, n5->g->F.rows());
+    EXPECT_EQ(3, n5->g.V.rows());
+    EXPECT_EQ(1, n5->g.F.rows());
 
     Eigen::MatrixXd v(1,3);
     Eigen::MatrixXi f(1,3);
 
     v << 0.5, 0.0, 0.0;
-    EXPECT_EQ(v, n5->g->V.row(1));
+    EXPECT_EQ(v, n5->g.V.row(1));
     
     f << 0,1,2;
-    EXPECT_EQ(f, n5->g->F.row(0));
+    EXPECT_EQ(f, n5->g.F.row(0));
   }
 
   // cube node
@@ -138,10 +138,10 @@ namespace {
 
     CubeNode * n = new CubeNode(10,10,10);
 
-    EXPECT_TRUE(Geotree::Validate::geometry(*n->g));
+    EXPECT_TRUE(Geotree::Validate::geometry(n->g));
     
-    EXPECT_EQ(8, n->g->V.rows());
-    EXPECT_EQ(12, n->g->F.rows());
+    EXPECT_EQ(8, n->g.V.rows());
+    EXPECT_EQ(12, n->g.F.rows());
   }
 
   // translate node
@@ -154,16 +154,16 @@ namespace {
 
     t->build();
     
-    EXPECT_EQ(8, t->g->V.rows());
-    EXPECT_EQ(12, t->g->F.rows());
+    EXPECT_EQ(8, t->g.V.rows());
+    EXPECT_EQ(12, t->g.F.rows());
 
     double xmin = 1000.0, xmax = 0.0;
     double ymin = 1000.0, ymax = 0.0;
     double zmin = 1000.0, zmax = 0.0;
     
-    for (int i=0; i < t->g->V.rows(); i++)
+    for (int i=0; i < t->g.V.rows(); i++)
       {
-	Eigen::Vector3d v = t->g->V.row(i);
+	Eigen::Vector3d v = t->g.V.row(i);
 	xmin = std::min(xmin,v(0));
 	xmax = std::max(xmax,v(0));
 	ymin = std::min(ymin,v(1));
@@ -197,9 +197,9 @@ namespace {
     u->add(g);
     u->build();
 
-    EXPECT_EQ(20, u->g->V.rows());
-    EXPECT_EQ(33, u->g->F.rows());
+    EXPECT_EQ(20, u->g.V.rows());
+    EXPECT_EQ(33, u->g.F.rows());
 
-    EXPECT_TRUE(containsVector(u->g->V, 0.0, 0.0, 0.0));    
+    EXPECT_TRUE(containsVector(u->g.V, 0.0, 0.0, 0.0));    
   }
 }

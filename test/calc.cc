@@ -1,5 +1,6 @@
 #include "gtest/gtest.h"
 #include "Calc.h"
+#include "Node.h"
 #include <Eigen/Core>
 
 using namespace Eigen;
@@ -13,11 +14,11 @@ namespace {
   TEST_F(CalcTest, getSegments)
   {
     // face indicies
-    MatrixXi F(1,3);
+    Faces F(1,3);
     F << 0,1,2;
 
     // segments row=segment col=start,end
-    MatrixXi S(3,2);
+    MatrixXi S;
 
     Calc::getSegments(F,S);
     
@@ -52,7 +53,7 @@ namespace {
   TEST_F(CalcTest, getFaceSegments)
   {
     // face indicies
-    MatrixXi F(4,3);
+    Faces F(4,3);
     F << 0,1,2, 2,1,3, 3,1,0, 0,2,3;
 
     // segments row=segment col=start,end
@@ -92,7 +93,7 @@ namespace {
   // face indicies to segment indicies
   TEST_F(CalcTest, toSegment)
   {
-    MatrixXi F(4,3);
+    Faces F(4,3);
     F << 0,1,2, 2,1,3, 3,1,0, 0,2,3;
 
     unsigned int s1,s2;
@@ -106,46 +107,42 @@ namespace {
     EXPECT_EQ(s2,3);
   }
 
-  // intersection face and segment
-  TEST_F(CalcTest, getIntersection)
+  TEST_F(CalcTest, Intersection)
   {
-    MatrixXd V1(3,3);
-    MatrixXi F1(1,3);
-    MatrixXd V2(4,3);
-    MatrixXi F2(2,3);
-
-    Vector3d p;
-    Vector3d p_exp;
-    p_exp << 0.1, 0.1, 0.0;
+    Verticies F(3,3);
+    Verticies S(2,3);
+    Vertex P;
     
-    V1 << 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, 0.0;
-    F1 << 0,1,2;
-    V2 << 0.1, 0.1, -0.5, 0.5, 0.1, -0.5, 0.1, 0.5, -0.5, 0.1, 0.1, 0.5;
-    F2 << 0,1,3,0,2,3;
+    F << 0.0, 0.0, 0.0,
+      1.0, 0.0, 0.0,
+      0.0, 1.0, 0.0;
+    S << 0.0, 0.0, -1.0,
+      0.0, 0.0, 1.0;
 
-    bool r = Calc::getIntersection(V1, F1, V2, F2, 0, 0, 1, p);
+    EXPECT_TRUE(Calc::intersectsFace(F,S));
 
-    EXPECT_EQ(p, p_exp);
-    EXPECT_TRUE(r);
+    F << 0,0,0,
+      0,10,0,
+      10,10,0;
+    S << 1,1,1,
+      -9, -9, -9;
+    EXPECT_TRUE(Calc::intersectsFace(F,S));
   }
-
+  
   // intersection face and segment
-  TEST_F(CalcTest, getIntersectionNew)
+  TEST_F(CalcTest, IntersectionNew)
   {
-    MatrixXd V1(3,3);
+    MatrixXd F(3,3);
     MatrixXd S(2,3);	
-
-    Vector3d p;
     Vector3d p_exp;
+    
     p_exp << 0.1, 0.1, 0.0;
     
-    V1 << 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, 0.0;
+    F << 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, 0.0;
     S << 0.1, 0.1, -0.5, 0.1, 0.1, 0.5;
-    
-    bool r = Calc::getIntersection(V1, S, p);
 
-    EXPECT_EQ(p, p_exp);
-    EXPECT_TRUE(r);
+    EXPECT_TRUE(Calc::intersectsFace(F,S));
+    EXPECT_EQ(Calc::intersection(F,S), p_exp);
   }
 
   // test if faces indicies describe same face
@@ -198,7 +195,8 @@ namespace {
   {
     Eigen::MatrixXd V = Eigen::MatrixXd(4,3); // verticies
     Eigen::VectorXi P = Eigen::VectorXi(4); // path
-    Eigen::MatrixXi F; // resulting faces
+    //Eigen::MatrixXi F(0); // resulting faces
+    Faces F(0,3); // resulting faces
     Eigen::MatrixXi F_exp = Eigen::MatrixXi(2,3); // expected
     
     V << 0,0,0, 1,0,0, 0.7,0.7,0, 0,1,0;
@@ -251,7 +249,8 @@ namespace {
   {
     Verticies V(6,3);
     Path P(6);
-    Faces F; 
+    //Faces P(2,3);
+    Faces F(0,3);
     Faces F_exp(4,3);
     
     V << 0,0,0, 1,0,0, 2,-1,0, 2,1,0, 1,2,0, 0,1,0;
@@ -294,7 +293,7 @@ namespace {
   {
     Eigen::MatrixXd V = Eigen::MatrixXd(6,3); // verticies
     Eigen::VectorXi P = Eigen::VectorXi(6); // path
-    Eigen::MatrixXi F; // resulting faces
+    Faces F(0,3); // resulting faces
     Eigen::MatrixXi F_exp = Eigen::MatrixXi(4,3); // expected
 
     V << 0,0,0, 0.5,0.1,0, 0.1,0.5,0, 0,0.1,0, 0,1,0, 1,0,0;
@@ -311,7 +310,7 @@ namespace {
   {
     Eigen::MatrixXd V = Eigen::MatrixXd(4,3); // verticies
     Eigen::VectorXi P = Eigen::VectorXi(4); // path
-    Eigen::MatrixXi F;
+    Faces F(0,3);
     Eigen::MatrixXi F_exp = Eigen::MatrixXi(2,3);
 
     V << 1,0,0, 0.0,0.0,0, 0.0,1.0,0, 0.1,0.1,0;
@@ -327,7 +326,7 @@ namespace {
   {
     Eigen::MatrixXd V = Eigen::MatrixXd(4,3);
     Eigen::VectorXi P = Eigen::VectorXi(4); // path
-    Eigen::MatrixXi F;
+    Faces F(0,3);
     Eigen::MatrixXi F_exp = Eigen::MatrixXi(2,3);
 
     V << 0,0,0, 1,0,0, 1,1,0, 0,-1,0;    
@@ -377,7 +376,7 @@ namespace {
   {
     Eigen::MatrixXd V = Eigen::MatrixXd(8,3);
     Eigen::VectorXi P = Eigen::VectorXi(10); // path
-    Eigen::MatrixXi F;
+    Faces F(0,3);
     Eigen::MatrixXi F_exp = Eigen::MatrixXi(8,3);
 
     P << 0,1,2,3,4,5,6,7,4,3;
@@ -431,75 +430,47 @@ namespace {
   // distance between segments in 3d space
   TEST_F(CalcTest, DistanceSegments)
   {
-    Eigen::Vector3d v1a; // segment 1 start
-    Eigen::Vector3d v1b; // segment 1 end
-    Eigen::Vector3d v2a; // segment 2 start
-    Eigen::Vector3d v2b; // segment 2 end
-    double d; // distance
+    Line line1, line2;
+    
+    // intersecting
+    line1 << -1.0, 0.0, 0.0, 1.0, 0.0, 0.0;
+    line2 << 0.0, -1.0, 0.0, 0.0, 1.0, 0.0;
+    EXPECT_DOUBLE_EQ(0.0, Calc::distance(line1, line2));
 
     // intersecting
-    v1a << -1.0, 0.0, 0.0;
-    v1b << 1.0, 0.0, 0.0;
-    v2a << 0.0, -1.0, 0.0;
-    v2b << 0.0, 1.0, 0.0;
-    d = Calc::distance(v1a, v1b, v2a, v2b);
-    EXPECT_DOUBLE_EQ(0.0, d);
-
-    // intersecting
-    v1a << -1.0, 0.0, 3.0;
-    v1b << 1.0, 0.0, 3.0;
-    v2a << 0.0, -1.0, 3.0;
-    v2b << 0.0, 1.0, 3.0;
-    d = Calc::distance(v1a, v1b, v2a, v2b);
-    EXPECT_DOUBLE_EQ(0.0, d);
+    line1 << -1.0, 0.0, 3.0, 1.0, 0.0, 3.0;
+    line2 << 0.0, -1.0, 3.0, 0.0, 1.0, 3.0;
+    EXPECT_DOUBLE_EQ(0.0, Calc::distance(line1, line2));
 
     // not intersecting
-    v1a << -1.0, 0.0, 0.0;
-    v1b << 1.0, 0.0, 0.0;
-    v2a << 0.0, -1.0, 0.0;
-    v2b << 0.0, 1.0, 0.1;
-    d = Calc::distance(v1a, v1b, v2a, v2b);
-    EXPECT_NEAR(0.05, d, 0.0001);
+    line1 << -1.0, 0.0, 0.0, 1.0, 0.0, 0.0;
+    line2 << 0.0, -1.0, 0.0, 0.0, 1.0, 0.1;
+    EXPECT_NEAR(0.05, Calc::distance(line1, line2), 0.0001);
 
     // s2 away from intersection
-    v1a << -1.0, 0.0, 0.0;
-    v1b << 1.0, 0.0, 0.0;
-    v2a << 0.0, 0.001, 0.0;
-    v2b << 0.0, 2.0, 0.0;
-    d = Calc::distance(v1a, v1b, v2a, v2b);
-    EXPECT_DOUBLE_EQ(0.001, d);
+    line1 << -1.0, 0.0, 0.0, 1.0, 0.0, 0.0;
+    line2 << 0.0, 0.001, 0.0, 0.0, 2.0, 0.0;
+    EXPECT_DOUBLE_EQ(0.001, Calc::distance(line1, line2));
 
     // s2 away from intersection
-    v1a << -1.0, 0.0, 0.0;
-    v1b << 1.0, 0.0, 0.0;
-    v2a << 0.0, 3.0, 0.0;
-    v2b << 0.0, 0.003, 0.0;
-    d = Calc::distance(v1a, v1b, v2a, v2b);
-    EXPECT_DOUBLE_EQ(0.003, d);
+    line1 << -1.0, 0.0, 0.0, 1.0, 0.0, 0.0;
+    line2 << 0.0, 3.0, 0.0, 0.0, 0.003, 0.0;
+    EXPECT_DOUBLE_EQ(0.003, Calc::distance(line1, line2));
 
     // s1 away from intersection
-    v1a << 0.0, 0.0, 0.0;
-    v1b << 5.0, 0.0, 0.0;
-    v2a << 6.5, 1.0, 0.0;
-    v2b << 6.5, -2.0, 0.0;
-    d = Calc::distance(v1a, v1b, v2a, v2b);
-    EXPECT_DOUBLE_EQ(1.5, d);
+    line1 << 0.0, 0.0, 0.0, 5.0, 0.0, 0.0;
+    line2 << 6.5, 1.0, 0.0, 6.5, -2.0, 0.0;
+    EXPECT_DOUBLE_EQ(1.5, Calc::distance(line1, line2));
 
     // z distance 2.0
-    v1a << 0.0, 0.0, 1.0;
-    v1b << 1.0, 0.0, 1.0;
-    v2a << 0.0, 0.0, -1.0;
-    v2b << 0.0, 1.0, -1.0;
-    d = Calc::distance(v1a, v1b, v2a, v2b);
-    EXPECT_DOUBLE_EQ(2.0, d);
+    line1 << 0.0, 0.0, 1.0, 1.0, 0.0, 1.0;
+    line2 << 0.0, 0.0, -1.0, 0.0, 1.0, -1.0;
+    EXPECT_DOUBLE_EQ(2.0, Calc::distance(line1, line2));
 
     // both segments not on intersection
-    v1a << 1.0, 0.0, 0.0;
-    v1b << 2.0, 0.0, 0.0;
-    v2a << 0.0, 1.0, 0.0;
-    v2b << 0.0, 2.0, 0.0;
-    d = Calc::distance(v1a, v1b, v2a, v2b);
-    EXPECT_DOUBLE_EQ(sqrt(2.0), d);
+    line1 << 1.0, 0.0, 0.0, 2.0, 0.0, 0.0;
+    line2 << 0.0, 1.0, 0.0, 0.0, 2.0, 0.0;
+    EXPECT_DOUBLE_EQ(sqrt(2.0), Calc::distance(line1, line2));
   }
 
   // parallell and point segments
@@ -596,41 +567,53 @@ namespace {
   // is point inside triangular face
   TEST_F(CalcTest, pointInside)
   {
-    Vector3d v1, v2, v3, p;
-
-    v1 << 0.0, 0.0, 0.0;
-    v2 << 1.0, 0.0, 0.0;
-    v3 << 0.0, 1.0, 0.0;
+    Vertex p;
+    Plane face;
+    
+    face << 0.0, 0.0, 0.0,
+      1.0, 0.0, 0.0,
+      0.0, 1.0, 0.0;
     p << 0.1, 0.1, 0.0;
-    EXPECT_TRUE(Calc::inside(v1,v2,v3,p));
+    EXPECT_TRUE(Calc::inside(face,p));
     p << 0.7, 0.7, 0.0;
-    EXPECT_FALSE(Calc::inside(v1,v2,v3,p));
+    EXPECT_FALSE(Calc::inside(face,p));
     p << 1.0, 0.0, 0.0;
-    EXPECT_TRUE(Calc::inside(v1,v2,v3,p));
+    EXPECT_TRUE(Calc::inside(face,p));
+
+    face << 0,0,0,
+      0,10,0,
+      0,0,10;
+    p << 11,1,1;
+    EXPECT_FALSE(Calc::inside(face,p));
+
+    p << 0,1,1;
+    EXPECT_TRUE(Calc::inside(face,p));
   }
 
   // is any point inside triangular face
   TEST_F(CalcTest, pointsInside)
   {
-    Vector3d v1, v2, v3;
+    //Vector3d v1, v2, v3;
+    Plane face;
     MatrixXd P = MatrixXd(5,3);
     
-    v1 << 0.0, 0.0, 0.0;
-    v2 << 1.0, 0.0, 0.0;
-    v3 << 0.0, 1.0, 0.0;
+    face << 0.0, 0.0, 0.0,
+      1.0, 0.0, 0.0,
+      0.0, 1.0, 0.0;
+    
     P << 1.1, 0.0, 0.0,
       0.0, 1.1, 0.0,
       0.6, 0.6, 0.0,
       0.7, 10.1, 0.0,
       1.0, -0.1, 0.0;
-    EXPECT_FALSE(Calc::inside(v1,v2,v3,P));
+    EXPECT_FALSE(Calc::pointsInside(face,P));
 
     P << 0.0, 0.0, 0.0,
       1.0, 0.0, 0.0,
       0.0, 1.0, 0.0,
       0.7, 10.1, 0.0,
       1.0, -0.1, 0.0;
-    EXPECT_FALSE(Calc::inside(v1,v2,v3,P));
+    EXPECT_FALSE(Calc::pointsInside(face,P));
 
     
     P << 1.1, 0.0, 0.0,
@@ -638,7 +621,8 @@ namespace {
       0.6, 0.6, 0.0,
       0.7, 10.1, 0.0,
       1.0, -0.1, 0.0;
-    EXPECT_TRUE(Calc::inside(v1,v2,v3,P));
+    
+    EXPECT_TRUE(Calc::pointsInside(face,P));
   }
   
 
@@ -839,12 +823,18 @@ namespace {
 
     F << 0,1,2, 1,2,3, 2,3,4;
     
-    std::set <int> skip;
+    std::set <unsigned> skip;
     
-    std::set <int> c = Calc::connected(F, skip, 0);
-    std::set <int> c_exp = {0,1,2};
+    std::set <unsigned> c = Calc::connected(F, skip, 0);
+    std::set <unsigned> c_exp = {0,1,2};
 
     EXPECT_EQ(c, c_exp);
+
+    // index is in skip list
+    skip.insert(0);
+    c_exp.clear();
+    c = Calc::connected(F, skip, 0);
+    EXPECT_EQ(c_exp, c);
   }
 
   TEST_F(CalcTest, ConnectedFaces2)
@@ -853,10 +843,10 @@ namespace {
 
     F << 8,7,6, 1,2,3, 3,4,5, 4,5,6, 0,1,2;
     
-    std::set <int> skip;
+    std::set <unsigned> skip;
     
-    std::set <int> c = Calc::connected(F, skip, 0);
-    std::set <int> c_exp = {0,1,2,3,4};
+    std::set <unsigned> c = Calc::connected(F, skip, 0);
+    std::set <unsigned> c_exp = {0,1,2,3,4};
     EXPECT_EQ(c, c_exp);
     
     skip.insert(2);
@@ -875,8 +865,8 @@ namespace {
   TEST_F(CalcTest, ConnectedFaces3)
   {
     MatrixXi F = MatrixXi(100,3);
-    std::set <int> c_exp, c_exp2;
-    std::set <int> skip;
+    std::set <unsigned> c_exp, c_exp2;
+    std::set <unsigned> skip;
     
     for (int i=0; i<100; i++)
       {
@@ -889,7 +879,7 @@ namespace {
 	  }
       }
 
-    std::set <int> c = Calc::connected(F, skip, 0);
+    std::set <unsigned> c = Calc::connected(F, skip, 0);
     EXPECT_EQ(c, c_exp);
 
     skip.insert(24);
@@ -903,7 +893,7 @@ namespace {
   TEST_F(CalcTest, BoundingBox)
   {
     Eigen::MatrixXd V = Eigen::MatrixXd(3,3);
-    Eigen::MatrixXi F = Eigen::MatrixXi(1,3);
+    Path F(3);
     Eigen::Vector3d B1,B2, B1_exp, B2_exp;
 
     V << 0.0, 0.0, 0.0,
@@ -922,7 +912,7 @@ namespace {
   TEST_F(CalcTest, BoundingBox2)
   {
     Eigen::MatrixXd V = Eigen::MatrixXd(6,3);
-    Eigen::MatrixXi F = Eigen::MatrixXi(2,3);
+    Path F(6);
     Eigen::Vector3d B1,B2, B1_exp, B2_exp;
 
     V << -10.2, 3.0, 1.0,
@@ -970,7 +960,7 @@ namespace {
     EXPECT_EQ(B1_exp, B1);
     EXPECT_EQ(B2_exp, B2);
 
-    Faces F = Faces(2,3);
+    Path F(6);// = Faces(2,3);
     P << 0,1,2,3,4,5;
     B1_exp << 0.0, 10.0, 100.0;
     B2_exp << 5.0, 70.0, 800.0;
@@ -986,7 +976,8 @@ namespace {
   {
     Verticies V(3,3);
     Path P(3);    
-
+    //Faces P(1,3);
+    
     V << 0.0, 0.0, 0.0,
       1.0, 0.0, 0.1,
       0.0, 1.0, 0.1;
@@ -1316,5 +1307,175 @@ namespace {
     
     P1 << 16, 17, 19, 20, 23, 22, 21, 18;
     P2 << 16, 17, 19, 20, 23, 22, 21, 18, 3, 6, 7, 3, 18;    
+  }
+
+  TEST_F(CalcTest, Inside3D)
+  {
+    CubeNode * cube = new CubeNode(10,10,10);
+
+    EXPECT_TRUE(Calc::inside(cube->g, Vertex(1,2,3)));
+    EXPECT_TRUE(Calc::inside(cube->g, Vertex(1,1,1)));
+    EXPECT_TRUE(Calc::inside(cube->g, Vertex(0,0,0)));
+    EXPECT_TRUE(Calc::inside(cube->g, Vertex(10,10,10)));
+    EXPECT_TRUE(Calc::inside(cube->g, Vertex(0,0,10)));
+    EXPECT_TRUE(Calc::inside(cube->g, Vertex(1,1,8)));
+
+    EXPECT_TRUE(Calc::inside(cube->g, Vertex(1,2,8)));
+    EXPECT_TRUE(Calc::inside(cube->g, Vertex(1,1,8)));
+    EXPECT_TRUE(Calc::inside(cube->g, Vertex(1,2,9)));
+    EXPECT_TRUE(Calc::inside(cube->g, Vertex(1,1,9)));
+
+    EXPECT_FALSE(Calc::inside(cube->g, Vertex(11,1,1)));
+    EXPECT_FALSE(Calc::inside(cube->g, Vertex(-0.0000001, 0, 0)));
+    EXPECT_FALSE(Calc::inside(cube->g, Vertex(0,0,100000)));
+    EXPECT_FALSE(Calc::inside(cube->g, Vertex(-0.0000001, 10, 10)));
+  }
+
+  TEST_F(CalcTest, Inside3Dmore)
+  {
+    CubeNode * cube = new CubeNode(10,10,10);
+
+    EXPECT_FALSE(Calc::inside(cube->g, Vertex(11,1,8)));
+    //EXPECT_FALSE(Calc::inside(cube->g, Vertex(11,1,9)));
+    
+  }
+
+  // Test if a line passes through faces, or just touches a point
+  TEST_F(CalcTest, IntersectPoint)
+  {
+    Verticies V(5,3);
+    Faces F(4,3);
+    unsigned pointIndex;
+    Vertex segment;
+    
+    V << 0,0,1, 1,1,0, -1,1,0, -1,-1,0, 1,-1,0;
+    F << 0,1,2, 0,2,3, 0,3,4, 0,4,1;
+    Geometry G(V,F);
+    pointIndex = 0;
+
+    segment << 1,0,1;
+    EXPECT_FALSE(Calc::intersect(G, pointIndex, segment));
+
+    segment << 0,0,2;
+    EXPECT_TRUE(Calc::intersect(G, pointIndex, segment));    
+  }
+
+  // Test if line passes through face or just touches segment. 
+  TEST_F(CalcTest, IntersectSegment)
+  {
+    Verticies verticies(4,3);
+    Faces faces(2,3);
+    Line line;
+
+    verticies << 0,0,0, 1,0,0, 0,1,0, 0,0,1;
+    faces << 0,1,2, 1,2,3;
+    
+    Geometry geometry(verticies, faces);
+
+    line << 0,0,0.5, 0.5,0.5,0;
+    EXPECT_TRUE(Calc::intersect(geometry, 0, 1, line));
+
+    line << 1,1,0.5, 0.5,0.5,0;
+    EXPECT_FALSE(Calc::intersect(geometry, 0, 1, line));
+  }
+
+  TEST_F(CalcTest, AbovePlane)
+  {
+    Vertex point;
+    Plane plane;
+    
+    plane << 0,0,0, 1,0,0, 0,1,0;
+
+    EXPECT_TRUE(Calc::abovePlane(plane, Vertex(0,0,1)));
+    EXPECT_TRUE(Calc::abovePlane(plane, Vertex(0,0,0.000000001)));
+    EXPECT_TRUE(Calc::abovePlane(plane, Vertex(-10,-10,0.1)));
+    EXPECT_TRUE(Calc::abovePlane(plane, Vertex(-10,10,1)));
+
+    EXPECT_FALSE(Calc::abovePlane(plane, Vertex(0,0,-1)));
+    EXPECT_FALSE(Calc::abovePlane(plane, Vertex(0,0,-0.000000001)));
+    EXPECT_FALSE(Calc::abovePlane(plane, Vertex(-10,-10,-0.1)));
+    EXPECT_FALSE(Calc::abovePlane(plane, Vertex(-10,10,-1)));
+
+    EXPECT_FALSE(Calc::abovePlane(plane, Vertex(0,0,0)));
+    EXPECT_TRUE(Calc::abovePlane(plane, Vertex(10000,-10,4000)));
+    EXPECT_FALSE(Calc::abovePlane(plane, Vertex(10000,-4000,-10)));
+
+    plane << 0,0,1, 1,0,1, 0,-1,1;
+
+    EXPECT_FALSE(Calc::abovePlane(plane, Vertex(0,0,2)));
+    EXPECT_FALSE(Calc::abovePlane(plane, Vertex(0,0,1.000000001)));
+    EXPECT_FALSE(Calc::abovePlane(plane, Vertex(-10,-10,1.1)));
+    EXPECT_FALSE(Calc::abovePlane(plane, Vertex(-10,10,2)));
+
+    EXPECT_TRUE(Calc::abovePlane(plane, Vertex(0,0,0)));
+    EXPECT_TRUE(Calc::abovePlane(plane, Vertex(0,0,1-0.000000001)));
+    EXPECT_TRUE(Calc::abovePlane(plane, Vertex(-10,-10,1-0.1)));
+    EXPECT_TRUE(Calc::abovePlane(plane, Vertex(-10,10,0)));
+
+    plane << 1,0,0, 0,1,0, 0,0,1;
+
+    EXPECT_TRUE(Calc::abovePlane(plane, Vertex(0.7, 0.7, 0.7)));
+    EXPECT_FALSE(Calc::abovePlane(plane, Vertex(0.3, 0.3, 0.3)));
+    EXPECT_FALSE(Calc::abovePlane(plane, Vertex(0.0, 0.0, 0.9999)));
+    EXPECT_FALSE(Calc::abovePlane(plane, Vertex(1,0,0)));
+    EXPECT_FALSE(Calc::abovePlane(plane, Vertex(0,1,0)));
+    EXPECT_FALSE(Calc::abovePlane(plane, Vertex(0,0,1)));
+    EXPECT_FALSE(Calc::abovePlane(plane, Vertex(1/3.0, 1/3.0, 1/3.0)));
+    EXPECT_TRUE(Calc::abovePlane(plane, Vertex(1/3.0, 1/3.0, 1.0000000001/3.0)));
+    EXPECT_FALSE(Calc::abovePlane(plane, Vertex(1.0/2, 1.0/2, 0)));
+  }
+
+  TEST_F(CalcTest, HasPoint)
+  {
+    Verticies verticies(3,3);
+
+    verticies << 0.0, 0.0, 0.0,
+      1.0, 0.0, 0.0,
+      0.0, 1.0, 2.1;
+
+    EXPECT_TRUE(Calc::hasPoint(verticies, Vertex(0.0, 0.0, 0.0)));
+    EXPECT_TRUE(Calc::hasPoint(verticies, Vertex(1.0, 0.0, 0.0)));
+    EXPECT_TRUE(Calc::hasPoint(verticies, Vertex(0.0, 1.0, 2.1)));
+
+    EXPECT_FALSE(Calc::hasPoint(verticies, Vertex(0.0, 0.0, 0.1)));
+    EXPECT_FALSE(Calc::hasPoint(verticies, Vertex(0.0, 1.0, 0.0)));
+    EXPECT_FALSE(Calc::hasPoint(verticies, Vertex(0.0, 0.0, 1.0)));
+  }
+
+  TEST_F(CalcTest, PointIndex)
+  {
+    Verticies verticies(3,3);
+
+    verticies << 0.0, 0.0, 0.0,
+      1.0, 0.0, 0.0,
+      0.0, 1.0, 2.1;
+
+    EXPECT_EQ(0, Calc::pointIndex(verticies, Vertex(0.0, 0.0, 0.0)));
+    EXPECT_EQ(1, Calc::pointIndex(verticies, Vertex(1.0, 0.0, 0.0)));
+    EXPECT_EQ(2, Calc::pointIndex(verticies, Vertex(0.0, 1.0, 2.1)));
+
+    EXPECT_EQ(-1, Calc::pointIndex(verticies, Vertex(0.0, 0.0, 0.1)));
+  }
+
+  TEST_F(CalcTest, AtEdge)
+  {
+    Plane face(3,3);
+
+    face << 0.0, 0.0, 0.0,
+      1.0, 0.0, 0.0,
+      0.0, 1.0, 0.0;
+
+    EXPECT_TRUE(Calc::atEdge(face, Vertex(0.0, 0.0, 0.0)));
+    EXPECT_TRUE(Calc::atEdge(face, Vertex(0.5, 0.0, 0.0)));
+    EXPECT_TRUE(Calc::atEdge(face, Vertex(0.0, 0.5, 0.0)));
+    EXPECT_TRUE(Calc::atEdge(face, Vertex(0.5, 0.5, 0.0)));
+    EXPECT_FALSE(Calc::atEdge(face, Vertex(1.5, 0.0, 0.0)));
+    EXPECT_FALSE(Calc::atEdge(face, Vertex(-0.5, 0.0, 0.0)));
+    EXPECT_FALSE(Calc::atEdge(face, Vertex(0.5, 0.0, 0.00001)));
+  }
+
+  TEST_F(CalcTest, GetSegment)
+  {
+    
   }
 }

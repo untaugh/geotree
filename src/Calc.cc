@@ -1,13 +1,16 @@
 #include "Calc.h"
 #include <iostream>
+#include <vector>
 #include <Eigen/Dense>
 #include "Log.h"
+#include "Validate.h"
+#include <math.h>
 
 namespace Calc
 {
-  void getSegments(Faces &F, Faces &S)
+  void getSegments(const Faces F, MatrixXi &S)
   {
-    S = Faces(F.rows()*3,2);
+    S = MatrixXi(F.rows()*3,2);
     
     for (int i=0; i < F.rows(); i++)
       {
@@ -56,13 +59,32 @@ namespace Calc
 
     return 0;
   }
-  
-  void getFaceSegments(Faces &F, Faces &Fo)
+
+  SegmentIndex sharedSegment(Face face0, Face face1)
+  {
+    SegmentIndex segment;
+    unsigned count = 0;
+    
+    for (int i=0; i<3; i++)
+      {
+	for (int j=0; j<3; j++)
+	  {	
+	    if (face0[i] == face1[j])
+	      {
+		segment[count++] = face0[i];
+	      }
+	  }
+      }
+
+    return segment;
+  }
+
+  void getFaceSegments(const Faces F, MatrixXi &Fo)
   {
     // number of segments
     unsigned int n;
     n = ((F.rows()+1)/2)*3;
-    Fo = Faces(n,2);
+    Fo = MatrixXi(n,2);
 
     //std::cout << "n " << n << std::endl;	  
     
@@ -124,27 +146,12 @@ namespace Calc
       }
   }
 
-  bool getIntersection(Verticies F, Verticies segment, Vertex &point)
+  bool intersectsFace(const Plane face, const Line segment)
   {
-    // verticies of face
-    Vertex p1 = F.row(0);
-    Vertex p2 = F.row(1);
-    Vertex p3 = F.row(2);
+    Vertex normal = Calc::normal(face);
 
-    // verticies of segment
-    Vertex s1 = segment.row(0);
-    Vertex s2 = segment.row(1);
-    
-    // normal
-    Vertex n = Calc::normal(p1, p2, p3);
-
-    // calculate u and w
-    Vertex u = s2 - s1;
-    Vertex w = s1 - p1;
-
-    // calculate D and N
-    float D = n.dot(u);
-    float N = -n.dot(w);
+    double D = normal.dot( segment.row(1) - segment.row(0) );
+    double N = normal.dot( segment.row(0) - face.row(0) );
 
     // is segment parallell to plane
     if (D == 0)
@@ -152,9 +159,7 @@ namespace Calc
 	return false;
       }
 
-    float sI = N/D;
-    
-    //std::cout << "sI " << sI << std::endl;
+    double sI = -N/D;
   
     // is segment outside plane
     if (sI < 0.0 || sI > 1.0)
@@ -162,11 +167,19 @@ namespace Calc
 	return false;
       }
 
-    // calulate point of inersection
-    point = s1 + sI * u;
+    Vertex point = intersection(face, segment);
     
-    // is point outisde triangle
-    if(inside(p1, p2, p3, point))
+    return inside(face, point);
+  }
+
+  bool abovePlane(const Plane plane, Vertex point)
+  {
+    Vertex normal = Calc::normal(plane);
+    Vertex planePoint = plane.row(0);
+
+    double dot = (normal).dot(point - planePoint);
+	
+    if (dot > 0.0)
       {
 	return true;
       }
@@ -176,43 +189,20 @@ namespace Calc
       }
   }
   
-  bool getIntersection(Verticies &V1, Faces &F1,
-		       Verticies &V2, Faces &F2,
-		       unsigned int f1,
-		       unsigned int f2a, unsigned int f2b,
-		       Vertex &p)
+  bool intersectsPlane(const Plane plane, const Line segment)
   {
-    Face f = F1.row(f1);
-    Vertex p1 = V1.row(f[0]);
-    Vertex p2 = V1.row(f[1]);
-    Vertex p3 = V1.row(f[2]);
+    Vertex normal = Calc::normal(plane);
 
-    // face indicies to segment verticies
-    unsigned int n1,n2;
-    toSegment(F2, f2a, f2b, n1, n2);
-    Vertex s1 = V2.row(n1);
-    Vertex s2 = V2.row(n2);
-
-    // normal
-    Vertex n = Calc::normal(p1,p2,p3);
-
-    // calculate u and w
-    Vertex u = s2 - s1;
-    Vertex w = s1 - p1;
-
-    // calculate D and N
-    float D = n.dot(u);
-    float N = -n.dot(w);
+    double D = normal.dot( segment.row(1) - segment.row(0) );
+    double N = normal.dot( segment.row(0) - plane.row(0) );
 
     // is segment parallell to plane
     if (D == 0)
       {
 	return false;
       }
-  
-    float sI = N/D;
-    
-    //std::cout << "sI " << sI << std::endl;
+
+    double sI = -N/D;
   
     // is segment outside plane
     if (sI < 0.0 || sI > 1.0)
@@ -220,18 +210,26 @@ namespace Calc
 	return false;
       }
 
-    // calulate point of inersection
-    p = s1 + sI * u;
+    return true;    
+  }
+
+  Vertex intersection(const Plane face, const Line line)
+  {
+    Vertex normal = Calc::normal(face);
+
+    Vertex lineStart = line.row(0);
+    Vertex lineEnd = line.row(1);
+    Vertex faceVertex0 = face.row(0);
     
-    // is point outisde triangle
-    if(inside(p1, p2, p3, p))
-      {
-	return true;
-      }
-    else
-      {
-	return false;
-      }
+    Vertex U = lineEnd - lineStart;
+    Vertex W = lineStart - faceVertex0;
+
+    double D = normal.dot(U);
+    double N = normal.dot(W);
+    
+    Vertex P = lineStart - N/D * U;
+	
+    return P;
   }
 
   bool equal(Face f1, Face f2)
@@ -259,9 +257,13 @@ namespace Calc
 
     Vertex up(0,0,0);
 
-    while( up == Vertex(0,0,0) && pathIndex > 1)
+    //while( up == Vertex(0,0,0) && pathIndex > 1)
+    while( (up == Vertex(0,0,0) || isnan(up[0]) || isnan(up[1]) || isnan(up[2]) )&& pathIndex > 1)
       {
 	pathIndex--;
+	Geotree::Log().Get(LOG_DEBUG)
+	  << "Normal: "  << V.row(P[0]) << ", " << V.row(P[1]) << ", " << V.row( P[pathIndex] );
+
 	up = normal(V.row(P[0]), V.row(P[1]), V.row( P[pathIndex] ));
       }
 
@@ -382,9 +384,18 @@ namespace Calc
 	    done = true;
 	    continue;
 	  }
+	
 	// are any points inside?
-	if ( inside(p1, p2, p3, V, P) )
-	  {
+
+	Plane face;
+	face.row(0) = p1;
+	face.row(1) = p2;
+	face.row(2) = p3;
+
+	Verticies selectedVerticies = select(V,P);
+
+	if (pointsInside(face,selectedVerticies))
+	{
 	    //std::cout << "a point is inside" << std::endl;
 	    i = n2;
 	    continue;
@@ -426,6 +437,15 @@ namespace Calc
     return (v2 - v1).cross(v3 - v1).normalized();
   }
 
+  Vertex normal(const Plane plane)
+  {
+    Vertex v0 = plane.row(0);
+    Vertex v1 = plane.row(1);
+    Vertex v2 = plane.row(2);
+    
+    return (v1 - v0).cross(v2 - v0).normalized();
+  }
+
   // distance from point to segment
   double distance(Vertex point, Vertex seg0, Vertex seg1)    
   {
@@ -464,6 +484,11 @@ namespace Calc
       << "), seg1:(" << seg1.transpose() << "), d:" << d;
     
     return d;
+  }
+
+  double distance(Line segment0, Line segment1)
+  {
+    return distance(segment0.row(0), segment0.row(1), segment1.row(0), segment1.row(1));
   }
   
   double distance(Vertex v1a, Vertex v1b, Vertex v2a, Vertex v2b)
@@ -565,23 +590,38 @@ namespace Calc
     //return D;
   }
   
-  bool inside(Vertex v1, Vertex v2, Vertex v3, Vertex p)
+  bool inside(const Verticies face, const Vertex point)
   {
+    Vertex facePoint0 = face.row(0);
+    Vertex facePoint1 = face.row(1);
+    Vertex facePoint2 = face.row(2);
+
+    Verticies V(4,3);
+    V.row(0) = facePoint0;
+    V.row(1) = facePoint1;
+    V.row(2) = facePoint2;
+    V.row(3) = point;
+
+    if (! Geotree::Validate::planar(V))
+      {
+	return false;
+      }
+    
     // normal
-    Vertex n = Calc::normal(v1,v2,v3);
+    Vertex normal = Calc::normal(face);    
 
     // Test if point is inside triangle  
-    Vertex e1 = v2 - v1;
-    Vertex e2 = v3 - v2;
-    Vertex e3 = v1 - v3;
+    Vertex e1 = facePoint1 - facePoint0;
+    Vertex e2 = facePoint2 - facePoint1;
+    Vertex e3 = facePoint0 - facePoint2;
     
-    Vertex c1 = p - v1;
-    Vertex c2 = p - v2;
-    Vertex c3 = p - v3;
+    Vertex c1 = point - facePoint0;
+    Vertex c2 = point - facePoint1;
+    Vertex c3 = point - facePoint2;
 
-    double r1 = n.dot(e1.cross(c1));
-    double r2 = n.dot(e2.cross(c2));
-    double r3 = n.dot(e3.cross(c3));
+    double r1 = normal.dot(e1.cross(c1));
+    double r2 = normal.dot(e2.cross(c2));
+    double r3 = normal.dot(e3.cross(c3));
 
     // is point outisde triangle
     if (r1 < 0.0 || r2 < 0.0 || r3 < 0.0)
@@ -592,37 +632,39 @@ namespace Calc
     return true;
   }
 
-  bool inside(Vertex v1, Vertex v2, Vertex v3, Verticies V, VectorXi P)
+  Verticies select(Verticies verticies, Indicies points)
   {
-    Verticies V2(P.rows(), 3);
+    Verticies selectedVerticies(points.rows(), 3);
 
-    for (int i=0; i<P.rows(); i++)
+    for (int i=0; i<points.rows(); i++)
       {
-	V2.row(i) = V.row(P[i]);
+	selectedVerticies.row(i) = verticies.row(points[i]);
       }
 
-    return inside(v1, v2, v3, V2);
+    return selectedVerticies;
   }
   
-  bool inside(Vertex v1, Vertex v2, Vertex v3, Verticies P)
+  bool pointsInside(Plane face, Verticies points)
   {
-    // iterate points
-    for (int i=0; i<P.rows(); i++)
+    for (int i=0; i<points.rows(); i++)
       {
-	Vertex p = P.row(i);
+	Vertex face0 = face.row(0);
+	Vertex face1 = face.row(1);
+	Vertex face2 = face.row(2);
+	Vertex point = points.row(i);
 
 	// don't test triangle points
-	if (! (p == v1 || p == v2 || p == v3))
+	if (! (point == face0 || point == face1 || point == face2))
 	  {
 	    // test if point inside
-	    if (inside(v1,v2,v3,p))
+	    if (inside(face,point))
 	      {
 		return true;
 	      }	    
 	  }
 	
       }
-    return false;
+    return false;    
   }
 
   double angle(Point p0, Point p1)
@@ -696,14 +738,14 @@ namespace Calc
   }
 
   // all connected to this point
-  static std::set <int> connectedFace(Faces F, std::set <int> skip, Face f)
+  static std::set <unsigned> connectedFace(Faces F, std::set <unsigned> skip, Face f)
   {
-    std::set <int> list;
+    std::set <unsigned> list;
 
     for (int i=0; i<F.rows(); i++)
       {
 	if ( !skip.count(i))
-	  {	    
+	  {
 	    for (int j=0; j<3; j++)
 	      {
 		for (int k=0; k<3; k++)
@@ -718,22 +760,28 @@ namespace Calc
       }
     return list;
   }
-      
-  std::set <int> connected(Faces F, std::set <int> skip, int index)
-  {
-    std::set <int> list, ret;
 
+  std::set <unsigned> connected(const MatrixXi F, std::set <unsigned> skip, const unsigned index)
+  {
+    std::set <unsigned> list;
+
+    if (skip.count(index))
+      {
+	return list;
+      }
+    
     bool done = false;
-	    
+
     list.insert(index);
 
     while(!done)
       {
 	done = true;
-	for (int i : list)
+	for (unsigned i : list)
 	  {
 	    if (! skip.count(i))
 	      {
+		std::set <unsigned> ret;
 		done = false;
 		skip.insert(i);
 		ret = connectedFace(F, skip, F.row(i));
@@ -744,8 +792,102 @@ namespace Calc
 
     return list;
   }
+
+  bool hasPoint(Face face, unsigned index)
+  {
+    if (face[0] == index || face[1] == index || face[2] == index)
+      {
+	return true;
+      }
+    else
+      {
+	return false;
+      }
+  }
   
-  void boundingBox(Verticies V, Faces F, Vertex &B1, Vertex &B2)
+  unsigned sharedPoints(Face face0, Face face1)
+  {
+    unsigned count = 0;
+
+    for (int i=0; i<3; i++)
+      {
+	if (hasPoint(face0, face1[i]))
+	  {
+	    count++;
+	  }
+      }
+    return count;
+  }
+  
+  bool connectedPoint(Faces F, FaceSet f1, FaceSet f2)
+  {
+    for (unsigned i : f1)
+      {
+	for (unsigned j : f2)
+	  {
+	    if (sharedPoints(F.row(i), F.row(j)) > 0)
+	      return true;
+	  }
+      }
+    return false;    
+  }
+  
+  bool connected(Faces F, FaceSet f1, FaceSet f2)
+  {
+    std::cout << "f1: ";
+    for (int f : f1)
+      {
+	std::cout << f << ", ";
+      }
+    std::cout << std::endl;;
+
+    std::cout << "f2: ";
+    for (int f : f2)
+      {
+	std::cout << f << ", ";
+      }
+    std::cout << std::endl;;
+    
+    for (unsigned i : f1)
+      {
+	for (unsigned j : f2)
+	  {	    
+	    int shared = sharedSegments(F.row(i), F.row(j));
+	    
+	    if ( shared == 1)
+	      {
+		std::cout << "Shared segments " << shared << std::endl;
+		return true;
+	      }
+	  }
+      }
+
+    std::cout << "Not Connected" << std::endl;
+    return false;
+  }
+
+  Verticies boundingBox(const Geometry G)
+  {
+    Vertex A, B;
+    Path P(G.F.size());
+
+    for (int i=0; i<G.F.size(); i++)
+      {
+	P[i] = G.F.row(i/3)[i%3];
+      }
+      
+    boundingBox(G.V, P, A, B);
+
+    Verticies Box(2,3);
+
+    Box.row(0) = A;
+    Box.row(1) = B;
+    
+    return Box;
+  }
+  
+  //void boundingBox(Verticies V, Faces F, Vertex &B1, Vertex &B2)
+  void boundingBox(Verticies V, Path F, Vertex &B1, Vertex &B2)
   {
     // initial values
     B1 = V.row(F.row(0)[0]);
@@ -901,9 +1043,9 @@ namespace Calc
     return retval;
   }
 
-  Axis minAxis(const Verticies V, const Faces P)
+  Axis minAxis(const Verticies V, const Path P)
   {
-    Vertex B1, B2;    
+    Vertex B1, B2;
     boundingBox(V, P, B1, B2);
 
     double size_x = abs(B1[0] - B2[0]);
@@ -932,5 +1074,431 @@ namespace Calc
 	    return AXIS_Z;
 	  }
       }
+  }
+
+  bool inside(const Geometry G, const Vertex point)
+  {
+    // Get bounding box
+    Verticies Box = boundingBox(G);
+
+    Vertex box_diag = Box.row(0) - Box.row(1);
+    
+    int count = 0;
+
+    Verticies S(2,3);
+    S.row(0) = point;
+    S.row(1) = point + box_diag;
+
+    Vertex P_prev(-1,-1,-1);
+
+    std::set <int> visitedFaces;
+    
+    // Test intersection from point to outside of box
+    for (int i=0; i<G.F.rows(); i++)
+      {
+	Plane F;
+	F.row(0) = G.V.row(G.F.row(i)[0]);
+	F.row(1) = G.V.row(G.F.row(i)[1]);
+	F.row(2) = G.V.row(G.F.row(i)[2]);
+
+	if (inside(F, point ))
+	  {
+	    return true;
+	  }
+
+	if (intersectsFace(F,S))
+	  {
+	    Vertex P = intersection(F,S);
+
+	    if (Calc::hasPoint(G.V, P))
+	      {
+		int pointIndex = Calc::pointIndex(G.V, P);
+		if (intersect(G, pointIndex, point))
+		  {
+		    count++;
+		  }		    
+	      }
+	    else if (atEdge(F, P))
+	      {
+		if (! visitedFaces.count(i))
+		  {
+		    SegmentIndex segment = getSegment(G, i, P);
+
+		    Vector2i facesMatch = getFaces(G, segment);
+
+		    Line line;
+
+		    line.row(1) = P;
+		    line.row(0) = point;
+		    
+
+		    visitedFaces.insert(facesMatch[0]);
+		    visitedFaces.insert(facesMatch[1]);
+				
+
+		    if (intersect(G, facesMatch[0], facesMatch[1], line))
+		      {
+			count++;
+		      }
+
+		  }
+	      }
+	    else if (P != P_prev)
+	      {
+		count++;
+	      }
+	    else
+	      {
+
+	      }
+	    P_prev = P;
+	  }
+      }
+
+    Geotree::Log().Get(LOG_DEBUG)
+      << "inside() point: " << point.transpose() << ", count: " << count;
+
+    if (count % 2)
+      {
+	return true;
+      }
+    else
+      {
+	return false;
+      }
+  }
+
+  // get point that is not
+  int getNotPoint(Face F, int notPoint)
+  {
+    if (F[0] != notPoint)
+      {
+	return F[0];
+      }
+    else if (F[1] != notPoint)
+      {
+	return F[1];
+      }
+    else if (F[2] != notPoint)
+      {
+	return F[2];
+      }
+    else
+      {
+	return -1;
+      }
+  }
+
+  int getNotNotPoint(Face F, int notPoint0, int notPoint1)
+  {
+    if (F[0] != notPoint0 && F[0] != notPoint1)
+      {	
+	return F[0];
+      }
+    else if (F[1] != notPoint0 && F[1] != notPoint1)
+      {
+	return F[1];
+      }
+    else if (F[2] != notPoint0 && F[2] != notPoint1)
+      {
+	return F[2];
+      }
+    else
+      {
+	return -1;
+      }
+  }
+  
+  bool hasPoint(Face F, int index)
+  {
+    if (F[0] == index || F[1] == index || F[2] == index)
+      {
+	return true;
+      }
+    else
+      {
+	return false;
+      }
+  }
+  
+  // face with 
+  int findPoint(const Faces F, const unsigned p0, const unsigned p1, const unsigned p2_not)
+  {
+    for (int i=0; i<F.rows(); i++)
+      {
+	if ( hasPoint(F.row(i), p0) &&
+	     hasPoint(F.row(i), p1) &&
+	     ! hasPoint(F.row(i), p2_not) )
+	  {
+	    return getNotNotPoint(F.row(i), p0, p1);
+	  }
+      }
+
+    Geotree::Log().Get(LOG_DEBUG) << "findPoint: No Point found!";
+
+    return -1;    
+  }
+
+  bool intersect(const Geometry geometry, const int face0, const int face1, const Line lineToSegment)
+  {
+    // vector from intersecting point parallell to face0
+    Face f0 = geometry.F.row(face0);
+
+    SegmentIndex segment = sharedSegment(geometry.F.row(face0), geometry.F.row(face1));
+
+    int face0Point = getNotNotPoint(geometry.F.row(face0), segment[0], segment[1]);
+    Vertex face0Vertex = geometry.V.row(face0Point) - lineToSegment.row(1);
+    
+    // vector from intersecting point parallell to face1
+    int face1Point = getNotNotPoint(geometry.F.row(face1), segment[0], segment[1]);
+    Vertex face1Vertex = geometry.V.row(face1Point) - lineToSegment.row(1);
+
+    // vector from nitersecting point parallell to line
+    Vertex lineVertex  = lineToSegment.row(0) - lineToSegment.row(1);
+
+    Plane plane;
+    plane.row(0) = geometry.V.row(segment[0]);
+    plane.row(1) = geometry.V.row(face0Point);
+    plane.row(2) = geometry.V.row(face1Point);
+
+    
+    Vertex normal = Calc::normal(plane);
+
+    Vertex v0 = lineToSegment.row(1);
+    Vertex v1 = lineToSegment.row(0);
+    Vertex v2 = geometry.V.row(face0Point);
+    Vertex v3 = geometry.V.row(face1Point);
+    double a0 = angle(v2, v0, v1, normal);
+    double a1 = angle(v2, v0, v3, normal);
+    
+    if (a0 < a1)
+      {
+	return true;
+      }
+    else
+      {
+	return false;
+      }
+  }
+  
+  bool intersect(const Geometry G, const unsigned point, const Vertex segment)
+  {
+    // Get faces with point
+    std::vector <unsigned> F;
+
+    for (int i=0; i<G.F.rows(); i++)
+      {
+	if (G.F.row(i)[0] == point ||
+	    G.F.row(i)[1] == point ||
+	    G.F.row(i)[2] == point)
+	  {
+	    F.push_back(i);
+	  }
+      }
+   
+    // Create plane parallell to segment
+    int index = getNotPoint(G.F.row(F.front()), point);
+    
+    Plane plane;
+    plane.row(0) = G.V.row(point);
+    plane.row(1) = segment;
+    plane.row(2) = G.V.row(index);
+    
+    Vertex normal = Calc::normal(plane);
+
+    Plane plane_orth;
+    plane_orth.row(0) = G.V.row(point);
+    plane_orth.row(1) = segment;
+    plane_orth.row(2) = G.V.row(point) + normal.transpose();
+
+    int segmentIndex0, segmentIndex1, segmentIndex0_prev;
+
+    segmentIndex0 = index;
+
+    segmentIndex1 = getNotNotPoint(G.F.row(F.front()), point, index);
+
+    int intersectionCountLeft = 0;
+    
+    for (int i=0; i<F.size(); i++)
+      {
+	Vertex P;
+
+	Line segment;
+	segment.row(1) = G.V.row(segmentIndex0);
+	segment.row(0) = G.V.row(segmentIndex1);
+
+	if (abovePlane(plane, G.V.row(segmentIndex0)) != abovePlane(plane, G.V.row(segmentIndex1)))
+	  {
+	    Vertex intersectionPoint = intersection(plane, segment);
+
+	    if (abovePlane(plane_orth, intersectionPoint ))
+	      {
+		intersectionCountLeft++;
+	      }
+	  }
+	
+	segmentIndex0_prev = segmentIndex0;
+	segmentIndex0 = segmentIndex1;
+	segmentIndex1 = findPoint(G.F, point, segmentIndex1, segmentIndex0_prev);
+      }
+
+    Geotree::Log().Get(LOG_DEBUG) << "intersect() IntersectionCountLeft: " << intersectionCountLeft;
+
+    if (intersectionCountLeft % 2)
+      {
+	return true;
+      }
+    else
+      {
+	return false;
+      }
+  }
+
+  bool hasPoint(Verticies verticies, Vertex point)
+  {
+    for (int i=0; i<verticies.rows(); i++)
+      {
+	Vertex current = verticies.row(i);
+	if (current == point)
+	  {
+	    return true;
+	  }
+      }
+    return false;
+  }
+
+  int pointIndex(Verticies verticies, Vertex point)
+  {
+    for (int i=0; i<verticies.rows(); i++)
+      {
+	Vertex current = verticies.row(i);
+	if (current == point)
+	  {
+	    return i;
+	  }
+      }
+    return -1;
+  }
+
+  bool atSegment(Line segment, Vertex point)
+  {
+    Vertex toSegment = segment.row(1).transpose() - segment.row(0).transpose();
+    Vertex toPoint = point - segment.row(0).transpose();
+
+    double dot = toSegment.normalized().dot(toPoint.normalized());
+
+    // very close to 1.0
+    if (dot >= 0.99999999999999)
+      {
+	if (toSegment.norm() >= toPoint.norm())
+	  {
+	    return true;
+	  }
+      }
+
+    return false;
+  }
+  
+  bool atEdge(Plane face, Vertex point)
+  {
+    Line segment0, segment1, segment2;
+    
+    segment0.row(0) = face.row(0);
+    segment0.row(1) = face.row(1);
+    segment1.row(0) = face.row(1);
+    segment1.row(1) = face.row(2);
+    segment2.row(0) = face.row(2);
+    segment2.row(1) = face.row(0);
+    
+    if (atSegment(segment0, point))
+      {
+	return true;
+      }
+    if (atSegment(segment1, point))
+      {
+	return true;
+      }
+    if (atSegment(segment2, point))
+      {
+	return true;
+      }    
+
+    return false;
+
+  }
+
+  SegmentIndex getSegment(const Geometry geometry, const int faceIndex, const Vertex point)
+  {
+    SegmentIndex segment(0,0);
+
+    Face face = geometry.F.row(faceIndex);
+
+    Plane triangle;
+    triangle.row(0) = geometry.V.row(face[0]);
+    triangle.row(1) = geometry.V.row(face[1]);
+    triangle.row(2) = geometry.V.row(face[2]);
+
+    if (atEdge(triangle, point))
+      {
+	Line segment0, segment1, segment2;
+	
+	segment0.row(0) = triangle.row(0);
+	segment0.row(1) = triangle.row(1);
+	segment1.row(0) = triangle.row(1);
+	segment1.row(1) = triangle.row(2);
+	segment2.row(0) = triangle.row(2);
+	segment2.row(1) = triangle.row(0);
+    
+	if (atSegment(segment0, point))
+	  {
+	    segment[0] = face[0];
+	    segment[1] = face[1];	    
+	  }
+	else if (atSegment(segment1, point))
+	  {
+	    segment[0] = face[1];
+	    segment[1] = face[2];	    
+	  }
+	else if (atSegment(segment2, point))
+	  {
+	    segment[0] = face[2];
+	    segment[1] = face[0];
+	  }	
+      }
+
+    return segment;    
+  }
+
+  bool hasSegment(Face face, SegmentIndex segment)
+  {
+    for (int i=0; i<3; i++)
+      {
+	for (int j=0; j<3; j++)
+	  {
+	    if (face[i] == segment[0] && face[j] == segment[1])
+	      {
+		return true;
+	      }
+	  }
+      }
+    return false;
+  }
+  
+  Vector2i getFaces(const Geometry geometry, SegmentIndex segment)
+  {
+    Vector2i facesMatch;
+    
+    int count = 0;
+    
+    for (int i=0; i<geometry.F.rows(); i++)
+      {	
+	Face face = geometry.F.row(i);
+	if (hasSegment(face, segment))
+	  {
+	    facesMatch[count++] = i;
+	  }
+      }
+
+    return facesMatch;
   }
 }

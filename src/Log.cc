@@ -29,7 +29,7 @@ namespace Geotree {
       {
       case LOG_DEBUG: break;
       case LOG_INFO: break;
-      case LOG_VERBOSE: break;	  
+      case LOG_VERBOSE: break;
       case LOG_ERROR:
 	{
 	  os << "ERROR: ";

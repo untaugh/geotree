@@ -1,5 +1,5 @@
 #include "gtest/gtest.h"
-
+#include "Calc.h"
 #include "Intersect.h"
 #include <Node.h>
 #include <Eigen/Core>
@@ -58,7 +58,7 @@ namespace {
     Eigen::MatrixXd points;
     Eigen::MatrixXd points_exp = Eigen::MatrixXd(4,3);
     points_exp << 1,1,0, 1,0,0, 2,0,0, 3,0,0;
-    I->getPoints(points);    
+    points = I->getPoints();    
     EXPECT_EQ(points, points_exp);
   }
 
@@ -110,16 +110,14 @@ namespace {
     Eigen::MatrixXd points;
     Eigen::MatrixXd points_exp = Eigen::MatrixXd(7,3);
     points_exp << 5,0,0, 4,0,0, 3,0,0, 2,0,0, 1,0,0, 9,0,0, 7,0,0;
-    I->getPoints(points);    
+    points = I->getPoints();    
     EXPECT_EQ(points, points_exp);
   }
 
-  // get faces of outside/inside/intersection
-  TEST_F(IntersectionTest, faceInfo1)
+  TEST_F(IntersectionTest, faceInfo0)
   {
     Intersections * I = new Intersections();
 
-    // create two cube geometries
     CubeNode * c1 = new CubeNode(10,10,10);
     CubeNode * c2 = new CubeNode(10,1,1);
     TranslateNode * t = new TranslateNode(1,1,8);
@@ -127,59 +125,157 @@ namespace {
     t->add(c2);
     t->build();
 
-    I->add(*c1->g, *t->g);
+    I->add(c1->g, t->g);
 
-    std::set <unsigned> Fi, Fo, Ft, F_tot, F_exp, div1, div2;
+    I->divide();
+
+  }
+
+  TEST_F(IntersectionTest, Divide1)
+  {
+    Intersections * I = new Intersections();
+
+    CubeNode * c1 = new CubeNode(10,10,10);
+    CubeNode * c2 = new CubeNode(10,5,5);
+    TranslateNode * t = new TranslateNode(1,1,8);
+
+    t->add(c2);
+    t->build();
+
+    I->add(c1->g, t->g);
+
+    I->divide();
+
+  }
+  
+  // get faces of outside/inside/intersection
+  TEST_F(IntersectionTest, faceInfo1)
+  {
+    Intersections * I = new Intersections();
+
+    CubeNode * c1 = new CubeNode(10,10,10);
+    CubeNode * c2 = new CubeNode(10,1,1);
+    TranslateNode * t = new TranslateNode(1,1,8);
+
+    t->add(c2);
+    t->build();
+
+    I->add(c1->g, t->g);
+
+    std::set <unsigned> Fi, Fo, Ft, F_tot, F_exp;
 
     for (int i=0; i<12; i++)
       {
 	F_exp.insert(i);
       }
 
+    std::vector <std::set <unsigned>> facelists;
+    std::vector <std::set <unsigned>> facelists_add;
+
+    I->getFaceGroups(facelists);
+
+    I->getFaceGroups(facelists_add);
+
+    EXPECT_EQ(facelists.size(), 3);
+	
     bool ret = I->getIntersectingFaces(Ft);
     EXPECT_TRUE(ret);
     EXPECT_EQ(Ft.size(), 9);
 
     for (unsigned f : Ft)
       {
+	std::set <unsigned> div1, div2;
+
 	I->divide(f, div1, div2);
+
+	int i = 0;
+
+	bool div1add = false;
+	bool div2add = false;
+
+	for (FaceSet faces : facelists)
+	  {	    
+	    if (Calc::connectedPoint(I->gx.F, faces, div1))
+	      {
+		std::cout << f << " Adding faces1: " << i << std::endl;
+		facelists_add[i].insert(div1.begin(), div1.end());
+		div1add = true;
+	      }
+	    else if (Calc::connectedPoint(I->gx.F, faces, div2))
+	      {
+		std::cout << f << " Adding faces2: " << i << std::endl;
+		facelists_add[i].insert(div2.begin(), div2.end());
+		div2add = true;
+	      }
+	    else
+	      {
+		std::cout << f << "no connect found: " << i << std::endl;
+	      }
+	    i++;
+	  }
+
+	if (! div1add)
+	  {
+	    facelists_add.push_back(div1);
+	  }
+
+	if (! div2add)
+	  {
+	    facelists_add.push_back(div2);
+	  }
       }
 
+
+    EXPECT_EQ(facelists_add.size(), 4);
     
-
+    std::cout << "Facelists:";
     
-    // I->faceInfo(0, Fi, Fo, Ft);
-    // F_tot.insert(Fi.begin(), Fi.end());
-    // F_tot.insert(Fo.begin(), Fo.end());
-    // F_tot.insert(Ft.begin(), Ft.end());
-    // EXPECT_EQ(Fi.size(), 0);
-    // EXPECT_EQ(Fo.size(), 11);
-    // EXPECT_EQ(Ft.size(), 1);
-    //EXPECT_EQ(F_tot, F_exp);
+    for (FaceSet f : facelists_add)
+      {
+	for (unsigned i : f)
+	  {
+	    std::cout << i << ", ";
 
-    // divide faces
-    // Eigen::MatrixXi F1,F2;
-    
-    // for(int f : Ft)
-    //   {
-    // 	I->divide(0, f, F1, F2);
-    //   }
+	  }
+	std::cout << std::endl;
 
-    // Fi.clear(); Fo.clear(); Ft.clear();
-    // I->faceInfo(1, Fi, Fo, Ft);
-    // F_tot.insert(Fi.begin(), Fi.end());
-    // F_tot.insert(Fo.begin(), Fo.end());
-    // F_tot.insert(Ft.begin(), Ft.end());
-    // EXPECT_EQ(Fi.size(), 2);
-    // EXPECT_EQ(Fo.size(), 2);
-    // EXPECT_EQ(Ft.size(), 8);
-    //EXPECT_EQ(F_tot, F_exp);
+	for (unsigned i : f)
+	  {
+	    for (int j=0; j<3; j++)
+	      {
+		Vertex point = I->gx.V.row(I->gx.F.row(i)[j]);
 
-    // divide faces
-    // for(int f : Ft)
-    //   {
-    // 	I->divide(1, f, F1, F2);
-    //   }
+		if (Calc::inside(c1->g, point))
+		  {
+		    std::cout << "#";
+		  }
+		else
+		  {
+		    std::cout << "*";
+		    //std::cout << "(" << i << " "<< point.transpose() <<")";
+		  }
+	      }
+	  }	
+	std::cout << std::endl;
+
+	for (unsigned i : f)
+	  {
+	    for (int j=0; j<3; j++)
+	      {
+		Vertex point = I->gx.V.row(I->gx.F.row(i)[j]);
+
+		if (Calc::inside(I->g2, point))
+		  {
+		    std::cout << "%";
+		  }
+		else
+		  {
+		    std::cout << "~";
+		  }
+	      }
+	  }	
+	std::cout << std::endl;
+      }
   }
 
   // get faces of outside/inside/intersection
@@ -195,7 +291,7 @@ namespace {
     t->add(c2);
     t->build();
 
-    I->add(*c1->g, *t->g);
+    I->add(c1->g, t->g);
 
     std::set <int> Fi, Fo, Ft, F_tot, F_exp;
 
@@ -236,12 +332,17 @@ namespace {
     t->add(c2);
     t->build();
 
-    I->add(*c1->g, *t->g);
+    I->add(c1->g, t->g);
 
     // test numPoints
     EXPECT_EQ(I->I.size(), 14);
     
-    int gxSize = I->g1.V.rows() + I->g1.V.rows() + I->I.size();
+    int gxSize = I->g1.V.rows() + I->g2.V.rows() + I->I.size();
+
+    std::cout << I->g1.V.rows() << std::endl;
+    std::cout << I->g2.V.rows() << std::endl;
+    std::cout << I->I.size() << std::endl;   
+
     EXPECT_EQ(gxSize, I->gx.V.rows());
 
     Vector3d V_exp, V_res;

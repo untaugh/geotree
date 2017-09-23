@@ -106,7 +106,7 @@ namespace {
   }
 
   // index matrix size
-  TEST_F(ValidateTest, GeometryIndexSize)
+  TEST_F(ValidateTest, DISABLED_GeometryIndexSize)
   {
     Eigen::MatrixXd V = Eigen::Matrix3d();
     Eigen::MatrixXi F = Eigen::Vector3i();
@@ -146,6 +146,9 @@ namespace {
     P << 0.0,0.0,0.2, 1.0,0.0,0.2, 0.0,1.0,0.2, -1.0,-0.1,0.2;
     EXPECT_TRUE(Geotree::Validate::planar(P));
 
+    P << 0.0, 0.0, 0.0,  1.0, 0.0, 0.0,  0.0, 1.0, 0.0,  1.0, 0.0, 0.0;
+    EXPECT_TRUE(Geotree::Validate::planar(P));
+    
     P = Eigen::MatrixXd(6,3);
 
     P << 0.0,0.0,0.2, 1.0,0.0,0.2, 0.0,1.0,0.2, 1.0,1.0,0.2, 0.1,0.2,0.2,
@@ -159,25 +162,5 @@ namespace {
     P << 1.0,0.0,0.0, 0.0,1.0,0.0, 0.0,0.0,1.0, -2.0,-1.0,4.0, 5.2,4.3,-8.5,
       -10.0,100.0,-89.0;
     EXPECT_TRUE(Geotree::Validate::planar(P));
-  }
-
-  // segments intersect in 3d space
-  TEST_F(ValidateTest, IntersectPolygon)
-  {
-    Eigen::MatrixXd V = Eigen::MatrixXd(4,3);
-
-    // intersecting path
-    V << 0,0,0, 1,0,0, 1,1,0, 0,-1,0;    
-    EXPECT_TRUE(Geotree::Validate::intersect(V));
-
-    // not intersecting path
-    V << 0,0,0, 1,0,0, 1,1,0, 0,1,0;    
-    EXPECT_FALSE(Geotree::Validate::intersect(V));
-  }
-  
-  // unreferenced verticies
-  TEST_F(ValidateTest, DISABLED_GeometryUnreferenced)
-  {
-    
-  }
+  }  
 }
