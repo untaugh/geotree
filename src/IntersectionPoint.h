@@ -1,61 +1,30 @@
 #pragma once
 #include "Types.h"
+#include <vector>
+#include <memory>
 #include <utility>
+#include "Mesh.h"
+#include "PointInfo.h"
 
 namespace Geotree
 {
+  class Mesh;
+  
+  enum MeshIndex {
+    FIRST,
+    SECOND,
+  };
 
-class PointType
-{
-public:    
-  enum Type {
-      FACE,
-      SEGMENT,
-      POINT
-    } type;
+  class IntersectionPoint
+  {
+  public:
+    IntersectionPoint(PointInfo firstType, PointInfo secondType, Vector _point);
 
-  PointType(const Type _type, const int _index) {  this->type = _type; this->index = _index; }
-
-  int index;
-};
-
-/* class PointTypeFace : public PointType */
-/* { */
-/* public: */
-/*  PointTypeFace() : PointType(FACE) {}; */
-/*   FaceIndex face; */
-/* }; */
-
-/* class PointTypeSegment : public PointType */
-/* { */
-/*  public:   */
-/*  PointTypeSegment() : PointType(SEGMENT) {}; */
-/*   SegmentIndex segment; */
-/* }; */
-
-/* class PointTypePoint : public PointType */
-/* { */
-/* public: */
-/*  PointTypePoint() : PointType(POINT) {}; */
-/*   int point; */
-/* }; */  
-
- class IntersectionPoint
- {
- public:
- IntersectionPoint(PointType firstType, PointType secondType, Vector _point)
-   : type(firstType, secondType), point(_point) {};
-   
- private:
-   std::pair <PointType, PointType> type;
-   Vector point;
- };
- 
- class MeshIntersection
- {
- public:
-   void addPoint(IntersectionPoint _point){};
-   std::vector <IntersectionPoint> points;
- };
- 
+    PointInfo getPoint(const MeshIndex mesh);
+    PointInfo first;
+    PointInfo second;
+    Vector point;
+    FaceSet connectedPoints;
+    bool operator==(const IntersectionPoint &ipoint);
+  };
 }

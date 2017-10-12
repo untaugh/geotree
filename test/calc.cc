@@ -1,6 +1,8 @@
 #include "gtest/gtest.h"
 #include "Calc.h"
 #include "Node.h"
+#include "Mesh.h"
+#include "MeshFactory.h"
 #include <Eigen/Core>
 
 using namespace Eigen;
@@ -18,16 +20,16 @@ namespace {
     F << 0,1,2;
 
     // segments row=segment col=start,end
-    MatrixXi S;
+    Segments S;
 
     Calc::getSegments(F,S);
-    
+
     EXPECT_EQ(S.row(0)[0], 0);
     EXPECT_EQ(S.row(0)[1], 1);
-    EXPECT_EQ(S.row(1)[0], 1);
+    EXPECT_EQ(S.row(1)[0], 0);
     EXPECT_EQ(S.row(1)[1], 2);
-    EXPECT_EQ(S.row(2)[0], 2);
-    EXPECT_EQ(S.row(2)[1], 0);
+    EXPECT_EQ(S.row(2)[0], 1);
+    EXPECT_EQ(S.row(2)[1], 2);
   }
 
   // get segments from a triangular face
@@ -38,17 +40,43 @@ namespace {
     F << 0,1,2,7,5,3;
 
     // segments row=segment col=start,end
-    MatrixXi S;
+    Segments S;
 
     // segments, expected
     MatrixXi S_exp(6,2);
-    S_exp << 0,1,1,2,2,0,7,5,5,3,3,7;
+    S_exp << 0,1,0,2,1,2,3,5,3,7,5,7;
       
     Calc::getSegments(F,S);
     
     EXPECT_EQ(S, S_exp);
   }
 
+  TEST_F(CalcTest, getSegmentsDuplicates)
+  {
+    Faces F(2,3);
+    Segments S;
+    Segments S_exp(5,2);
+    
+    F << 0,1,2,0,1,3;
+    S_exp << 0,1,0,2,0,3,1,2,1,3;
+    Calc::getSegments(F,S);
+    EXPECT_EQ(S, S_exp);
+
+    F << 0,1,2,3,1,0;
+    S_exp << 0,1,0,2,0,3,1,2,1,3;
+    Calc::getSegments(F,S);
+    EXPECT_EQ(S, S_exp);
+  }
+
+  TEST_F(CalcTest, getSegmentsCube)
+  {
+    Geotree::MeshFactory mf;
+    Geotree::Mesh cube = mf.makeCube(1,1,1);
+    Segments S;
+    Calc::getSegments(cube.F,S);
+    EXPECT_EQ(S.rows(), 18);
+  }
+  
   // get all segments (face index) from faces
   TEST_F(CalcTest, getFaceSegments)
   {
@@ -193,7 +221,7 @@ namespace {
   // triangulate path
   TEST_F(CalcTest, TriangulateBasic)
   {
-    Eigen::MatrixXd V = Eigen::MatrixXd(4,3); // verticies
+    Verticies V(4,3); // verticies
     Eigen::VectorXi P = Eigen::VectorXi(4); // path
     //Eigen::MatrixXi F(0); // resulting faces
     Faces F(0,3); // resulting faces
@@ -892,7 +920,7 @@ namespace {
   // basix test
   TEST_F(CalcTest, BoundingBox)
   {
-    Eigen::MatrixXd V = Eigen::MatrixXd(3,3);
+    Verticies V(3,3);
     Path F(3);
     Eigen::Vector3d B1,B2, B1_exp, B2_exp;
 

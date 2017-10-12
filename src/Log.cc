@@ -14,7 +14,7 @@ namespace Geotree {
   {
     os << std::endl;
 
-    if (messageLevel < LOG_VERBOSE)
+    if (0 && messageLevel < LOG_VERBOSE)
       {
 	fprintf(stderr, "%s", os.str().c_str());
       }

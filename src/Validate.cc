@@ -130,12 +130,13 @@ bool Geotree::Validate::planar(MatrixXd P)
   for (int i=3; i<P.rows(); i++)
     {
       double dot = normal_ref.dot((P.row(i) - P.row(0)));
-      if (dot == 0.0)
+      if (Calc::closeToZero(dot))
 	{
 	  continue;
 	}
       else
 	{
+	  std::cout << dot << std::endl;
 	  return false;
 	}      
     }

@@ -72,6 +72,25 @@ namespace {
     verifyTranslate(cube, cubeTranslate, -10.1, -55.2, -3.2);
   }
 
+  TEST_F(MeshTest, addBasic)
+  {
+    Mesh m, n;
+
+    m.V = Verticies(4,3);
+    m.F = Faces(4,3);
+    m.V << 0,0,0, 1,0,0, 0,1,0, 0,0,1;
+    m.F << 0,1,2, 0,1,3, 0,2,3, 1,2,3;
+
+    n.V = Verticies(4,3);
+    n.F = Faces(4,3);
+    n.V << 0,0,0, 1,0,0, 0,1,0, 0,0,1;
+    n.F << 0,1,2, 0,1,3, 0,2,3, 1,2,3;
+
+    Mesh l = m + n;
+
+    EXPECT_EQ(l.F.row(7)[0], 5);
+  }
+
   TEST_F(MeshTest, add)
   {
     Mesh cube1 = mf.makeCube(1,1,1);
@@ -85,4 +104,17 @@ namespace {
     EXPECT_EQ(24, cube3.F.rows());
     EXPECT_EQ(16, cube3.V.rows());    
   }
+
+  // TEST_F(MeshTest, SegmentIndex)
+  // {
+  //   Mesh mesh;
+  //   mesh.S = Segments(5,2);
+  //   mesh.S << 0,1, 1,2, 4,1, 40,32, 4,3;
+
+  //   EXPECT_EQ(mesh.getSegmentIndex(SegmentIndex(0,1)),0);
+  //   EXPECT_EQ(mesh.getSegmentIndex(SegmentIndex(1,0)),0);
+  //   EXPECT_EQ(mesh.getSegmentIndex(SegmentIndex(40,32)),3);
+  //   EXPECT_EQ(mesh.getSegmentIndex(SegmentIndex(32,40)),3);
+  //   EXPECT_EQ(mesh.getSegmentIndex(SegmentIndex(3,4)),4);      
+  // }
 }

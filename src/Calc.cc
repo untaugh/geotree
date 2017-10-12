@@ -8,18 +8,33 @@
 
 namespace Calc
 {
-  void getSegments(const Faces F, MatrixXi &S)
+  void getSegments(const Faces F, Segments &S)
   {
-    S = MatrixXi(F.rows()*3,2);
-    
+    std::set<SegmentIndex> segments;
+
     for (int i=0; i < F.rows(); i++)
       {
-	S.row(0+i*3)[0] = F.row(i)[0];
-	S.row(0+i*3)[1] = F.row(i)[1];
-	S.row(1+i*3)[0] = F.row(i)[1];
-	S.row(1+i*3)[1] = F.row(i)[2];
-	S.row(2+i*3)[0] = F.row(i)[2];
-	S.row(2+i*3)[1] = F.row(i)[0];
+	for (int j=0; j<3; j++)
+	  {
+	    SegmentIndex segment;
+	    int k = (j+1)%3;
+	    
+	    if (F.row(i)[j] < F.row(i)[k])
+	      {
+		segments.insert(SegmentIndex(F.row(i)[j], F.row(i)[k]));
+	      }
+	    else
+	      {
+		segments.insert(SegmentIndex(F.row(i)[k], F.row(i)[j]));
+	      }
+	  }
+      }
+
+    S = Segments(segments.size(),2);
+    int i = 0;
+    for (SegmentIndex si : segments)
+      {
+	S.row(i++) = si;
       }
   }
 
@@ -446,6 +461,11 @@ namespace Calc
     return (v1 - v0).cross(v2 - v0).normalized();
   }
 
+  double distance(Vector point, Line segment)
+  {
+    return distance(point, segment.row(0).transpose(), segment.row(1).transpose());
+  }
+  
   // distance from point to segment
   double distance(Vertex point, Vertex seg0, Vertex seg1)    
   {
@@ -1501,4 +1521,76 @@ namespace Calc
 
     return facesMatch;
   }
+
+  bool closeToZero(double value)
+  {
+    return (value < 1.0e-14 && value > -1.0e-14);
+  }
+
+  bool isEndPoint(Line segment, Vector point)
+  {
+    if (point == segment.row(0).transpose() ||
+	point == segment.row(1).transpose())
+      {
+	return true;
+      }
+    else
+      {
+	return false;
+      }
+  }
+
+  bool isEndPoint(Plane face, Vector point)
+  {
+    if (Calc::closeToZero((point - face.row(0).transpose()).norm()) ||
+    	Calc::closeToZero((point - face.row(1).transpose()).norm()) ||
+    	Calc::closeToZero((point - face.row(2).transpose()).norm()) )
+      {
+    	return true;
+      }
+    else
+      {
+	return false;
+      }    
+  }
+
+  bool equal (double d1, double d2)
+  {
+    long lv1 = *(long*) &d1;
+    long lv2 = *(long*) &d2;
+
+    if (lv1 == (lv2 + 1) || lv1 == (lv2 - 1) || lv1 == lv2 || lv1 == (lv2 + 2) || lv1 == (lv2 - 2))
+      {
+	return true;
+      }
+    else
+      {
+	return false;
+      }
+  }
+  
+  bool vectorEqual(Vector v1, Vector v2)
+  {
+    if (equal(v1(0), v2(0)) && equal(v1(1), v2(1)) && equal(v1(2), v2(2)))
+      {
+	return true;
+      }
+    else
+      {
+	return false;
+      }
+  }
+
+    bool contains(FaceSet first, FaceSet second)
+    {
+      for (int i: first)
+	{
+	  if (second.count(i))
+	    {
+	      return true;
+	    }
+	}
+      return false;
+    }
 }
+

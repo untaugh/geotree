@@ -1,7 +1,7 @@
 #pragma once
+#include "Types.h"
 #include <Eigen/Core>
 #include <set>
-#include "Types.h"
 #include "Geometry.h"
 
 using namespace Eigen;
@@ -15,10 +15,10 @@ enum Axis
 
 namespace Calc
 {
-  // getSegments : Get segments of triangular faces
+  // getSegments : Get unique segments from face indicies
   // in  F       : Face indicies
   // out S       : Segments in 3D space
-  void getSegments(const Faces F, MatrixXi &S);
+  void getSegments(const Faces F, Segments &S);
 
   // getSegments : Get segments of triangular faces
   // in  F       : Face indicies (N,3)
@@ -61,7 +61,7 @@ namespace Calc
   // in V        : verticies
   // in P        : path indicies
   // out F       : face indicies
-  bool triangulate(const MatrixXd V, const VectorXi P, Faces &F);
+  bool triangulate(const Verticies V, const VectorXi P, Faces &F);
 
   // normal : get notmal for three points in 3d space
   // ret    : normal
@@ -83,7 +83,8 @@ namespace Calc
   
   // distance : distance between point and segment
   double distance(Vertex point, Vertex seg0, Vertex seg1);
-
+  double distance(Vector point, Line segment1);
+  
   // is point inside face
   bool inside(const Verticies face, const Vertex point);
 
@@ -131,7 +132,7 @@ namespace Calc
   // in F        : triangular faces
   // out B1      : point 1 of box
   // out B2      : point 2 of box
-  void boundingBox(MatrixXd V, Path F, Vector3d &B1, Vector3d &B2);
+  void boundingBox(Verticies V, Path F, Vector3d &B1, Vector3d &B2);
   // ret         : 3D Verticies in two rows
   Verticies boundingBox(const Geometry G);
 
@@ -139,7 +140,7 @@ namespace Calc
   // ret     : winding number
   // in V    : list of verticies
   // in P    : path
-  int winding(MatrixXd V, VectorXi P);
+  int winding(Verticies V, VectorXi P);
 
   // crossing : crossing number of path
   // ret      : crossing number
@@ -202,4 +203,13 @@ namespace Calc
   SegmentIndex getSegment(const Geometry geometry, const int faceIndex, const Vertex point);
 
   Vector2i getFaces(const Geometry geometry, SegmentIndex segment);
+  bool hasSegment(Face face, SegmentIndex segment);
+  bool closeToZero(double value);
+
+  bool isEndPoint(Line segment, Vector point);
+  bool isEndPoint(Plane face, Vector point);
+
+  bool vectorEqual(Vector v1, Vector v2);
+  bool equal(double d1, double d2);
+  bool contains(FaceSet first, FaceSet second);
 }
