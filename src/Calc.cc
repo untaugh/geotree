@@ -311,7 +311,7 @@ namespace Calc
 
     // reference line
     Segment line;
-    Point vp0, vp1, vp2, v0, v1;
+    Vector2d vp0, vp1, vp2, v0, v1;
     vp0 << V.row(P[0])[axis1], V.row(P[0])[axis2];
     vp1 << V.row(P[1])[axis1], V.row(P[1])[axis2];
     vp2 << V.row(P.tail(1)[0])[axis1], V.row(P[pathIndex])[axis2];
@@ -687,7 +687,7 @@ namespace Calc
     return false;    
   }
 
-  double angle(Point p0, Point p1)
+  double angle(Vector2d p0, Vector2d p1)
   {
     double a0 = atan2(p0[1], p0[0]);
     double a1 = atan2(p1[1], p1[0]);
@@ -973,7 +973,7 @@ namespace Calc
   bool intersect(const Segment line, const Segment segment, int &winding)
   {    
     bool retval = false;
-    Point v1, v1_r, v2;
+    Vector2d v1, v1_r, v2;
 
     v1 = line.row(0) - line.row(1);
     

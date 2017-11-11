@@ -1,6 +1,7 @@
 #pragma once
 #include "Types.h"
 //#include "Face.h"
+#include "PointInfo.h"
 
 namespace Geotree
 {
@@ -14,7 +15,8 @@ namespace Geotree
     Faces F;
 
     unsigned size();
-
+    int add(const Vector3d point);
+    
     Mesh operator +(const Mesh mesh); // union
     Mesh operator -(const Mesh mesh); // difference
     Mesh operator &(const Mesh mesh); // intersection
@@ -24,10 +26,12 @@ namespace Geotree
     void translate(const Vertex v);
 
     FaceT getFaceT(const unsigned i);
+    Plane getFaceVectors(int index);
     Segments getSegments();
 
-    int getFaceIndex(FaceIndex face);
+    //int getFaceIndex(FaceIndex face);
 
+    FaceSet getFaces(PointInfo point);
     FaceSet getFacesWithPoint(int pointIndex);
     FaceSet getFacesWithSegment(SegmentIndex segment);
   };

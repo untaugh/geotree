@@ -5,26 +5,26 @@
 #include <utility>
 #include "Mesh.h"
 #include "PointInfo.h"
+#include "Point.h"
 
 namespace Geotree
 {
-  class Mesh;
-  
-  enum MeshIndex {
-    FIRST,
-    SECOND,
-  };
-
-  class IntersectionPoint
+  class IntersectionPoint : public Point
   {
   public:
-    IntersectionPoint(PointInfo firstType, PointInfo secondType, Vector _point);
+    IntersectionPoint(Mesh &_mesh, PointInfo firstType, PointInfo secondType, Vector _point);
 
-    PointInfo getPoint(const MeshIndex mesh);
+    bool isConnected(const IntersectionPoint point);
+    FaceSet getIntersectedFaces() const;
+    FaceSet faces;
+
     PointInfo first;
     PointInfo second;
-    Vector point;
+
     FaceSet connectedPoints;
     bool operator==(const IntersectionPoint &ipoint);
+
+  private:
+    void getFaces();
   };
 }

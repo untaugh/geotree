@@ -103,7 +103,7 @@ namespace Calc
 
   // angle : angle between 2d vectors
   // ret   : angle
-  double angle(Point p0, Point p1);
+  double angle(Vector2d p0, Vector2d p1);
   
   // inside : any point inside triangle
   // ret    : true if yes

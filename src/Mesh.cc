@@ -10,12 +10,29 @@ namespace Geotree
     return this->F.rows();
   }
 
+  int Mesh::add(const Vector3d point)
+  {
+    V.conservativeResize(V.rows() + 1, NoChange);
+    V.row(V.rows() - 1) = point;
+    return V.rows() - 1;
+  }
+
   FaceT Mesh::getFaceT(const unsigned i)
   {
-    FaceT face(this->V, this->F.row(i));
+    FaceT face(*this, i);
     return face;
   }
 
+  Plane Mesh::getFaceVectors(int index)
+  {
+    Plane face;
+
+    face.row(0) = V.row(F.row(index)(0));
+    face.row(1) = V.row(F.row(index)(1));
+    face.row(2) = V.row(F.row(index)(2));
+
+    return face;
+  }
   Mesh Mesh::operator +(const Mesh meshAdd)
   {
     Mesh mesh;
@@ -52,18 +69,42 @@ namespace Geotree
     return segments;
   }
   
-  int Mesh::getFaceIndex(Face face)
-  {
-    for (int i=0; i<this->F.rows(); i++)
-      {
-	if (Calc::equal(this->F.row(i), face))
-	  {
-	    return i;
-	  }
-      }
-    return -1;
-  }
+  // int Mesh::getFaceIndex(Face face)
+  // {
+  //   for (int i=0; i<this->F.rows(); i++)
+  //     {
+  // 	if (Calc::equal(this->F.row(i), face))
+  // 	  {
+  // 	    return i;
+  // 	  }
+  //     }
+  //   return -1;
+  // }
 
+  FaceSet Mesh::getFaces(PointInfo point)
+  {
+    FaceSet faces;
+
+    switch (point.type)
+      {
+      case POINT:
+	{
+	  return getFacesWithPoint(point.index);
+	}
+      case SEGMENT:
+	{
+	  SegmentIndex segment(point.index,point.index2);
+	  return getFacesWithSegment(segment);
+	}
+      case FACE:
+	{
+	  faces.insert(point.index);
+	  return faces;;
+	}
+      }
+    return faces;
+  }
+  
   FaceSet Mesh::getFacesWithPoint(int pointIndex)
   {
     FaceSet faces;

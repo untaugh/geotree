@@ -718,7 +718,7 @@ namespace {
 
   TEST_F(CalcTest, Angle2D)
   {
-    Point p0, p1;
+    Vector2d p0, p1;
 
     // p0 at x=1
     p0 << 1.0, 0.0; p1 << 0.0, 1.0;

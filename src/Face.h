@@ -11,9 +11,11 @@ namespace Geotree
   class FaceT
   {
   public:
-    FaceT(const Verticies &verticies, const Vector3i points);
+    //FaceT(Mesh &_mesh, const Vector3i points);
+    FaceT(Mesh &_mesh, int index);
     bool intersects(const Line segment);
     IntersectionPoint getIntersection(SegmentT segment);
+
   private:
     PointInfo getType(Vector3d point);
     bool hasPoint(Vector3d point);
@@ -22,8 +24,8 @@ namespace Geotree
     Plane getVectors();
     Line getVectors(int index);
     Vector3d getPoint(int index);
-    const Verticies &verticies;
-    Vector3i points;
+    Mesh &mesh;
+    int index;
+    //Vector3i points;
   };
 }
-

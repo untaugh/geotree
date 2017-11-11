@@ -1,10 +1,10 @@
 #include "Face.h"
 #include "Calc.h"
-
+#include <iostream>
 namespace Geotree
 {
-  FaceT::FaceT(const Verticies &_verticies, const Vector3i _points)
-    : verticies(_verticies), points(_points)
+  FaceT::FaceT(Mesh &_mesh, const int _index)
+  : mesh(_mesh), index(_index)
   {
   }
 
@@ -19,15 +19,15 @@ namespace Geotree
     Plane face = getVectors();
     if (Calc::closeToZero((point - face.row(0).transpose()).norm()))
       {
-	return points[0];
+	return mesh.F.row(index)(0);
       }
     else if (Calc::closeToZero((point - face.row(1).transpose()).norm()))
       {
-	return points[1];
+	return mesh.F.row(index)(1);
       }
     else if (Calc::closeToZero((point - face.row(2).transpose()).norm()))
       {
-	return points[2];
+	return mesh.F.row(index)(2);
       }
     else
       {
@@ -35,13 +35,13 @@ namespace Geotree
       }
   }
 
-  SegmentIndex FaceT::getIndex(int index)
+  SegmentIndex FaceT::getIndex(int faceindex)
   {
     SegmentIndex segment;
     
-    segment[0] = points[index%3];
-    segment[1] = points[(index+1)%3];
-
+    segment[0] = mesh.F.row(index)(faceindex%3);
+    segment[1] = mesh.F.row(index)((faceindex+1)%3);
+    
     if (segment[0] > segment[1])
       {
 	int temp = segment[0];
@@ -54,51 +54,42 @@ namespace Geotree
   
   PointInfo FaceT::getType(Vector3d point)
   {
-    Plane face = getVectors();
+    PointInfo pointInfo;   
 
     Line segment1 = getVectors(0);
     Line segment2 = getVectors(1);
     Line segment3 = getVectors(2);
-
-    PointInfo pointInfo;
-
-    pointInfo.index2 << 0,0,0;
-
+    
     if (hasPoint(point))
       {
-	pointInfo.index2[0] = getPointIndex(point);
-	pointInfo.type = PointInfo::POINT;
-	//return POINT_ON_POINT;
+	pointInfo.index = getPointIndex(point);	
+	pointInfo.type = POINT;
       }
     else if (Calc::closeToZero(Calc::distance(point, segment1)))
       {
-	//pointInfo.index2[0] = points[0];
-	//pointInfo.index2[1] = points[1];
-	pointInfo.index2.block(0,0,2,1) = getIndex(0);
-	pointInfo.type = PointInfo::SEGMENT;
-	//return POINT_ON_SEGMENT;
+	SegmentIndex si = getIndex(0);
+	pointInfo.index = si(0);
+	pointInfo.index2 = si(1);
+	pointInfo.type = SEGMENT;
       }
     else if (Calc::closeToZero(Calc::distance(point, segment2)))
       {
-	//pointInfo.index2[0] = points[1];
-	//pointInfo.index2[1] = points[2];
-	pointInfo.index2.block(0,0,2,1) = getIndex(1);
-	pointInfo.type = PointInfo::SEGMENT;
-	//return POINT_ON_SEGMENT;
+	SegmentIndex si = getIndex(1);
+	pointInfo.index = si(0);
+	pointInfo.index2 = si(1);
+	pointInfo.type = SEGMENT;
       }
     else if (Calc::closeToZero(Calc::distance(point, segment3)))
       {
-	pointInfo.index2.block(0,0,2,1) = getIndex(2);
-	//pointInfo.index2[0] = points[0];
-	//pointInfo.index2[1] = points[2];
-	pointInfo.type = PointInfo::SEGMENT;
-	//return POINT_ON_SEGMENT;
+	SegmentIndex si = getIndex(2);
+	pointInfo.index = si(0);
+	pointInfo.index2 = si(1);
+	pointInfo.type = SEGMENT;
       }
     else
       {
-	pointInfo.index2 = points;
-	pointInfo.type = PointInfo::FACE;
-	//return POINT_ON_FACE;
+	pointInfo.index = index;
+	pointInfo.type = FACE;
       }
 
     return pointInfo;
@@ -108,25 +99,22 @@ namespace Geotree
   {
     Line segment = getVectors();
     PointInfo pointInfo;
-
-    pointInfo.index2 << 0,0,0;
 	
     if (Calc::closeToZero((point - segment.row(0).transpose()).norm()))
       {
-	pointInfo.index2[0] = index[0];
-	pointInfo.type = PointInfo::POINT;
+	pointInfo.index = index[0];
+	pointInfo.type = POINT;
       }
     else if (Calc::closeToZero((point - segment.row(1).transpose()).norm()))
       {
-	pointInfo.index2[0] = index[1];
-	pointInfo.type = PointInfo::POINT;
+	pointInfo.index = index[1];
+	pointInfo.type = POINT;
       }
     else
       {
-	pointInfo.index2[0] = index[0];
-	pointInfo.index2[1] = index[1];
-	pointInfo.type = PointInfo::SEGMENT;
-	//return POINT_ON_SEGMENT;
+	pointInfo.index = index[0];
+	pointInfo.index2 = index[1];
+	pointInfo.type = SEGMENT;
       }
     return pointInfo;
   }
@@ -145,18 +133,15 @@ namespace Geotree
 
   Plane FaceT::getVectors()
   {
-    Plane face;
-    face.row(0) = verticies.row(points[0]);
-    face.row(1) = verticies.row(points[1]);
-    face.row(2) = verticies.row(points[2]);
-    return face;
+    return mesh.getFaceVectors(index);
   }
 
-  Line FaceT::getVectors(int index)
+  Line FaceT::getVectors(int segmentindex)
   {
+    Plane face = mesh.getFaceVectors(index);
     Line segment;
-    segment.row(0) = verticies.row(points[index%3]);
-    segment.row(1) = verticies.row(points[(index+1)%3]);
+    segment.row(0) = face.row(segmentindex%3);
+    segment.row(1) = face.row((segmentindex+1)%3);
     return segment;
   }
 
@@ -170,16 +155,15 @@ namespace Geotree
   
   IntersectionPoint FaceT::getIntersection(SegmentT segment)
   {
-    
     Line seg = segment.getVectors();
     Plane face = this->getVectors();
     Vector point = Calc::intersection(face, seg);
 
     PointInfo first = this->getType(point);
     PointInfo second = segment.getType(point);
-    //PointType second = segment.getType(point);
-    //PointInfo info;
-    IntersectionPoint ipoint(first, second, point);
+
+    IntersectionPoint ipoint(mesh, first, second, point);
+
     return ipoint;
   }
 }
