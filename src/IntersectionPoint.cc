@@ -18,7 +18,7 @@ namespace Geotree
 
   bool IntersectionPoint::operator==(const IntersectionPoint &ipoint)
   {
-    if (Calc::vectorEqual(ipoint.getPoint(), getPoint()))
+    if (Calc::vectorEqual(ipoint.getVector(), getVector()))
       {
 	if (ipoint.first == this->first && ipoint.second == this->second )
 	  {

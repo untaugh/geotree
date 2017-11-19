@@ -1,12 +1,18 @@
 #include "Face.h"
 #include "Calc.h"
 #include <iostream>
+
 namespace Geotree
 {
   FaceT::FaceT(Mesh &_mesh, const int _index)
   : mesh(_mesh), index(_index)
   {
   }
+
+  // FaceT::FaceT(FaceT face)
+  // : mesh(face.mesh), index(face.index)
+  // {
+  // }
 
   bool FaceT::hasPoint(Vector3d point)
   {
@@ -54,7 +60,7 @@ namespace Geotree
   
   PointInfo FaceT::getType(Vector3d point)
   {
-    PointInfo pointInfo;   
+    PointInfo pointInfo;
 
     Line segment1 = getVectors(0);
     Line segment2 = getVectors(1);

@@ -26,19 +26,4 @@ namespace Geotree {
     std::vector <Path> paths;
     const IntersectionPoints &intersectionPoints;
   };
-
-  class IntersectionFace
-  {
-  public:
-    IntersectionFace(Mesh &mesh, IntersectionPaths &paths, Face face);
-
-    void calulateSubPaths(){};
-    void calculateEdgePoints();
-    Face face;
-
-    std::set <EdgePoint> edgePoints;
-    const IntersectionPaths &paths;
-    const Mesh &mesh;
-  };
-
 }

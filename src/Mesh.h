@@ -1,6 +1,5 @@
 #pragma once
 #include "Types.h"
-//#include "Face.h"
 #include "PointInfo.h"
 
 namespace Geotree
@@ -29,10 +28,10 @@ namespace Geotree
     Plane getFaceVectors(int index);
     Segments getSegments();
 
-    //int getFaceIndex(FaceIndex face);
-
     FaceSet getFaces(PointInfo point);
     FaceSet getFacesWithPoint(int pointIndex);
     FaceSet getFacesWithSegment(SegmentIndex segment);
   };
+
+  std::ostream& operator<< (std::ostream& stream, const Mesh& mesh);  
 }

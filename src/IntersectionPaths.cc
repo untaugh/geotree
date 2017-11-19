@@ -18,14 +18,14 @@ namespace Geotree
 	    FaceSet subpath;
 	    int pathIndex = (pathStart + i) % path.size();
 
-	    //IntersectionPoint pathPoint = intersectionPoints.getPoint(path[pathIndex]);
-	    //while (i < path.size() && pathPoint.getPoint(face.mesh).faces.count(face.index))
+	    //IntersectionPoint pathPoint = intersectionPoints.getVector(path[pathIndex]);
+	    //while (i < path.size() && pathPoint.getVector(face.mesh).faces.count(face.index))
 	    while (i < path.size() && intersectionPoints.getPoint(path[pathIndex]).faces.count(face))	    
 	      {
 		subpath.insert(path[pathIndex]);
 		++i;
 		pathIndex = (pathStart + i) % path.size();
-		//pathPoint = intersectionPoints.getPoint(path[pathIndex]);
+		//pathPoint = intersectionPoints.getVector(path[pathIndex]);
 	      }
 	    
 	    if (subpath.size() > 0)
@@ -111,7 +111,7 @@ namespace Geotree
   {
     int i = 0;
 
-    //IntersectionPoint ip = intersectionPoints.getPoint(path[i]);
+    //IntersectionPoint ip = intersectionPoints.getVector(path[i]);
 
     while(intersectionPoints.getPoint(path[i]).faces.count(face))
       {
@@ -120,7 +120,7 @@ namespace Geotree
 	    return 0;
 	  }
 
-	//ip = intersectionPoints.getPoint(path[i]);
+	//ip = intersectionPoints.getVector(path[i]);
       }
     return i;
   }

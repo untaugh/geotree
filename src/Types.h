@@ -6,15 +6,14 @@
 
 using namespace Eigen;
 
-  enum PointType
-    {
-      POINT,
-      SEGMENT,
-      FACE,
-    };
+enum PointType
+  {
+    POINT,
+    SEGMENT,
+    FACE,
+  };
 
 typedef Vector2i IndexPair;
-//typedef Vector2d Point;
 typedef Vector3d Vertex;
 typedef Vector3d Vector;
 typedef Vector3i Face;

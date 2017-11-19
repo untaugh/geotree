@@ -136,11 +136,11 @@ namespace Geotree
 	//segmentFirst = point.first.index2.block(0,0,2,1);
 	segmentFirst= point.first.getSegment();
 	pointFirst = segmentFirst[0];
-	vectorFirst = point.getPoint();
+	vectorFirst = point.getVector();
       }
     else
       {
-	//pointFirst = points.getPoint(first.index).first.index2[0];
+	//pointFirst = points.getVector(first.index).first.index2[0];
 	pointFirst = points.getPoint(second.index).first.index;
 	vectorFirst = mesh.V.row(pointFirst);
       }
@@ -151,11 +151,11 @@ namespace Geotree
 	//segmentSecond = point.first.index2.block(0,0,2,1);
 	segmentFirst= point.first.getSegment();
 	pointSecond = segmentSecond[0];
-	vectorSecond = point.getPoint();
+	vectorSecond = point.getVector();
       }
     else
       {
-	//pointSecond = points.getPoint(second.index).first.index2[0];
+	//pointSecond = points.getVector(second.index).first.index2[0];
 	pointSecond = points.getPoint(second.index).first.index;
 	vectorSecond = mesh.V.row(pointSecond);
       }
@@ -205,13 +205,13 @@ namespace Geotree
     	if (ep.type == SEGMENT)
     	  {
 	    SegmentIndex seg;
-	      //SegmentIndex seg = points.getPoint(ep.index).getPoint(face.mesh).index2.block(0,0,2,1);
+	      //SegmentIndex seg = points.getPoint(ep.index).getVector(face.mesh).index2.block(0,0,2,1);
 	    ep.segment = seg;
 
 	    //std::cout << "seg " << ep.segment.transpose() << std::endl;
 	    Vector start;// = getMesh(face.mesh).V.row(ep.segment[0]);
 
-	    ep.position = (start - points.getPoint(ep.index).getPoint()).norm();
+	    ep.position = (start - points.getPoint(ep.index).getVector()).norm();
     	  }
 	else
 	  {

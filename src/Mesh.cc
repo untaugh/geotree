@@ -131,5 +131,17 @@ namespace Geotree
       }
     
     return faces;
-  } 
+  }
+
+  std::ostream& operator<< (std::ostream& stream, const Mesh& mesh)
+  {
+    stream << "Mesh:";
+    
+    for (int i=0; i<mesh.V.rows(); i++)
+      {
+	stream << "(" << mesh.V.row(i) << "),";
+      }
+    
+    return stream;
+  }
 }

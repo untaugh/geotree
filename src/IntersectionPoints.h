@@ -2,7 +2,8 @@
 #include "Types.h"
 #include "IntersectionPoint.h"
 
-namespace Geotree {
+namespace Geotree
+{
   
   class IntersectionPoints
   {

@@ -18,7 +18,7 @@ void IntersectionPoints::addPoint(IntersectionPoint _point)
     if (!exists)
       {
 	Geotree::Log().Get(LOG_DEBUG)
-	  << "Adding point: "  << _point.first.type << ", " << _point.second.type << ", " << _point.getPoint().transpose();	
+	  << "Adding point: "  << _point.first.type << ", " << _point.second.type << ", " << _point.getVector().transpose();
 	points.push_back(_point);
       }
   }

@@ -2,7 +2,7 @@
 
 namespace Geotree
 {
-  Vector Point::getPoint() const
+  Vector Point::getVector() const
   {
     return mesh.V.row(this->index);
   }

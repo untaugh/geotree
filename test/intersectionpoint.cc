@@ -148,25 +148,25 @@ namespace {
 	double d8 = 0.8;
 	(*(long*)&d8) -=1;
 
-	if (p.getPoint() == Vector(0.1, 0.1, 0.0))
+	if (p.getVector() == Vector(0.1, 0.1, 0.0))
 	  {
 	    EXPECT_EQ(p.first.type, FACE);
 	    EXPECT_EQ(p.second.type, POINT);
 	    EXPECT_EQ(p.connectedPoints.size(), 2);
 	  }
-	else if (p.getPoint() == Vector(d9, 0.1, 0))
+	else if (p.getVector() == Vector(d9, 0.1, 0))
 	  {
 	    EXPECT_EQ(p.first.type, SEGMENT);
 	    EXPECT_EQ(p.second.type, SEGMENT);
 	    EXPECT_EQ(p.connectedPoints.size(), 3);
 	  }
-	else if (p.getPoint() == Vector(0.1, d9, 0.0))
+	else if (p.getVector() == Vector(0.1, d9, 0.0))
 	  {
 	    EXPECT_EQ(p.first.type, SEGMENT);
 	    EXPECT_EQ(p.second.type, SEGMENT);
 	    EXPECT_EQ(p.connectedPoints.size(), 3);
 	  }
-	else if (p.getPoint() == Vector(0.1, 0.1, d8))
+	else if (p.getVector() == Vector(0.1, 0.1, d8))
 	  {
 	    EXPECT_EQ(p.first.type, FACE);
 	    EXPECT_EQ(p.second.type, SEGMENT);
@@ -262,7 +262,7 @@ namespace {
 	IntersectionPoint p = mi.points.getPoint(i);
 	EXPECT_EQ(p.first.type, POINT);
 	EXPECT_EQ(p.second.type, POINT);
-	EXPECT_EQ(p.getPoint(), Vector(1,0,0));
+	EXPECT_EQ(p.getVector(), Vector(1,0,0));
       }
 
     //mi.calculatePointFaces();
@@ -298,7 +298,7 @@ namespace {
 	IntersectionPoint p = mi.points.getPoint(i);
 	EXPECT_EQ(p.first.type, POINT);
 	EXPECT_EQ(p.second.type, POINT);
-	EXPECT_TRUE(p.getPoint() == Vector(0,0,0) || p.getPoint() == Vector(0,1,0) || p.getPoint() == Vector(0,0,1));
+	EXPECT_TRUE(p.getVector() == Vector(0,0,0) || p.getVector() == Vector(0,1,0) || p.getVector() == Vector(0,0,1));
       }
     
     FaceSet faces = mi.points.getIntersectedFaces();
@@ -329,7 +329,8 @@ namespace {
 	IntersectionPoint p = mi.points.getPoint(i);
 	EXPECT_EQ(p.first.type, POINT);
 	EXPECT_EQ(p.second.type, POINT);
-	EXPECT_TRUE(p.getPoint() == Vector(0,0,0) || p.getPoint() == Vector(0,1,0) || p.getPoint() == Vector(0,0,1) || p.getPoint() == Vector(1,0,0));
+	EXPECT_TRUE(p.getVector() == Vector(0,0,0) || p.getVector() == Vector(0,1,0) || p.getVector() == Vector(0,0,1) ||
+                        p.getVector() == Vector(1,0,0));
       }
 
     
@@ -354,7 +355,7 @@ namespace {
 	IntersectionPoint p = mi.points.getPoint(i);
 	EXPECT_EQ(p.first.type, FACE);
 	EXPECT_EQ(p.second.type, SEGMENT);
-	EXPECT_EQ(p.getPoint()(0), 10);
+	EXPECT_EQ(p.getVector()(0), 10);
       }
 
     EXPECT_EQ(countPointsAdjascent(mi.points),8);
@@ -394,7 +395,7 @@ namespace {
       {
 	IntersectionPoint p = mi.points.getPoint(i);
 	EXPECT_EQ(p.second.type, SEGMENT);
-	EXPECT_EQ(p.getPoint()(0), 10);	
+	EXPECT_EQ(p.getVector()(0), 10);
       }
    
     EXPECT_EQ(countPointsAdjascent(mi.points),8);
@@ -701,11 +702,11 @@ namespace {
   //   //mi.calculatePointFaces();
   //   //mi.points.calculateConnectedPoints();
 
-  //   EXPECT_EQ(*mi.getPoint(0).connectedPoints.begin(), 1);
-  //   EXPECT_EQ(*mi.getPoint(0).connectedPoints.rbegin(), 2);
-  //   EXPECT_EQ(*mi.getPoint(1).connectedPoints.begin(), 0);
-  //   EXPECT_EQ(*mi.getPoint(1).connectedPoints.rbegin(), 2);
-  //   EXPECT_EQ(*mi.getPoint(2).connectedPoints.begin(), 0);
-  //   EXPECT_EQ(*mi.getPoint(2).connectedPoints.rbegin(), 1);  
+  //   EXPECT_EQ(*mi.getVector(0).connectedPoints.begin(), 1);
+  //   EXPECT_EQ(*mi.getVector(0).connectedPoints.rbegin(), 2);
+  //   EXPECT_EQ(*mi.getVector(1).connectedPoints.begin(), 0);
+  //   EXPECT_EQ(*mi.getVector(1).connectedPoints.rbegin(), 2);
+  //   EXPECT_EQ(*mi.getVector(2).connectedPoints.begin(), 0);
+  //   EXPECT_EQ(*mi.getVector(2).connectedPoints.rbegin(), 1);
   // }
 }
