@@ -6,9 +6,19 @@
 #include "Mesh.h"
 #include "PointInfo.h"
 #include "Point.h"
+#include "FacePoint.h"
 
 namespace Geotree
 {
+ class IntersectionPoint2 : public Point
+ {
+ public:
+     IntersectionPoint2(const FaceT& face, const PointType type) : face(face), type(type){};
+     const PointType type;
+ private:
+     const FaceT& face;
+ };
+
   class IntersectionPoint : public Point
   {
   public:
@@ -16,6 +26,7 @@ namespace Geotree
 
     bool isConnected(const IntersectionPoint point);
     FaceSet getIntersectedFaces() const;
+      FacePoint getFacePoint(int faceIndex);
     FaceSet faces;
 
     PointInfo first;

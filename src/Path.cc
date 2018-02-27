@@ -1,41 +1,37 @@
 #include "Path.h"
+//#include "IntersectionFace.h"
 #include <vector>
 #include <iostream>
 
 namespace Geotree
 {
-  void PathT::add(const Vector3d point)
-  {
-    mesh.V.conservativeResize(mesh.V.rows() + 1, NoChange);
-    points.push_back(mesh.V.rows() - 1);
-    mesh.V.row(mesh.V.rows() - 1) = point;
-  }
 
-    Point PathT::begin() const
+    template<>
+    bool PathX<FacePoint>::edgeToEdge() const
     {
-        return Point(mesh, points.front());
+        return this->begin().type == SEGMENT;
     }
 
-    Point PathT::back() const
-    {
-        return Point(mesh, points.back());
-    }
+//    template<>
+//    int PathT::size() const
+//    {
+//        return points.size();
+//    }
 
-    int PathT::size() const
-  {
-    return points.size();
-  }
-
+    template<>
   Vector3d PathT::get(int index)
   {
-    return mesh.V.row(points[index]);
+    //return mesh.V.row(points[index].getIndex());
   }
+
+    template<>
     bool PathT::operator != (const PathT &path) const
     {
         return !(operator==(path));
     }
 
-    bool PathT::operator == (const PathT &path) const
+    template<typename T>
+    bool PathX<T>::operator == (const PathX<T> &path) const
     {
         if (this->size() != path.size())
         {
@@ -47,12 +43,14 @@ namespace Geotree
             return true;
         }
 
-        bool pathsEqual = true;
+        bool pathsEqual = false;
 
         for (int i=0; i<path.size(); i++)
         {
             if (this->points.front() == path.points[i])
             {
+                pathsEqual = true;
+
                 for (int j=0; j<this->size(); j++)
                 {
                     if (this->points[j] != path.points[i++])
@@ -70,9 +68,9 @@ namespace Geotree
         }
 
         if (!pathsEqual) {
-            pathsEqual = true;
             for (int i = 0; i < path.size(); i++) {
                 if (this->points.back() == path.points[i]) {
+                    pathsEqual = true;
                     for (int j = (this->points.size() - 1); j > 0; j--) {
                         if (this->points[j] != path.points[i++]) {
                             pathsEqual = false;
@@ -90,15 +88,4 @@ namespace Geotree
         return pathsEqual;
     }
 
-    std::ostream& operator<< (std::ostream& stream, const PathT& path)
-  {
-    stream << "Path:";
-
-    for (int point : path.getPoints())
-      {
-	stream << point << ",";
-       }
-
-    return stream;
-  }
 }

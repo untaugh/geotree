@@ -80,4 +80,29 @@ namespace Geotree
     return intersectedFaces;
   }
 
+    FacePoint IntersectionPoint::getFacePoint(int faceIndex) {
+
+        PointType type;
+        int segmentIndex;
+
+        if (first.faces.find(faceIndex) != first.faces.end())
+        {
+            type = first.type;
+            segmentIndex = first.index;
+        }
+        else if (second.faces.find(faceIndex) != second.faces.end())
+        {
+            type = second.type;
+            segmentIndex = second.index;
+
+        }
+        else
+        {
+            throw;
+        }
+
+        FacePoint fp(mesh, index, type, segmentIndex);
+        return fp;
+    }
+
 }

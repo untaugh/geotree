@@ -4,50 +4,41 @@
 
 namespace Geotree
 {
-  std::vector <FaceSet> IntersectionPaths::getSubPaths(int face)
-  {
-    std::vector <FaceSet> subpaths;
-    
-    for (Path path : paths)
-      {
-	int pathStart = getPathStartIndex(path, face);
-	int i = 0;
+	std::vector <FaceSet> IntersectionPaths::getSubPaths(int face)
+	{
+		std::vector <FaceSet> subpaths;
 
-	while(i < path.size())
-	  {
-	    FaceSet subpath;
-	    int pathIndex = (pathStart + i) % path.size();
+		for (Path path : paths)
+		{
+			int pathStart = getPathStartIndex(path, face);
+			int i = 0;
 
-	    //IntersectionPoint pathPoint = intersectionPoints.getVector(path[pathIndex]);
-	    //while (i < path.size() && pathPoint.getVector(face.mesh).faces.count(face.index))
-	    while (i < path.size() && intersectionPoints.getPoint(path[pathIndex]).faces.count(face))	    
-	      {
-		subpath.insert(path[pathIndex]);
-		++i;
-		pathIndex = (pathStart + i) % path.size();
-		//pathPoint = intersectionPoints.getVector(path[pathIndex]);
-	      }
-	    
-	    if (subpath.size() > 0)
-	      {
-		subpaths.push_back(subpath);
-		subpath.clear();
-	      }
-	    else
-	      {
-		i++;
-	      }
-	  }
-      }
-    return subpaths;
-  }
-  // std::vector <Path> IntersectionPaths::getPathsForFace(Face face)
-  // {
-  //   for (Path path : paths)
-  //     {
-	
-  //     }
-  // }
+			while(i < path.size())
+			{
+				FaceSet subpath;
+				int pathIndex = (pathStart + i) % path.size();
+
+				while (i < path.size() && intersectionPoints.getPoint(path[pathIndex]).faces.count(face))
+				{
+					subpath.insert(path[pathIndex]);
+					++i;
+					pathIndex = (pathStart + i) % path.size();
+				}
+
+				if (subpath.size() > 0)
+				{
+					subpaths.push_back(subpath);
+					subpath.clear();
+				}
+				else
+				{
+					i++;
+				}
+			}
+		}
+
+		return subpaths;
+	}
 
     int IntersectionPaths::totalPathSize()
   {
@@ -84,15 +75,9 @@ namespace Geotree
   
   void IntersectionPaths::calculatePaths()
   {
-    //calculateConnectedPoints();
-    
     int intersectionPointIndex = 0;
 
     do {
-      //std::cout << "Intersection point is " << intersectionPointIndex << std::endl;
-      //std::cout << "Total path size is " << totalPathSize() << std::endl;
-      //std::cout << "Points size is " << points.size() << std::endl;
-
       paths.push_back(calculatePath(intersectionPointIndex));
 
       int newIntersectionPointIndex = getFreePoint();
@@ -111,8 +96,6 @@ namespace Geotree
   {
     int i = 0;
 
-    //IntersectionPoint ip = intersectionPoints.getVector(path[i]);
-
     while(intersectionPoints.getPoint(path[i]).faces.count(face))
       {
 	if (++i >= path.size())
@@ -120,15 +103,48 @@ namespace Geotree
 	    return 0;
 	  }
 
-	//ip = intersectionPoints.getVector(path[i]);
       }
     return i;
   }
 
-  // IntersectionFace IntersectionPaths::getFace(int face)
-  // {
-  //   IntersectionFace face(this->mesh, *this, face);
+    std::vector<PathX<FacePoint>> IntersectionPaths::getSubPaths2(int face) {
+		std::vector <PathX<FacePoint>> subpaths;
 
-  //   return face;
-  // }
+		for (Path path : paths)
+		{
+            std::cout << "path:" << path << std::endl;
+			int pathStart = getPathStartIndex(path, face);
+			int i = 0;
+
+			while(i < path.size())
+			{
+				PathX<FacePoint> subpath(intersectionPoints.mesh);
+
+				int pathIndex = (pathStart + i) % path.size();
+
+				while (i < path.size() && intersectionPoints.getPoint(path[pathIndex]).faces.count(face))
+				{
+					IntersectionPoint ip = intersectionPoints.getPoint(path[pathIndex]);
+					int meshPointIndex = intersectionPoints.getPoint(path[pathIndex]).getIndex();
+
+					FacePoint fp = ip.getFacePoint(face);
+
+					subpath.addExisting(fp);
+					++i;
+					pathIndex = (pathStart + i) % path.size();
+				}
+
+				if (subpath.size() > 0)
+				{
+					subpaths.push_back(subpath);
+				}
+				else
+				{
+					i++;
+				}
+			}
+		}
+
+		return subpaths;
+    }
 }

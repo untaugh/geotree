@@ -72,8 +72,7 @@ namespace {
   {
     Geotree::MeshFactory mf;
     Geotree::Mesh cube = mf.makeCube(1,1,1);
-    Segments S;
-    Calc::getSegments(cube.F,S);
+    Segments S = cube.getSegments();
     EXPECT_EQ(S.rows(), 18);
   }
   

@@ -107,4 +107,13 @@ void IntersectionPoints::addPoint(IntersectionPoint _point)
     return intersectedFaces;
   }
 
+    std::vector<PathX<FacePoint>> IntersectionPoints::getFacePath(const int index) {
+        std::vector<PathX<FacePoint>> paths;
+        PathX<FacePoint> path(mesh);
+        path.add(Vector3d(0,0,0));
+        path.add(Vector3d(1,0,0));
+        paths.push_back(path);
+        return paths;
+    }
+
 }

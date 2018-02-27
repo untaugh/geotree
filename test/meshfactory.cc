@@ -20,7 +20,7 @@ namespace {
   void verifyCube(Mesh cube, double x, double y, double z)
   {
     EXPECT_EQ(12, cube.size());
-    EXPECT_EQ(12, cube.F.rows());
+    EXPECT_EQ(12, cube.rowcount());
     EXPECT_EQ(8, cube.V.rows());
 
     EXPECT_EQ(4*(x+y+z), cube.V.sum());
@@ -53,7 +53,7 @@ namespace {
   {
     EXPECT_EQ(0, cube.size());
     EXPECT_EQ(0, cube.V.rows());
-    EXPECT_EQ(0, cube.F.rows());
+    EXPECT_EQ(0, cube.rowcount());
   }
 
   TEST_F(MeshFactoryTest, cube)
@@ -96,6 +96,11 @@ namespace {
     nullCube(factory.makeCube(10, 10, -1.0));
   }
 
+    TEST_F(MeshFactoryTest, tetra)
+    {
+      Mesh tetra = factory.makeTetra(10);
+    }
+
   TEST_F(MeshFactoryTest, DISABLED_sphere)
   {
     Mesh sphere = factory.makeSphere(10);
@@ -109,4 +114,22 @@ namespace {
 
     EXPECT_EQ(20, cylinder.size());
   }
+
+    //  TEST_F(MeshTest, translate)
+//  {
+//    Mesh cube = mf.makeCube(10,10,10);
+//    Mesh cubeTranslate;
+//
+//    cubeTranslate = cube;
+//    cubeTranslate.translate(Vertex(10,0,0));
+//    verifyTranslate(cube, cubeTranslate, 10,0,0);
+//
+//    cubeTranslate = cube;
+//    cubeTranslate.translate(Vertex(0,0,0));
+//    verifyTranslate(cube, cubeTranslate, 0,0,0);
+//
+//    cubeTranslate = cube;
+//    cubeTranslate.translate(Vertex(-10.1, -55.2, -3.2));
+//    verifyTranslate(cube, cubeTranslate, -10.1, -55.2, -3.2);
+//  }
 }

@@ -4,8 +4,6 @@
 
 namespace Geotree {
 
-  class IntersectionFace;
-  
   class IntersectionPaths
   {
   public:
@@ -15,9 +13,10 @@ namespace Geotree {
 
     int size() { return paths.size(); };
     std::vector <FaceSet> getSubPaths(int face);
-    std::vector <Path> getPaths(){ return paths; };
+      std::vector <PathX<FacePoint>> getSubPaths2(int face);
 
-    //IntersectionFace getFace(int face);
+      std::vector <Path> getPaths(){ return paths; };
+
   private:
     int getPathStartIndex(Path path, int face);
     int totalPathSize();

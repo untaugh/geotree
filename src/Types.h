@@ -13,11 +13,11 @@ enum PointType
     FACE,
   };
 
-typedef Vector2i IndexPair;
+//typedef Vector2i IndexPair;
 typedef Vector3d Vertex;
 typedef Vector3d Vector;
-typedef Vector3i Face;
-typedef Vector3i FaceIndex;
+//typedef Vector3i Face;
+//typedef Vector3i FaceIndex;
 typedef Matrix2d Segment;
 typedef Vector2i SegmentIndex;
 typedef MatrixXd Verts;

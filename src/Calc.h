@@ -29,7 +29,7 @@ namespace Calc
   // ret            : number of shared segments (0, 1 or 3)
   // in F1          : indicies of face 1
   // in F2          : indicies of face 2
-  unsigned int sharedSegments(Face F1, Face F2);
+  unsigned int sharedSegments(Vector3i F1, Vector3i F2);
 
   // do face and segment intersect
   bool intersectsFace(const Plane face, const Line segment);
@@ -48,13 +48,13 @@ namespace Calc
   // out s2     :
   void toSegment(Faces &F, unsigned int f1, unsigned int f2,
 		  unsigned int &s1, unsigned int &s2);
-  Segment toSegment(Face face);
+  Segment toSegment(Vector3i face);
 
   // equal : test if indexies describe the same face
   // ret   : true if equal
   // in f1 : indicies of face 1
   // in f2 : indicies of face 2
-  bool equal(Face face1, Face face2);
+  bool equal(Vector3i face1, Vector3i face2);
 
   // triangulate : triangulate path in 3d space, points in one plane
   // ret         : true if successfull
@@ -173,8 +173,8 @@ namespace Calc
 
   bool connected(Faces F, FaceSet f1, FaceSet f2);
   bool connectedPoint(Faces F, FaceSet f1, FaceSet f2);
-  unsigned sharedPoints(Face face0, Face face1);
-  bool hasPoint(Face face, unsigned index);
+  unsigned sharedPoints(Vector3i face0, Vector3i face1);
+  bool hasPoint(Vector3i face, unsigned index);
       
   // inside : is point inside geometry
   // G      : geometry
@@ -185,8 +185,8 @@ namespace Calc
   // ret         : return a point that is not
   // F           : a face with three points
   // notPoint    : not this point
-  int getNotPoint(Face F, int notPoint);
-  int getNotNotPoint(Face F, int notPoint0, int notPoint1);
+  int getNotPoint(Vector3i F, int notPoint);
+  int getNotNotPoint(Vector3i F, int notPoint0, int notPoint1);
   
   // findPoint : find face with point 1 and 2, but not 3
   int findPoint(const Faces F, const unsigned p0, const unsigned p1, const unsigned p2_not);
@@ -203,7 +203,7 @@ namespace Calc
   SegmentIndex getSegment(const Geometry geometry, const int faceIndex, const Vertex point);
 
   Vector2i getFaces(const Geometry geometry, SegmentIndex segment);
-  bool hasSegment(Face face, SegmentIndex segment);
+  bool hasSegment(Vector3i face, SegmentIndex segment);
   bool closeToZero(double value);
 
   bool isEndPoint(Line segment, Vector point);

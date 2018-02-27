@@ -3,6 +3,7 @@
 
 #include "Path.h"
 #include "Mesh.h"
+#include "IntersectionFace.h"
 
 namespace {
     using namespace Geotree;
@@ -132,7 +133,47 @@ namespace {
         EXPECT_NE(path1, path6);
     }
 
-    TEST_F(PathTest, getPoint) {
+    TEST_F(PathTest, eqOperatorNoSharedStartPoint) {
+        Mesh mesh;
+
+        PathT path1(mesh);
+        PathT path2(mesh);
+        PathT path3(mesh);
+        PathT path4(mesh);
+        PathT path5(mesh);
+        PathT path6(mesh);
+
+        path1.add(Vector3d(1, 0, 0));
+        path1.add(Vector3d(2, 0, 0));
+        path1.add(Vector3d(3, 0, 0));
+        path1.add(Vector3d(4, 0, 0));
+        path1.add(Vector3d(5, 0, 0));
+        path1.add(Vector3d(5, 0, 0));
+
+        path2.addExisting(0);
+        path2.addExisting(1);
+        path2.addExisting(2);
+        path2.addExisting(3);
+        path2.addExisting(4);
+
+        path3.addExisting(1);
+        path3.addExisting(2);
+        path3.addExisting(3);
+        path3.addExisting(4);
+        path3.addExisting(5);
+
+        path4.addExisting(1);
+        path4.addExisting(2);
+        path4.addExisting(3);
+        path4.addExisting(0);
+        path4.addExisting(5);
+
+        EXPECT_NE(path2, path3);
+        EXPECT_NE(path2, path4);
+
+    }
+
+        TEST_F(PathTest, getPoint) {
         Mesh mesh;
         PathT path1(mesh);
 
@@ -161,6 +202,79 @@ namespace {
         path.add(point);
 
         EXPECT_EQ(path.size(), 1);
-
     }
+
+    TEST_F(PathTest, EdgeToEdge)
+    {
+
+        Mesh mesh;
+
+        PathX<FacePoint> pathSegment(mesh);
+        pathSegment.add(FacePoint(mesh, Vector(0.5, 0, 0), SEGMENT, 0));
+        pathSegment.add(FacePoint(mesh, Vector(0, 0.5, 0), SEGMENT, 2));
+
+        EXPECT_TRUE(pathSegment.edgeToEdge());
+
+        PathX<FacePoint> pathFace(mesh);
+
+        pathFace.add(FacePoint(mesh, Vector(0.1, 0.1, 0), FACE, 0));
+        pathFace.add(FacePoint(mesh, Vector(0.5, 0.1, 0), FACE, 0));
+        pathFace.add(FacePoint(mesh, Vector(0.1, 0.5, 0), FACE, 0));
+
+        EXPECT_FALSE(pathFace.edgeToEdge());
+    }
+
+    TEST_F(PathTest, Triangulate)
+    {
+        Mesh mesh;
+
+        PathX<Point> path(mesh);
+
+        path.add(Point(mesh, mesh.add(Vector3d(0,0,0))));
+        path.add(Point(mesh, mesh.add(Vector3d(1,0,0))));
+        path.add(Point(mesh, mesh.add(Vector3d(1,1,0))));
+        path.add(Point(mesh, mesh.add(Vector3d(0,1,0))));
+
+        std::vector <PathX<Point>> holes;
+
+        MatrixX3i triangles = path.triangulate(holes);
+
+        MatrixX3i expected(2,3);
+        expected << 0,1,2, 1,2,3;
+
+        EXPECT_EQ(triangles, expected);
+
+        std::cout << triangles << std::endl;
+    }
+
+    TEST_F(PathTest, TriangulateHole)
+    {
+        Mesh mesh;
+
+        PathX<Point> path(mesh);
+        path.add(Point(mesh, mesh.add(Vector3d(0,0,0))));
+        path.add(Point(mesh, mesh.add(Vector3d(1,0,0))));
+        path.add(Point(mesh, mesh.add(Vector3d(1,1,0))));
+        path.add(Point(mesh, mesh.add(Vector3d(0,1,0))));
+
+        PathX<Point> hole(mesh);
+        hole.add(Point(mesh, mesh.add(Vector3d(0.1,0.1,0))));
+        hole.add(Point(mesh, mesh.add(Vector3d(0.9,0.1,0))));
+        hole.add(Point(mesh, mesh.add(Vector3d(0.9,0.9,0))));
+        hole.add(Point(mesh, mesh.add(Vector3d(0.1,0.9,0))));
+
+        std::vector <PathX<Point>> holes;
+
+        holes.push_back(hole);
+
+        MatrixX3i triangles = path.triangulate(holes);
+
+        MatrixX3i expected(8,3);
+        //expected << 0,1,2, 1,2,3;
+
+        EXPECT_EQ(triangles, expected);
+
+        std::cout << triangles << std::endl;
+    }
+
 }

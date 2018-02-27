@@ -9,11 +9,6 @@ namespace Geotree
   {
   }
 
-  // FaceT::FaceT(FaceT face)
-  // : mesh(face.mesh), index(face.index)
-  // {
-  // }
-
   bool FaceT::hasPoint(Vector3d point)
   {
     Plane face = getVectors();
@@ -25,15 +20,16 @@ namespace Geotree
     Plane face = getVectors();
     if (Calc::closeToZero((point - face.row(0).transpose()).norm()))
       {
-	return mesh.F.row(index)(0);
+	//return mesh.F.row(index)(0);
+
       }
     else if (Calc::closeToZero((point - face.row(1).transpose()).norm()))
       {
-	return mesh.F.row(index)(1);
+	//return mesh.F.row(index)(1);
       }
     else if (Calc::closeToZero((point - face.row(2).transpose()).norm()))
       {
-	return mesh.F.row(index)(2);
+	//return mesh.F.row(index)(2);
       }
     else
       {
@@ -45,8 +41,8 @@ namespace Geotree
   {
     SegmentIndex segment;
     
-    segment[0] = mesh.F.row(index)(faceindex%3);
-    segment[1] = mesh.F.row(index)((faceindex+1)%3);
+    //segment[0] = mesh.F.row(index)(faceindex%3);
+    //segment[1] = mesh.F.row(index)((faceindex+1)%3);
     
     if (segment[0] > segment[1])
       {
@@ -151,7 +147,19 @@ namespace Geotree
     return segment;
   }
 
-  Line SegmentT::getVectors()
+    Point FaceT::getPoint(int index) {
+        return Point(mesh, index);
+    }
+
+    bool FaceT::operator==(const FaceT &face) const {
+        return this->index == face.index;
+    }
+
+    bool FaceT::operator!=(const FaceT &face) const {
+        return this->index != face.index;
+    }
+
+    Line SegmentT::getVectors()
   {
     Line segment;
     segment.row(0) = this->verticies.row(index[0]);
@@ -159,17 +167,17 @@ namespace Geotree
     return segment;
   }
   
-  IntersectionPoint FaceT::getIntersection(SegmentT segment)
-  {
-    Line seg = segment.getVectors();
-    Plane face = this->getVectors();
-    Vector point = Calc::intersection(face, seg);
-
-    PointInfo first = this->getType(point);
-    PointInfo second = segment.getType(point);
-
-    IntersectionPoint ipoint(mesh, first, second, point);
-
-    return ipoint;
-  }
+//  IntersectionPoint FaceT::getIntersection(SegmentT segment)
+//  {
+//    Line seg = segment.getVectors();
+//    Plane face = this->getVectors();
+//    Vector point = Calc::intersection(face, seg);
+//
+//    PointInfo first = this->getType(point);
+//    PointInfo second = segment.getType(point);
+//
+//    IntersectionPoint ipoint(mesh, first, second, point);
+//
+//    return ipoint;
+//  }
 }

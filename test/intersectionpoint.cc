@@ -63,69 +63,26 @@ namespace {
     return count;
   }
 
-  TEST_F(IntersectionPointTest, MeshIntersection)
+  TEST_F(IntersectionPointTest, TetrahedronSegment)
   {
-    Mesh m, n;
+    Verticies Vm(4,3);
+    Faces Fm(4,3);
+    Vm << 0,0,0, 1,0,0, 0,1,0, 0,0,1;
+    Fm << 0,1,2, 0,1,3, 0,2,3, 1,2,3;
 
-    m.V = Verticies(4,3);
-    m.F = Faces(4,3);
-    m.V << 0,0,0, 1,0,0, 0,1,0, 0,0,1;
-    m.F << 0,1,2, 0,1,3, 0,2,3, 1,2,3;
+      Mesh m(Vm, Fm);
 
-    n.V = Verticies(4,3);
-    n.F = Faces(4,3);
-    n.V << 0,0,0, 1,0,0, 0,1,0, 0,0,1;
-    n.F << 0,1,2, 0,1,3, 0,2,3, 1,2,3;
-    n.translate(Vector(0.1, 0.1, 0.1));
+      Verticies Vn(4,3);
+    Faces Fn(4,3);
+      Vn << 0,0,0, 1,0,0, 0,1,0, 0,0,1;
+    Fn << 0,1,2, 0,1,3, 0,2,3, 1,2,3;
 
-    MeshIntersection mi(m,n);
+      Mesh n(Vn, Fn);
 
-    EXPECT_EQ(mi.mesh.size(), 8);
-    
-    EXPECT_EQ(mi.points.size(), 3);
+      n.translate(Vector(0.1, 0.1, 0.0));
 
-    for (int i =0; i<mi.points.size(); i++)      
-      {
-	IntersectionPoint p = mi.points.getPoint(i);
-	EXPECT_EQ(p.first.type, FACE);
-	EXPECT_EQ(p.second.type, SEGMENT);  
-      }
 
-    EXPECT_EQ(countPointsAdjascent(mi.points),3);
-
-    std::vector <FaceSet> subpaths;
-    int face;
-    std::vector <EdgePoint> edgePoints;
-    FaceSet faces = mi.points.getIntersectedFaces();
-
-    EXPECT_EQ(faces.size(), 3 + 1);
-
-    face = *faces.begin();
-    subpaths = mi.paths.getSubPaths(face);
-    ASSERT_EQ(subpaths.size(), 1);
-    EXPECT_EQ(subpaths[0].size(), 3);
-    edgePoints = mi.getEdgePoints(face, subpaths);
-    EXPECT_EQ(edgePoints.size(), 3);
-
-    //IntersectionFace iface = mi.paths.getFace(*faces.begin());
-  }
-
-  TEST_F(IntersectionPointTest, MeshIntersectionSegment)
-  {
-    Mesh m, n;
-
-    m.V = Verticies(4,3);
-    m.F = Faces(4,3);
-    m.V << 0,0,0, 1,0,0, 0,1,0, 0,0,1;
-    m.F << 0,1,2, 0,1,3, 0,2,3, 1,2,3;
-
-    n.V = Verticies(4,3);
-    n.F = Faces(4,3);
-    n.V << 0,0,0, 1,0,0, 0,1,0, 0,0,1;
-    n.F << 0,1,2, 0,1,3, 0,2,3, 1,2,3;
-    n.translate(Vector(0.1, 0.1, 0.0));
-
-    MeshIntersection mi(m,n);
+      MeshIntersection mi(m,n);
 
 
     //mi.calculatePoints();
@@ -198,8 +155,8 @@ namespace {
 	subpaths = mi.paths.getSubPaths(face);
 	ASSERT_EQ(subpaths.size(), 1);
 	EXPECT_EQ(subpaths[0].size(), 3);
-	edgePoints = mi.getEdgePoints(face, subpaths);
-	EXPECT_EQ(edgePoints.size(), 5);
+	//edgePoints = mi.getEdgePoints(face, subpaths);
+	//EXPECT_EQ(edgePoints.size(), 5);
       }
 
     //face.mesh = SECOND;
@@ -209,24 +166,27 @@ namespace {
 	subpaths = mi.paths.getSubPaths(face);
 	ASSERT_EQ(subpaths.size(), 1);
 	EXPECT_EQ(subpaths[0].size(), 3);
-	edgePoints = mi.getEdgePoints(face, subpaths);
-	EXPECT_EQ(edgePoints.size(), 5);
+	//edgePoints = mi.getEdgePoints(face, subpaths);
+	//EXPECT_EQ(edgePoints.size(), 5);
       }    
   }
 
   TEST_F(IntersectionPointTest, MeshIntersection2)
   {
-    Mesh m, n;
+      Verticies Vm(4,3);
+      Faces Fm(4,3);
+      Vm << 0,0,0, 1,0,0, 0,1,0, 0,0,1;
+      Fm << 0,1,2, 0,1,3, 0,2,3, 1,2,3;
 
-    m.V = Verticies(4,3);
-    m.F = Faces(4,3);
-    m.V << 0,0,0, 1,0,0, 0,1,0, 0,0,1;
-    m.F << 0,1,2, 0,1,3, 0,2,3, 1,2,3;
+      Mesh m(Vm, Fm);
 
-    n.V = Verticies(4,3);
-    n.F = Faces(4,3);
-    n.V << 0,0,0, 1,0,0, 0,1,0, 0,0,1;
-    n.F << 0,1,2, 0,1,3, 0,2,3, 1,2,3;
+      Verticies Vn(4,3);
+      Faces Fn(4,3);
+      Vn << 0,0,0, 1,0,0, 0,1,0, 0,0,1;
+      Fn << 0,1,2, 0,1,3, 0,2,3, 1,2,3;
+
+      Mesh n(Vn, Fn);
+
     n.translate(Vector(0.1, 0.1, 0.1));
 
     MeshIntersection mi(n,m);
@@ -236,17 +196,20 @@ namespace {
 
   TEST_F(IntersectionPointTest, MeshIntersectionPoint)
   {
-    Mesh m, n;
+      Verticies Vm(4,3);
+      Faces Fm(4,3);
+      Vm << 0,0,0, 1,0,0, 0,1,0, 0,0,1;
+      Fm << 0,1,2, 0,1,3, 0,2,3, 1,2,3;
 
-    m.V = Verticies(4,3);
-    m.F = Faces(4,3);
-    m.V << 0,0,0, 1,0,0, 0,1,0, 0,0,1;
-    m.F << 0,1,2, 0,1,3, 0,2,3, 1,2,3;
+      Mesh m(Vm, Fm);
 
-    n.V = Verticies(4,3);
-    n.F = Faces(4,3);
-    n.V << 0,0,0, 1,0,0, 0,1,0, 0,0,1;
-    n.F << 0,1,2, 0,1,3, 0,2,3, 1,2,3;
+      Verticies Vn(4,3);
+      Faces Fn(4,3);
+      Vn << 0,0,0, 1,0,0, 0,1,0, 0,0,1;
+      Fn << 0,1,2, 0,1,3, 0,2,3, 1,2,3;
+
+      Mesh n(Vn, Fn);
+
     n.translate(Vector(1.0, 0, 0));
 
     MeshIntersection mi(m,n);
@@ -275,17 +238,20 @@ namespace {
 
   TEST_F(IntersectionPointTest, MeshIntersectionPoint2)
   {
-    Mesh m, n;
+      Verticies Vm(4,3);
+      Faces Fm(4,3);
+      Vm << 0,0,0, 1,0,0, 0,1,0, 0,0,1;
+      Fm << 0,1,2, 0,1,3, 0,2,3, 1,2,3;
 
-    m.V = Verticies(4,3);
-    m.F = Faces(4,3);
-    m.V << 0,0,0, 1,0,0, 0,1,0, 0,0,1;
-    m.F << 0,1,2, 0,1,3, 0,2,3, 1,2,3;
+      Mesh m(Vm, Fm);
 
-    n.V = Verticies(4,3);
-    n.F = Faces(4,3);
-    n.V << 0,0,0, 1,0,0, 1,1,0, 1,0,1;
-    n.F << 0,1,2, 0,1,3, 0,2,3, 1,2,3;
+      Verticies Vn(4,3);
+      Faces Fn(4,3);
+      Vn << 0,0,0, 1,0,0, 1,1,0, 1,0,1;
+      Fn << 0,1,2, 0,1,3, 0,2,3, 1,2,3;
+
+      Mesh n(Vn, Fn);
+
     n.translate(Vector(-1.0, 0, 0));
     
     MeshIntersection mi(m,n);
@@ -307,19 +273,22 @@ namespace {
 
   TEST_F(IntersectionPointTest, MeshIntersectionPoint3)
   {
-    Mesh m, n;
+      Verticies Vm(4,3);
+      Faces Fm(4,3);
+      Vm << 0,0,0, 1,0,0, 0,1,0, 0,0,1;
+      Fm << 0,1,2, 0,1,3, 0,2,3, 1,2,3;
 
-    m.V = Verticies(4,3);
-    m.F = Faces(4,3);
-    m.V << 0,0,0, 1,0,0, 0,1,0, 0,0,1;
-    m.F << 0,1,2, 0,1,3, 0,2,3, 1,2,3;
+      Mesh m(Vm, Fm);
 
-    n.V = Verticies(4,3);
-    n.F = Faces(4,3);
-    n.V << 0,0,0, 1,0,0, 0,1,0, 0,0,1;
-    n.F << 0,1,2, 0,1,3, 0,2,3, 1,2,3;
-    
-    MeshIntersection mi(m,n);
+      Verticies Vn(4,3);
+      Faces Fn(4,3);
+      Vn << 0,0,0, 1,0,0, 1,1,0, 1,0,1;
+      Fn << 0,1,2, 0,1,3, 0,2,3, 1,2,3;
+
+      Mesh n(Vn, Fn);
+
+
+      MeshIntersection mi(m,n);
 
     EXPECT_EQ(mi.points.size(), 4);
 
@@ -371,9 +340,9 @@ namespace {
     subpaths = mi.paths.getSubPaths(face);
     ASSERT_EQ(subpaths.size(), 1);
     EXPECT_EQ(subpaths[0].size(), 8);
-    edgePoints = mi.getEdgePoints(face, subpaths);
-    EXPECT_EQ(edgePoints.size(), 3);
-    mi.sortEdgePoints(face, edgePoints);
+    //edgePoints = mi.getEdgePoints(face, subpaths);
+    //EXPECT_EQ(edgePoints.size(), 3);
+    //mi.sortEdgePoints(face, edgePoints);
     //mi.printPoints(edgePoints);
 
     //mi.printPoints();
@@ -413,8 +382,8 @@ namespace {
 	subpaths = mi.paths.getSubPaths(face);
 	ASSERT_EQ(subpaths.size(), 1);
 	//EXPECT_EQ(subpaths[0].size(), 5);
-	edgePoints = mi.getEdgePoints(face, subpaths);
-	EXPECT_EQ(edgePoints.size(), 5);
+	//edgePoints = mi.getEdgePoints(face, subpaths);
+	//EXPECT_EQ(edgePoints.size(), 5);
       }
 
     // for (int i : faces)
@@ -497,7 +466,9 @@ namespace {
 
     Mesh cube1 = mf.makeCube(10,10,320);
 
-    Mesh cube2;
+      Verticies V(0,3);
+      Faces F(0,3);
+    Mesh cube2(V,F);
 
     for (int i=1; i<101; i++)
       {
@@ -555,7 +526,9 @@ namespace {
 
     Mesh cube1 = mf.makeCube(10,10,120);
 
-    Mesh cube2;
+      Verticies V(0,3);
+      Faces F(0,3);
+      Mesh cube2(V,F);
     
     Mesh cube3 = mf.makeCube(12,12,0.5);
     cube3.translate(Vector(-1, -1, 15));

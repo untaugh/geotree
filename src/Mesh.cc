@@ -33,28 +33,35 @@ namespace Geotree
 
     return face;
   }
+
+    Point Mesh::getPoint(int index) const
+    {
+        return Point(*this, index);
+    }
+
   Mesh Mesh::operator +(const Mesh meshAdd)
   {
-    Mesh mesh;
+    //Mesh mesh;
 
-    mesh.V = Verts(meshAdd.V.rows() + this->V.rows(), 3);
-    mesh.F = Faces(meshAdd.F.rows() + this->F.rows(), 3);
+    Verticies V(meshAdd.V.rows() + this->V.rows(), 3);
+    Faces F(meshAdd.F.rows() + this->F.rows(), 3);
 
-    mesh.V.block(0,0,this->V.rows(),3) = this->V;
-    mesh.V.block(this->V.rows(),0,meshAdd.V.rows(),3) = meshAdd.V;
+    V.block(0,0,this->V.rows(),3) = this->V;
+    V.block(this->V.rows(),0,meshAdd.V.rows(),3) = meshAdd.V;
 
-    mesh.F.block(0,0,this->F.rows(),3) = this->F;
-    mesh.F.block(this->F.rows(),0,meshAdd.F.rows(),3) = meshAdd.F;
+    F.block(0,0,this->F.rows(),3) = this->F;
+    F.block(this->F.rows(),0,meshAdd.F.rows(),3) = meshAdd.F;
 
     int offset = this->V.rows();
     
-    for (int i=this->F.rows(); i< mesh.F.rows(); i++)
+    for (int i=this->F.rows(); i< F.rows(); i++)
       {
-	mesh.F.row(i)(0) += offset;
-	mesh.F.row(i)[1] += offset;
-	mesh.F.row(i)[2] += offset;
+	F.row(i)(0) += offset;
+	F.row(i)[1] += offset;
+	F.row(i)[2] += offset;
       }
-    return mesh;
+
+    return Mesh(V,F);
   }
 
   void Mesh::translate(const Vertex vertex)
@@ -68,18 +75,6 @@ namespace Geotree
     Calc::getSegments(this->F, segments);
     return segments;
   }
-  
-  // int Mesh::getFaceIndex(Face face)
-  // {
-  //   for (int i=0; i<this->F.rows(); i++)
-  //     {
-  // 	if (Calc::equal(this->F.row(i), face))
-  // 	  {
-  // 	    return i;
-  // 	  }
-  //     }
-  //   return -1;
-  // }
 
   FaceSet Mesh::getFaces(PointInfo point)
   {
@@ -133,13 +128,31 @@ namespace Geotree
     return faces;
   }
 
-  std::ostream& operator<< (std::ostream& stream, const Mesh& mesh)
+    int Mesh::addFace(const Vector3i face) {
+        int rows = F.rows();
+        F.conservativeResize(rows + 1, NoChange);
+        F.row(rows) = face;
+        return rows;
+    }
+
+    Mesh::Mesh(Matrix<double, Dynamic, 3> V, Matrix<int, Dynamic, 3> F) : V(V), F(F){
+    }
+
+    unsigned Mesh::facecount() {
+        return F.rows();
+    }
+
+    unsigned Mesh::vectorcount() {
+        return V.rows();
+    }
+
+    std::ostream& operator<< (std::ostream& stream, const Mesh& mesh)
   {
     stream << "Mesh:";
     
-    for (int i=0; i<mesh.V.rows(); i++)
+    //for (int i=0; i<mesh.V.rows(); i++)
       {
-	stream << "(" << mesh.V.row(i) << "),";
+	//stream << "(" << mesh.V.row(i) << "),";
       }
     
     return stream;

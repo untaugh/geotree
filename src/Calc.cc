@@ -38,7 +38,7 @@ namespace Calc
       }
   }
 
-  unsigned int sharedSegments(Face F1, Face F2)
+  unsigned int sharedSegments(Vector3i F1, Vector3i F2)
   {
     if ( (F1[0] == F2[0] && F1[1] == F2[1] && F1[2] == F2[2]) ||
 	 (F1[0] == F2[1] && F1[1] == F2[0] && F1[2] == F2[2]) ||
@@ -75,7 +75,7 @@ namespace Calc
     return 0;
   }
 
-  SegmentIndex sharedSegment(Face face0, Face face1)
+  SegmentIndex sharedSegment(Vector3i face0, Vector3i face1)
   {
     SegmentIndex segment;
     unsigned count = 0;
@@ -247,7 +247,7 @@ namespace Calc
     return P;
   }
 
-  bool equal(Face f1, Face f2)
+  bool equal(Vector3i f1, Vector3i f2)
   {
     if ( (f1(0) == f2(0) && f1(1) == f2(1) && f1(2) == f2(2)) ||
   	 (f1(0) == f2(0) && f1(2) == f2(2) && f1(1) == f2(1)) ||
@@ -427,7 +427,7 @@ namespace Calc
 	  }
 
 	// create triangle
-	tmp.row(count++) = Face(P[n1], P[n2], P[n3]);
+	tmp.row(count++) = Vector3i(P[n1], P[n2], P[n3]);
 
 	//	std::cout << "added:" <<  tmp.row(count-1)<< std::endl;
 	    
@@ -758,7 +758,7 @@ namespace Calc
   }
 
   // all connected to this point
-  static std::set <unsigned> connectedFace(Faces F, std::set <unsigned> skip, Face f)
+  static std::set <unsigned> connectedFace(Faces F, std::set <unsigned> skip, Vector3i f)
   {
     std::set <unsigned> list;
 
@@ -813,7 +813,7 @@ namespace Calc
     return list;
   }
 
-  bool hasPoint(Face face, unsigned index)
+  bool hasPoint(Vector3i face, unsigned index)
   {
     if (face[0] == index || face[1] == index || face[2] == index)
       {
@@ -825,7 +825,7 @@ namespace Calc
       }
   }
   
-  unsigned sharedPoints(Face face0, Face face1)
+  unsigned sharedPoints(Vector3i face0, Vector3i face1)
   {
     unsigned count = 0;
 
@@ -1189,7 +1189,7 @@ namespace Calc
   }
 
   // get point that is not
-  int getNotPoint(Face F, int notPoint)
+  int getNotPoint(Vector3i F, int notPoint)
   {
     if (F[0] != notPoint)
       {
@@ -1209,7 +1209,7 @@ namespace Calc
       }
   }
 
-  int getNotNotPoint(Face F, int notPoint0, int notPoint1)
+  int getNotNotPoint(Vector3i F, int notPoint0, int notPoint1)
   {
     if (F[0] != notPoint0 && F[0] != notPoint1)
       {	
@@ -1229,7 +1229,7 @@ namespace Calc
       }
   }
   
-  bool hasPoint(Face F, int index)
+  bool hasPoint(Vector3i F, int index)
   {
     if (F[0] == index || F[1] == index || F[2] == index)
       {
@@ -1262,7 +1262,7 @@ namespace Calc
   bool intersect(const Geometry geometry, const int face0, const int face1, const Line lineToSegment)
   {
     // vector from intersecting point parallell to face0
-    Face f0 = geometry.F.row(face0);
+    Vector3i f0 = geometry.F.row(face0);
 
     SegmentIndex segment = sharedSegment(geometry.F.row(face0), geometry.F.row(face1));
 
@@ -1451,7 +1451,7 @@ namespace Calc
   {
     SegmentIndex segment(0,0);
 
-    Face face = geometry.F.row(faceIndex);
+    Vector3i face = geometry.F.row(faceIndex);
 
     Plane triangle;
     triangle.row(0) = geometry.V.row(face[0]);
@@ -1489,7 +1489,7 @@ namespace Calc
     return segment;    
   }
 
-  bool hasSegment(Face face, SegmentIndex segment)
+  bool hasSegment(Vector3i face, SegmentIndex segment)
   {
     for (int i=0; i<3; i++)
       {
@@ -1512,7 +1512,7 @@ namespace Calc
     
     for (int i=0; i<geometry.F.rows(); i++)
       {	
-	Face face = geometry.F.row(i);
+	Vector3i face = geometry.F.row(i);
 	if (hasSegment(face, segment))
 	  {
 	    facesMatch[count++] = i;
