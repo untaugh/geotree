@@ -2,10 +2,10 @@
 
 namespace Geotree
 {
-    Mesh MeshFactory::makeCube(const double width, const double height, const double depth)
+    Mesh MeshFactory::cube(const double width, const double height, const double depth)
     {
-        Verticies V(8,3);
-        Faces F(12,3);
+        Matrix<double, Dynamic, 3> V(8,3);
+        Matrix<int, Dynamic, 3> F(12,3);
 
         if (width <= 0.0 || height <= 0.0 || depth <= 0.0)
         {
@@ -37,10 +37,10 @@ namespace Geotree
         return Mesh(V,F);
     }
 
-    Mesh MeshFactory::makeTetra(const double size)
+    Mesh MeshFactory::tetra(const double size)
     {
-        Verticies V(4,3);
-        Faces F(4,3);
+      Matrix<double, Dynamic, 3> V(4,3);
+      Matrix<int, Dynamic, 3> F(4,3);
 
         V << 0,0,0, size,0,0, 0,size,0, 0,0,size;
 
@@ -49,17 +49,19 @@ namespace Geotree
         return Mesh(V,F);
     }
 
-    Mesh MeshFactory::makeSphere(const double radius)
+    Mesh MeshFactory::sphere(const double radius)
     {
-        Verticies V(0,3);
-        Faces F(0,3);
+      Matrix<double, Dynamic, 3> V(0,3);
+      Matrix<int, Dynamic, 3> F(0,3);
+
         return Mesh(V,F);
     }
 
-    Mesh MeshFactory::makeCylinder(const double radius, const double height)
+    Mesh MeshFactory::cylinder(const double radius, const double height)
     {
-        Verticies V(8,3);
-        Faces F(0,3);
+      Matrix<double, Dynamic, 3> V(0,3);
+      Matrix<int, Dynamic, 3> F(0,3);
+
         return Mesh(V,F);
 
     }

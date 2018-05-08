@@ -1,183 +1,280 @@
 #include "Face.h"
-#include "Calc.h"
-#include <iostream>
+#include <Eigen/Dense>
 
 namespace Geotree
 {
-  FaceT::FaceT(Mesh &_mesh, const int _index)
-  : mesh(_mesh), index(_index)
+  Face::Face(Vector3d v0, Vector3d v1, Vector3d v2, int _index, Vector3i _face)
+  : index(_index), face(_face), point0(v0), point1(v1), point2(v2)
   {
+    getNormal();
   }
 
-  bool FaceT::hasPoint(Vector3d point)
+  void Face::intersect(const Segment segment, std::vector <Point> &points)
   {
-    Plane face = getVectors();
-    return Calc::isEndPoint(face, point);
+    //std::cout << "segment[" << segment.begin.transpose() << " " <<segment.end.transpose();
+    //std::cout << "] face[" << point0.transpose() << ", " << point1.transpose() << ", " << point2.transpose() << "]"<< std::endl;
+
+    if (segment.begin == point0)
+    {
+      Point point(segment.begin);
+      point.mesh0.type = POINT;
+      point.mesh0.index0 = face[0];
+      point.mesh1.type = POINT;
+      point.mesh1.index0 = segment.point0;
+      points.push_back(point);
+    }
+    else if (segment.begin == point1)
+    {
+      Point point(segment.begin);
+      point.mesh0.type = POINT;
+      point.mesh0.index0 = face[1];
+      point.mesh1.type = POINT;
+      point.mesh1.index0 = segment.point0;
+      points.push_back(point);
+    }
+    else if (segment.begin == point2)
+    {
+      Point point(segment.begin);
+      point.mesh0.type = POINT;
+      point.mesh0.index0 = face[2];
+      point.mesh1.type = POINT;
+      point.mesh1.index0 = segment.point0;
+      points.push_back(point);
+    }
+    else if (segment.end == point0)
+    {
+      Point point(segment.end);
+      point.mesh0.type = POINT;
+      point.mesh0.index0 = face[0];
+      point.mesh1.type = POINT;
+      point.mesh1.index0 = segment.point1;
+      points.push_back(point);
+    }
+    else if (segment.end == point1)
+    {
+      Point point(segment.end);
+      point.mesh0.type = POINT;
+      point.mesh0.index0 = face[1];
+      point.mesh1.type = POINT;
+      point.mesh1.index0 = segment.point1;
+      points.push_back(point);
+    }
+    else if (segment.end == point2)
+    {
+      Point point(segment.end);
+      point.mesh0.type = POINT;
+      point.mesh0.index0 = face[2];
+      point.mesh1.type = POINT;
+      point.mesh1.index0 = segment.point1;
+      points.push_back(point);
+    }
+    else if (intersectsPlanar(segment, points))
+    {
+    }
+    else if (intersects(segment, points))
+    {
+    }
   }
 
-  int FaceT::getPointIndex(Vector3d point)
+  Segment Face::getSegment(int n)
   {
-    Plane face = getVectors();
-    if (Calc::closeToZero((point - face.row(0).transpose()).norm()))
-      {
-	//return mesh.F.row(index)(0);
-
-      }
-    else if (Calc::closeToZero((point - face.row(1).transpose()).norm()))
-      {
-	//return mesh.F.row(index)(1);
-      }
-    else if (Calc::closeToZero((point - face.row(2).transpose()).norm()))
-      {
-	//return mesh.F.row(index)(2);
-      }
-    else
-      {
-	return -1;
-      }
+    switch(n)
+    {
+      case 0: return Segment(point0, point1, face[0], face[1]);
+      case 1: return Segment(point1, point2, face[1], face[2]);
+      case 2: return Segment(point2, point0, face[2], face[0]);
+      default: return Segment(point0, point1);
+    }
   }
 
-  SegmentIndex FaceT::getIndex(int faceindex)
+  bool Face::intersectsPlanar(Segment segment, std::vector <Point> &points)
   {
-    SegmentIndex segment;
-    
-    //segment[0] = mesh.F.row(index)(faceindex%3);
-    //segment[1] = mesh.F.row(index)((faceindex+1)%3);
-    
-    if (segment[0] > segment[1])
-      {
-	int temp = segment[0];
-	segment[0] = segment[1];
-	segment[1] = temp;
-      }
+    if (!isPlanar(segment))
+    {
+      return false;
+    }
+    //std::cout << "planar" << std::endl;
 
-    return segment;
-  }
-  
-  PointInfo FaceT::getType(Vector3d point)
-  {
-    PointInfo pointInfo;
+    if (isInside(segment.begin))
+    {
+      Point point(segment.begin);
+      point.mesh0.type = FACE;
+      point.mesh0.index0 = index;
+      point.mesh1.type = POINT;
+      point.mesh1.index0 = segment.point0;
+      points.push_back(point);
 
-    Line segment1 = getVectors(0);
-    Line segment2 = getVectors(1);
-    Line segment3 = getVectors(2);
-    
-    if (hasPoint(point))
+      if (isInside(segment.end))
       {
-	pointInfo.index = getPointIndex(point);	
-	pointInfo.type = POINT;
+        Point point(segment.end);
+        point.mesh0.type = FACE;
+        point.mesh0.index0 = index;
+        point.mesh1.type = POINT;
+        point.mesh1.index0 = segment.point1;
+        points.push_back(point);
+        return true;
       }
-    else if (Calc::closeToZero(Calc::distance(point, segment1)))
+      else
       {
-	SegmentIndex si = getIndex(0);
-	pointInfo.index = si(0);
-	pointInfo.index2 = si(1);
-	pointInfo.type = SEGMENT;
+        for (int i=0; i<3; i++)
+        {
+          Segment facesegment = getSegment(i);
+          Vector3d vector;
+          if (facesegment.intersects(segment, vector))
+          {
+            Point point(vector);
+            point.mesh0.type = SEGMENT;
+            point.mesh0.index0 = facesegment.point0;
+            point.mesh0.index1 = facesegment.point1;
+            point.mesh1.type = SEGMENT;
+            point.mesh1.index0 = segment.point0;
+            point.mesh1.index1 = segment.point1;
+            points.push_back(point);
+            return true;
+          }
+        }
       }
-    else if (Calc::closeToZero(Calc::distance(point, segment2)))
-      {
-	SegmentIndex si = getIndex(1);
-	pointInfo.index = si(0);
-	pointInfo.index2 = si(1);
-	pointInfo.type = SEGMENT;
-      }
-    else if (Calc::closeToZero(Calc::distance(point, segment3)))
-      {
-	SegmentIndex si = getIndex(2);
-	pointInfo.index = si(0);
-	pointInfo.index2 = si(1);
-	pointInfo.type = SEGMENT;
-      }
-    else
-      {
-	pointInfo.index = index;
-	pointInfo.type = FACE;
-      }
+    }
+    else if (isInside(segment.end))
+    {
+      Point point(segment.end);
+      point.mesh0.type = FACE;
+      point.mesh0.index0 = index;
+      point.mesh1.type = POINT;
+      point.mesh1.index0 = segment.point1;
+      points.push_back(point);
 
-    return pointInfo;
-  }
-
-  PointInfo SegmentT::getType(Vector3d point)
-  {
-    Line segment = getVectors();
-    PointInfo pointInfo;
-	
-    if (Calc::closeToZero((point - segment.row(0).transpose()).norm()))
+      for (int i=0; i<3; i++)
       {
-	pointInfo.index = index[0];
-	pointInfo.type = POINT;
+        Segment facesegment = getSegment(i);
+        Vector3d vector;
+        if (facesegment.intersects(segment, vector))
+        {
+          Point point(vector);
+          point.mesh0.type = SEGMENT;
+          point.mesh0.index0 = facesegment.point0;
+          point.mesh0.index1 = facesegment.point1;
+          point.mesh1.type = SEGMENT;
+          point.mesh1.index0 = segment.point0;
+          point.mesh1.index1 = segment.point1;
+          points.push_back(point);
+          return true;
+        }
       }
-    else if (Calc::closeToZero((point - segment.row(1).transpose()).norm()))
-      {
-	pointInfo.index = index[1];
-	pointInfo.type = POINT;
-      }
-    else
-      {
-	pointInfo.index = index[0];
-	pointInfo.index2 = index[1];
-	pointInfo.type = SEGMENT;
-      }
-    return pointInfo;
-  }
-  
-  SegmentT::SegmentT(const Verticies &_verticies, const Vector2i _points)
-    : verticies(_verticies), index(_points)
-  {
-  }
-
-  bool FaceT::intersects(const Line segment)
-  {
-    Plane face = getVectors();
-    return Calc::intersectsFace(face, segment);
-  }
-
-
-  Plane FaceT::getVectors()
-  {
-    return mesh.getFaceVectors(index);
-  }
-
-  Line FaceT::getVectors(int segmentindex)
-  {
-    Plane face = mesh.getFaceVectors(index);
-    Line segment;
-    segment.row(0) = face.row(segmentindex%3);
-    segment.row(1) = face.row((segmentindex+1)%3);
-    return segment;
-  }
-
-    Point FaceT::getPoint(int index) {
-        return Point(mesh, index);
     }
 
-    bool FaceT::operator==(const FaceT &face) const {
-        return this->index == face.index;
-    }
-
-    bool FaceT::operator!=(const FaceT &face) const {
-        return this->index != face.index;
-    }
-
-    Line SegmentT::getVectors()
-  {
-    Line segment;
-    segment.row(0) = this->verticies.row(index[0]);
-    segment.row(1) = this->verticies.row(index[1]);
-    return segment;
+    return false;
   }
-  
-//  IntersectionPoint FaceT::getIntersection(SegmentT segment)
-//  {
-//    Line seg = segment.getVectors();
-//    Plane face = this->getVectors();
-//    Vector point = Calc::intersection(face, seg);
-//
-//    PointInfo first = this->getType(point);
-//    PointInfo second = segment.getType(point);
-//
-//    IntersectionPoint ipoint(mesh, first, second, point);
-//
-//    return ipoint;
-//  }
+
+  bool Face::intersects(Segment segment, std::vector <Point> &points)
+  {
+    Vector3d U = segment.end - segment.begin;
+    Vector3d W = segment.begin - point0;
+
+    double D = normal.dot(U);
+    double N = normal.dot(W);
+
+    if (D == 0) // segment parallell to plane
+    {
+      return false;
+    }
+
+    double sI = -N/D;
+
+    if (sI < 0.0 || sI > 1.0) // segment outside plane
+    {
+      return false;
+    }
+
+    Vector3d vector = segment.begin - N/D * U;
+
+    if (!isInside(vector))
+    {
+      return false;
+    }
+
+    for (int i=0; i<3; i++)
+    {
+      Segment facesegment = getSegment(i);
+
+      if (facesegment.intersects(vector))
+      {
+        Point point(vector);
+        point.mesh0.type = SEGMENT;
+        point.mesh0.index0 = facesegment.point0;
+        point.mesh0.index1 = facesegment.point1;
+        point.mesh1.type = SEGMENT;
+        point.mesh1.index0 = segment.point0;
+        point.mesh1.index1 = segment.point1;
+        points.push_back(point);
+
+        return true;
+      }
+    }
+
+    Point point(vector);
+    point.mesh0.type = FACE;
+    point.mesh0.index0 = index;
+    point.mesh1.type = SEGMENT;
+    point.mesh1.index0 = segment.point0;
+    point.mesh1.index1 = segment.point1;
+    points.push_back(point);
+
+    return true;
+  }
+
+  void Face::getNormal()
+  {
+    normal = (point1 - point0).cross(point2 - point0).normalized();
+  }
+
+  bool Face::isPlanar(Segment segment)
+  {
+    double dot;
+
+    dot = normal.dot(segment.begin - point0);
+
+    // is point on face plane
+    if (dot < 1.0e-14 && dot > -1.0e-14)
+    {
+      dot = normal.dot(segment.end - point0);
+
+      // is point on face plane
+      if (dot < 1.0e-14 && dot > -1.0e-14)
+      {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  bool Face::isInside(Vector3d point)
+  {
+    double dot = normal.dot(point - point0);
+
+    // is point on face plane
+    if (dot > 1.0e-14 && dot < -1.0e-14)
+    {
+      return false;
+    }
+
+    Vector3d e1 = point1 - point0;
+    Vector3d e2 = point2 - point1;
+    Vector3d e3 = point0 - point2;
+
+    Vector3d c1 = point - point0;
+    Vector3d c2 = point - point1;
+    Vector3d c3 = point - point2;
+
+    double r1 = normal.dot(e1.cross(c1));
+    double r2 = normal.dot(e2.cross(c2));
+    double r3 = normal.dot(e3.cross(c3));
+
+    if (r1 < 0.0 || r2 < 0.0 || r3 < 0.0)
+      {
+	       return false;
+      }
+
+    return true;
+  }
 }

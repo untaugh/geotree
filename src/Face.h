@@ -1,37 +1,35 @@
 #pragma once
-#include "Types.h"
-//#include "IntersectionPoint.h"
+#include <vector>
+#include <Eigen/Core>
 #include "Segment.h"
 #include "Point.h"
 
+using namespace Eigen;
+
 namespace Geotree
 {
-    class IntersectionPoint;
-    class PointInfo;
+  class Face
+  {
+  public:
+    Face(Vector3d v0, Vector3d v1, Vector3d v2, int index, Vector3i face);
 
-    class FaceT
-    {
-    public:
-        FaceT(Mesh &_mesh, int index);
-        //bool intersects(SegmentT segment);
-        bool intersects(const Line segment);
-        //IntersectionPoint getIntersection(SegmentT segment);
-        //std::vector <IntersectionPoint2> getIntersection(FaceT face);
-        Point getPoint(int index);
-        bool operator == (const FaceT & face) const;
-        bool operator != (const FaceT & face) const;
+    const int index;
+    const Vector3i face;
+    Vector3d normal;
+    const Vector3d point0;
+    const Vector3d point1;
+    const Vector3d point2;
 
-    private:
-        PointInfo getType(Vector3d point);
-        bool hasPoint(Vector3d point);
-        SegmentIndex getIndex(int index);
-        int getPointIndex(Vector3d point);
-        Plane getVectors();
-        Line getVectors(int index);
-        //Vector3d getPoint(int index);
-    protected:
-        //int getMeshIndex(int i) { return mesh.F.row(index)[i]; };
-        Mesh &mesh;
-        int index;
-    };
+    //std::vector <Path> paths;
+
+    void intersect(const Segment segment, std::vector <Point> &points);
+  private:
+    bool intersects(Segment segment, std::vector <Point> &points);
+    bool intersectsPlanar(Segment segment, std::vector <Point> &points);
+    Segment getSegment(int n);
+    bool isPlanar(Segment segment);
+    void getNormal();
+    bool isInside(Vector3d point);
+    bool isPlanar(Vector3d point);
+  };
 }

@@ -6,9 +6,9 @@ namespace Geotree
     class MeshFactory
     {
     public:
-        Mesh makeCube(const double width, const double height, const double depth);
-        Mesh makeTetra(const double size);
-        Mesh makeSphere(const double radius);
-        Mesh makeCylinder(const double radius, const double height);
+        Mesh cube(const double width, const double height, const double depth);
+        Mesh tetra(const double size);
+        Mesh sphere(const double radius);
+        Mesh cylinder(const double radius, const double height);
     };
 }
