@@ -57,16 +57,6 @@ namespace Geotree
     return paths;
   }
 
-  std::vector <Path> IntersectionPoints::getPaths1(int face)
-  {
-    std::vector <Path> paths;
-    Path path;
-
-    paths.push_back(path);
-
-    return paths;
-  }
-
   bool IntersectionPoints::contains(Point &point)
   {
     for (Point p : points)

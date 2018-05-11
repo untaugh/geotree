@@ -54,7 +54,9 @@ namespace Geotree
       Matrix<double, Dynamic, 3> V(0,3);
       Matrix<int, Dynamic, 3> F(0,3);
 
-        return Mesh(V,F);
+      double r = radius; r *= 0.0;
+      
+      return Mesh(V,F);
     }
 
     Mesh MeshFactory::cylinder(const double radius, const double height)
@@ -62,7 +64,9 @@ namespace Geotree
       Matrix<double, Dynamic, 3> V(0,3);
       Matrix<int, Dynamic, 3> F(0,3);
 
-        return Mesh(V,F);
+      double r = radius; r *= 0.0;
+      double h = height; h *= 0.0;
 
+      return Mesh(V,F);
     }
 }

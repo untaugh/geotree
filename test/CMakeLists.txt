@@ -1,7 +1,7 @@
 cmake_minimum_required (VERSION 2.6)
 project (test_geotree)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -Wall -Wno-long-long -pedantic")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -Wall -Wextra -pedantic")
 
 find_package(GTest REQUIRED)
 find_package (Eigen3 REQUIRED)

@@ -89,9 +89,9 @@ namespace Geotree
   {
     stream << "Mesh:";
 
-    //for (int i=0; i<mesh.V.rows(); i++)
+    for (int i=0; i<mesh.V.rows(); i++)
     {
-      //stream << "(" << mesh.V.row(i) << "),";
+      stream << "(" << mesh.V.row(i) << "),";
     }
 
     return stream;
