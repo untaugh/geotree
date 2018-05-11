@@ -21,7 +21,7 @@ namespace Geotree
 
       std::cout << "div0: " << i << std::endl;
 
-      Face face = points.mesh0.getFace(i);
+      //Face face = points.mesh0.getFace(i);
 
       Path path;
 

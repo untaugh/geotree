@@ -3,7 +3,7 @@
 
 namespace Geotree
 {
-  Face::Face(Vector3d v0, Vector3d v1, Vector3d v2, int _index, Vector3i _face)
+  Face::Face(const Vector3d v0, const Vector3d v1, const Vector3d v2, int _index, Vector3i _face)
   : index(_index), face(_face), point0(v0), point1(v1), point2(v2)
   {
     getNormal();
@@ -76,7 +76,7 @@ namespace Geotree
     }
   }
 
-  Segment Face::getSegment(int n)
+  Segment Face::getSegment(const int n) const
   {
     switch(n)
     {
@@ -166,7 +166,7 @@ namespace Geotree
     return false;
   }
 
-  bool Face::intersects(Segment segment, std::vector <Point> &points)
+  bool Face::intersects(Segment segment, std::vector <Point> &points) const
   {
     Vector3d U = segment.end - segment.begin;
     Vector3d W = segment.begin - point0;
@@ -248,7 +248,7 @@ namespace Geotree
     return false;
   }
 
-  bool Face::isInside(Vector3d point)
+  bool Face::isInside(const Vector3d point) const
   {
     double dot = normal.dot(point - point0);
 

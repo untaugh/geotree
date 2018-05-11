@@ -52,6 +52,8 @@ namespace Geotree
     }
 
     std::cout << "findEdgepoint: Edge point not found " << index << std::endl;
+
+    return edgepoint();
   }
 
   const edgepoint FaceDivide::nextEdgepoint(edgepoint point)

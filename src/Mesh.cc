@@ -39,11 +39,15 @@ namespace Geotree
     this->V.rowwise() += vertex.transpose();
   }
 
-  Face Mesh::getFace(int i) const
+  Face Mesh::getFace(int index) const
   {
-    Vector3i row = F.row(i);
+    Vector3i Vi = F.row(index);
 
-    Face face(V.row(row[0]), V.row(row[1]), V.row(row[2]), i, row);
+    Vector3d v0 = V.row(Vi[0]);
+    Vector3d v1 = V.row(Vi[1]);
+    Vector3d v2 = V.row(Vi[2]);
+
+    Face face(v0, v1, v2, index, Vi);
 
     return face;
   }
