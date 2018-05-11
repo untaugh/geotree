@@ -14,6 +14,6 @@ add_executable(${PROJECT_NAME} ${SRCFILES})
 
 include_directories("../src")
 #include_directories("/home/oscu/git/fast-poly2tri")
-include_directories("/home/oscu/src/eigen-eigen-5a0156e40feb")
+include_directories("/usr/include/eigen3")
 
 target_link_libraries(${PROJECT_NAME} ${GTEST_BOTH_LIBRARIES})

@@ -7,16 +7,16 @@ namespace Geotree
   {
   }
 
-  Mesh Mesh::operator +(const Mesh meshAdd)
+  Mesh Mesh::operator +(const Mesh mesh)
   {
-    Matrix <double, Dynamic, 3> V(meshAdd.V.rows() + this->V.rows(), 3);
-    Matrix<int, Dynamic, 3> F(meshAdd.F.rows() + this->F.rows(), 3);
+    Matrix <double, Dynamic, 3> V(mesh.V.rows() + this->V.rows(), 3);
+    Matrix<int, Dynamic, 3> F(mesh.F.rows() + this->F.rows(), 3);
 
     V.block(0,0,this->V.rows(),3) = this->V;
-    V.block(this->V.rows(),0,meshAdd.V.rows(),3) = meshAdd.V;
+    V.block(this->V.rows(),0,mesh.V.rows(),3) = mesh.V;
 
     F.block(0,0,this->F.rows(),3) = this->F;
-    F.block(this->F.rows(),0,meshAdd.F.rows(),3) = meshAdd.F;
+    F.block(this->F.rows(),0,mesh.F.rows(),3) = mesh.F;
 
     int offset = this->V.rows();
 
@@ -42,9 +42,8 @@ namespace Geotree
   Face Mesh::getFace(int i) const
   {
     Vector3i row = F.row(i);
-    Face face(V.row(row[0]), V.row(row[1]), V.row(row[2]), i, row);
 
-    //Face(Vector3d v0, Vector3d v1, Vector3d v2, int index, Vector3i face);
+    Face face(V.row(row[0]), V.row(row[1]), V.row(row[2]), i, row);
 
     return face;
   }
