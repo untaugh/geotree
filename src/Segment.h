@@ -19,10 +19,10 @@ namespace Geotree
     int face0;
     int face1;
 
-    bool intersects(Segment segment, Vector3d &point);
+    bool intersects(const Segment segment, Vector3d &point) const;
     bool intersects(Vector3d point);
 
-    Matrix2d get2d();
+    Matrix2d get2d() const;
 
     bool operator ==(Segment &segment)
     {

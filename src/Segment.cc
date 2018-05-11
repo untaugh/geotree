@@ -1,9 +1,10 @@
 #include "Segment.h"
 #include <Eigen/Dense>
+#include "Log.h"
 
 namespace Geotree
 {
-  Matrix2d Segment::get2d()
+  Matrix2d Segment::get2d() const
   {
     // double dx = vectors.row(1)[0] - vectors.row(0)[0];
     // double dz = vectors.row(1)[2] - vectors.row(0)[2];
@@ -34,22 +35,25 @@ namespace Geotree
     return (cross == Vector3d(0,0,0));
   }
 
-  bool Segment::intersects(Segment segment, Vector3d &point)
+  bool Segment::intersects(const Segment segment, Vector3d &point) const
   {
-    Matrix2d segment0_2d, segment1_2d;
+    const Matrix2d segment0_2d = this->get2d();
+    const Matrix2d segment1_2d = segment.get2d();
 
-    segment0_2d = this->get2d();
-    segment1_2d = segment.get2d();
-
-    Vector2d U = segment0_2d.row(1) - segment0_2d.row(0);
-    Vector2d V = segment1_2d.row(1) - segment1_2d.row(0);
-    Vector2d W = segment0_2d.row(0) - segment1_2d.row(0);
+    const Vector2d U = segment0_2d.row(1) - segment0_2d.row(0);
+    const Vector2d V = segment1_2d.row(1) - segment1_2d.row(0);
+    const Vector2d W = segment0_2d.row(0) - segment1_2d.row(0);
 
 #define perp(u,v) (u[0] * v[1] - u[1] * v[0])
 
-    double D = perp(U,V);
-    double s1 = perp(V,W) / D;
+    const double D = perp(U,V);
+    const double s1 = perp(V,W) / D;
 
+    Log() << "adf";
+    
+    std::cout << "s1: " << s1 << std::endl;
+      
+				 std::cout << "D: " << D << std::endl;
     //std::cout << "s1: " << s1 << ", sa: " << segment0_2d << "sb: "<< segment1_2d << std::endl;
 
     if (s1 > 1.0 || s1 < 0.0)
