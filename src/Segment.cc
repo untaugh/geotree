@@ -1,6 +1,5 @@
 #include "Segment.h"
 #include <Eigen/Dense>
-#include <iostream>
 
 namespace Geotree
 {

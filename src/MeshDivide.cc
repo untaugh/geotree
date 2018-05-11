@@ -19,8 +19,8 @@ namespace Geotree
     {
       std::vector <Path> paths;
 
-      std::cout << "div0: " << i << std::endl;
-
+      //std::cout << "div0: " << i << std::endl;
+      
       //Face face = points.mesh0.getFace(i);
 
       Path path;
@@ -29,16 +29,16 @@ namespace Geotree
       {
         if (p.faces0.find(i) != p.faces0.end())
         {
-          std::cout << "adding: " << i << " " << p << std::endl;
+          //std::cout << "adding: " << i << " " << p << std::endl;
 
           paths.push_back(path);
         }
       }
     }
 
-    for (int i : div1)
-    {
-      std::cout << "div1: " << i << std::endl;
-    }
+    // for (int i : div1)
+    // {
+    //   std::cout << "div1: " << i << std::endl;
+    // }
   }
 }

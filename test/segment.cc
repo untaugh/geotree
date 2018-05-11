@@ -30,7 +30,6 @@ namespace {
 
       EXPECT_TRUE(segment4.intersects(segment5, point));
       EXPECT_EQ(Vector3d(1,9,0), point);
-      std::cout << "point: " << point << std::endl;
     }
 
     TEST_F(SegmentTest, None)

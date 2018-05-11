@@ -1,5 +1,5 @@
 #include "FaceDivide.h"
-#include <iostream>
+//#include <iostream>
 #include <Eigen/Dense>
 
 namespace Geotree
@@ -36,7 +36,7 @@ namespace Geotree
       }
     }
 
-    std::cout << "Edge point not found " << index << " " << V.row(index) << std::endl;
+    //std::cout << "Edge point not found " << index << " " << V.row(index) << std::endl;
 
     exit(0);
   }
@@ -51,7 +51,7 @@ namespace Geotree
       }
     }
 
-    std::cout << "findEdgepoint: Edge point not found " << index << std::endl;
+    //std::cout << "findEdgepoint: Edge point not found " << index << std::endl;
 
     return edgepoint();
   }
@@ -67,8 +67,8 @@ namespace Geotree
       findpoint = edgepoints.begin();
     }
 
-    std::cout << "point: "<< point.index << std::endl;
-    std::cout << "next: "<< findpoint->index << std::endl;
+    //std::cout << "point: "<< point.index << std::endl;
+    //std::cout << "next: "<< findpoint->index << std::endl;
 
     return *findpoint;
   }
@@ -93,15 +93,15 @@ namespace Geotree
         path1.push_back(current.index);
       }
 
-      for (int i : path0)
-      {
-        std::cout << "p0 " << i << std::endl;
-      }
+      // for (int i : path0)
+      // {
+      //   std::cout << "p0 " << i << std::endl;
+      // }
 
-      for (int i : path1)
-      {
-        std::cout << "p1 " << i << std::endl;
-      }
+      // for (int i : path1)
+      // {
+      //   std::cout << "p1 " << i << std::endl;
+      // }
 
       completepaths.push_back(path0);
       completepaths.push_back(path1);
@@ -132,10 +132,10 @@ namespace Geotree
     edgepoints.insert(first);
     edgepoints.insert(last);
 
-    for (edgepoint ep : edgepoints)
-    {
-      std::cout << ep.index << ": " << ep.segment << ", " << ep.distance << std::endl;
-    }
+    // for (edgepoint ep : edgepoints)
+    // {
+    //   std::cout << ep.index << ": " << ep.segment << ", " << ep.distance << std::endl;
+    // }
 
     for(int i=firstindex; i<=lastindex; i++)
     {

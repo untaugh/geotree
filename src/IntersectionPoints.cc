@@ -93,7 +93,7 @@ namespace Geotree
         {
           if (!contains(new_point))
           {
-            std::cout << "Adding " << new_point << std::endl;
+            //std::cout << "Adding " << new_point << std::endl;
             points.push_back(new_point);
           }
         }
@@ -116,7 +116,7 @@ namespace Geotree
           if (!contains(new_point))
           {
             new_point.flip();
-            std::cout << "Adding2 " << new_point << std::endl;
+            //std::cout << "Adding2 " << new_point << std::endl;
             points.push_back(new_point);
           }
         }
@@ -230,10 +230,10 @@ namespace Geotree
 
     int n = connectedPoints(**point, point_find);
 
-    if (n == 3)
-    {
-      std::cout << "three points found" << std::endl;
-    }
+    // if (n == 3)
+    // {
+    //   std::cout << "three points found" << std::endl;
+    // }
 
     for (int i=0; i<n; i++)
     {
