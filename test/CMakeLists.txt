@@ -8,7 +8,7 @@ find_package (Eigen3 REQUIRED)
 
 FILE(GLOB SRCFILES test.cc intersectionpoints.cc mesh.cc cc face.cc segment.cc meshdivide.cc facedivide.cc
 ../src/Segment.cc ../src/Mesh.cc ../src/MeshFactory.cc ../src/IntersectionPoints.cc ../src/Face.cc ../src/Point.cc
-../src/MeshDivide.cc ../src/FaceDivide.cc)
+../src/MeshDivide.cc ../src/FaceDivide.cc ../src/Log.cc)
 
 add_executable(${PROJECT_NAME} ${SRCFILES})
 

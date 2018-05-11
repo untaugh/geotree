@@ -49,13 +49,8 @@ namespace Geotree
     const double D = perp(U,V);
     const double s1 = perp(V,W) / D;
 
-    Log() << "adf";
-    
-    std::cout << "s1: " << s1 << std::endl;
-      
-				 std::cout << "D: " << D << std::endl;
-    //std::cout << "s1: " << s1 << ", sa: " << segment0_2d << "sb: "<< segment1_2d << std::endl;
-
+    log::debug << "afgd";
+        
     if (s1 > 1.0 || s1 < 0.0)
     {
       return false;
