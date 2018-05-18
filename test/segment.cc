@@ -53,6 +53,17 @@ namespace {
     EXPECT_FALSE(segment0.intersects(segment1, point));
   }
 
+  TEST_F(SegmentTest, Y)
+  {
+    Segment segment0(Vector3d(0,0,0), Vector3d(1,0,0));
+    Segment segment1(Vector3d(0.5,1,0), Vector3d(0.5,-1,0));
+
+    Vector3d point;
+
+    EXPECT_TRUE(segment0.intersects(segment1, point));
+    EXPECT_TRUE(vectorsEqual(Vector3d(0.5,0,0), point));
+  }
+  
   TEST_F(SegmentTest, Z)
   {
     Segment segment0(Vector3d(0,0,0), Vector3d(0,0,1));
@@ -62,5 +73,19 @@ namespace {
 
     EXPECT_TRUE(segment0.intersects(segment1, point));
     EXPECT_TRUE(vectorsEqual(Vector3d(0,0,0.5), point));
+  }
+
+  TEST_F(SegmentTest, nonIntersecting)
+  {
+    Segment segment0(Vector3d(0,0,0), Vector3d(1,0,0));
+    Segment segment1(Vector3d(0,0,0.5), Vector3d(1,0,0.5));
+    Segment segment2(Vector3d(0.5,1,0.5), Vector3d(0.5,-1,0.5));
+    Segment segment3(Vector3d(1.5,0,0), Vector3d(2,0,0));
+
+    Vector3d point;
+
+    EXPECT_FALSE(segment0.intersects(segment1, point));
+    EXPECT_FALSE(segment0.intersects(segment2, point));
+    EXPECT_FALSE(segment0.intersects(segment3, point));
   }
 }

@@ -15,20 +15,20 @@ namespace Geotree {
   {
   public:
     Log();
-  Log(LOG_LEVEL level) : level(level){};
     ~Log();
     std::ostringstream& debug();
-    std::ostringstream& Get(LOG_LEVEL level = LOG_INFO);
-    LOG_LEVEL level;
-    //protected:
+    //std::ostringstream& Get(LOG_LEVEL level = LOG_INFO);
+    //LOG_LEVEL level;
+  protected:
     std::ostringstream os;
   };
 
-  namespace log
-  {
-    static Log debug(LOG_DEBUG);
-    static Log error;
-  }
+  /* namespace log */
+  /* { */
+  /*   static Log debug(LOG_DEBUG); */
+  /*   static Log error; */
+  /* } */
   
-  std::ostringstream& operator<< (Geotree::Log &log, const char * m);
+  //std::ostringstream& operator<< (Geotree::Log &log, const char * m);
+  //Geotree::Log& operator<< (Geotree::Log &log, const char * m);
 }

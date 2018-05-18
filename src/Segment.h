@@ -5,6 +5,13 @@ using namespace Eigen;
 
 namespace Geotree
 {
+  enum Axis
+  {
+    X=0,
+    Y=1,
+    Z=2,
+  };
+
   class Segment
   {
   public:
@@ -22,12 +29,15 @@ namespace Geotree
     bool intersects(const Segment segment, Vector3d &point) const;
     bool intersects(Vector3d point);
 
-    Matrix2d get2d() const;
+    Matrix2d get2d(Axis &skip) const;
 
     bool operator ==(Segment &segment)
     {
       return (((this->point0 == segment.point0) && (this->point1 == segment.point1))
               || (((this->point0 == segment.point1) && (this->point1 == segment.point0))));
     }
+
+  private:
+    double length(const Axis axis) const;
   };
 }
