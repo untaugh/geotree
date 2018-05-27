@@ -21,6 +21,7 @@ namespace Geotree
     void translate(const Vector3d v);
     void getSegments(std::vector <Segment> &segments) const;
     Face getFace(int i) const;
+    void getFaces(std::vector <Face> &faces) const;
   };
 
   std::ostream& operator<< (std::ostream& stream, const Mesh& mesh);

@@ -7,56 +7,44 @@ using namespace Eigen;
 
 namespace Geotree
 {
-    enum PointType
-    {
-      POINT,
-      SEGMENT,
-      FACE
-    };
+  enum PointType
+  {
+    POINT,
+    SEGMENT,
+    FACE
+  };
 
-    struct Info
-    {
-      PointType type;
-      int index0;
-      int index1;
-    };
+  enum MeshID
+  {
+    MESH0 = 0,
+    MESH1 = 1,
+  };
 
-    class Point
-    {
-    public:
-      Point(Vector3d vector) : vector(vector) {};
-      bool connected(Point point);
-      void flip();
+  class Point
+  {
+  public:
+  Point(Vector3d vector) : vector(vector) {};
+    bool connected(Point point);
+    void flip();
+    bool operator !=(Point &point);
+    bool operator == (Point &point);
+    PointType typeMesh0;
+    PointType typeMesh1;
 
-      const Vector3d vector;
-      Info mesh0;
-      Info mesh1;
-      int path = -1;
-      int number = -1;
-      std::set <int> faces0;
-      std::set <int> faces1;
-      const double NEAR_ZERO = 1.0e-14;
+    std::set <int> facesMesh0;
+    std::set <int> facesMesh1;
 
-      bool operator !=(Point &point)
-      {
-        return !(point.vector == this->vector);
-      }
+    const Vector3d vector;
+    int path = -1;
+    int number = -1;
+    const double NEAR_ZERO = 1.0e-14;
+    
+    std::set <int> &getFaces(MeshID mesh);
+  private:
+    bool connected(MeshID mesh, Point point);
+    bool hasFace(MeshID mesh, int face);
+  };
 
-      bool operator == (Point &point)
-      {
-        for (int i=0; i<3; i++)
-        {
-          double diff = point.vector[i] - this->vector[i];
-
-          if (diff > NEAR_ZERO || diff < -NEAR_ZERO)
-          {
-            return false;
-          }
-        }
-        return true;
-      }
-    };
-
-    std::ostream& operator<< (std::ostream& stream, const Info& info);
-    std::ostream& operator<< (std::ostream& stream, const Point& point);
+  std::ostream& operator<< (std::ostream& stream, const PointType& type);
+  std::ostream& operator<< (std::ostream& stream, const Point& point);
 }

@@ -11,25 +11,25 @@ namespace Geotree
   class Face
   {
   public:
-    Face(const Vector3d v0, const Vector3d v1, const Vector3d v2, const int index, Vector3i face);
+    Face(const Vector3d v0, const Vector3d v1, const Vector3d v2, const int index);
 
     const int index;
-    const Vector3i face;
     Vector3d normal;
     const Vector3d point0;
     const Vector3d point1;
     const Vector3d point2;
 
-    //std::vector <Path> paths;
-
-    void intersect(const Segment segment, std::vector <Point> &points);
+    bool intersect(const Segment segment, std::vector <Point> &points) const;
+    std::vector<Segment> getSegments()
+      {
+	std::vector<Segment> segments;
+	segments.push_back(Segment(point0, point1));
+	segments.push_back(Segment(point1, point2));
+	segments.push_back(Segment(point2, point0));
+	return segments;
+      };
   private:
-    bool intersects(Segment segment, std::vector <Point> &points) const;
-    bool intersectsPlanar(Segment segment, std::vector <Point> &points);
-    Segment getSegment(const int n) const;
-    bool isPlanar(Segment segment);
     void getNormal();
     bool isInside(const Vector3d point) const;
-    bool isPlanar(Vector3d point);
   };
 }

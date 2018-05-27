@@ -47,42 +47,40 @@ namespace Geotree
     Vector3d v1 = V.row(Vi[1]);
     Vector3d v2 = V.row(Vi[2]);
 
-    Face face(v0, v1, v2, index, Vi);
+    Face face(v0, v1, v2, index);
 
     return face;
   }
 
   void Mesh::getSegments(std::vector <Segment> &segments) const
   {
-    for (int i=0; i < F.rows(); i++)
-    {
-      for (int j=0; j<3; j++)
+    std::vector <Face> faces;
+    this->getFaces(faces);
+    
+    for (Face face : faces)
       {
-        bool duplicate = false;
-        int i1 = F.row(i)[j];
-        int i2 = F.row(i)[(j+1)%3];
+	for (Segment newsegment : face.getSegments())
+	  {
+	    newsegment.face0 = face.index;
+		    
+	    bool duplicate = false;
 
-        Segment newSegment(V.row(i1), V.row(i2));
-        newSegment.point0 = i1;
-        newSegment.point1 = i2;
-        newSegment.face0 = i;
+	    for (Segment &segment : segments)
+	      {
+		if (segment == newsegment)
+		  {
+		    segment.face1 = newsegment.face0;
+		    duplicate = true;
+		    break;
+		  }
+	      }
 
-        for (Segment &s : segments)
-        {
-          if (s == newSegment)
-          {
-            s.face1 = i;
-            duplicate = true;
-            break;
-          }
-        }
-
-        if (!duplicate)
-        {
-          segments.push_back(newSegment);
-        }
-      }
-    }
+	    if (!duplicate)
+	      {
+		segments.push_back(newsegment);
+	      }	    
+	  }
+      }    
   }
 
   std::ostream& operator<< (std::ostream& stream, const Mesh& mesh)
@@ -95,5 +93,19 @@ namespace Geotree
     }
 
     return stream;
+  }
+
+  void Mesh::getFaces(std::vector <Face> &faces) const
+  {
+    for (int f=0; f<this->F.rows(); f++)
+      {
+	Vector3i facerow = this->F.row(f);
+
+	Face face(this->V.row(facerow[0]),
+		  this->V.row(facerow[1]),
+		  this->V.row(facerow[2]),
+		  f);
+	faces.push_back(face);
+      }
   }
 }

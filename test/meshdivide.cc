@@ -17,8 +17,7 @@ namespace {
     Mesh tetra1 = factory.tetra(10);
     tetra1.translate(Vector3d(1, 1, 1));
 
-    IntersectionPoints points0(tetra0, tetra1);
-    MeshDivide divide(points0);
+    MeshDivide divide(tetra0, tetra1);
     divide.divide();
   }
 }

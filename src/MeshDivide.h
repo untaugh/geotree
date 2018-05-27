@@ -1,6 +1,6 @@
 #pragma once
 #include <Eigen/Core>
-#include "IntersectionPoints.h"
+#include "Mesh.h"
 
 using namespace Eigen;
 
@@ -9,9 +9,7 @@ namespace Geotree
   class MeshDivide
   {
   public:
-    MeshDivide(const IntersectionPoints &points);
-
-    const IntersectionPoints &points;
+    MeshDivide(const Mesh mesh0, const Mesh mesh1);
 
     Matrix<double, Dynamic, 3> V;
     Matrix<int, Dynamic, 3> F0a;
@@ -20,5 +18,7 @@ namespace Geotree
     Matrix<int, Dynamic, 3> F1b;
 
     void divide();
+    const Mesh &mesh0;
+    const Mesh &mesh1;
   };
 }
