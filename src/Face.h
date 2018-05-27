@@ -20,14 +20,7 @@ namespace Geotree
     const Vector3d point2;
 
     bool intersect(const Segment segment, std::vector <Point> &points) const;
-    std::vector<Segment> getSegments()
-      {
-	std::vector<Segment> segments;
-	segments.push_back(Segment(point0, point1));
-	segments.push_back(Segment(point1, point2));
-	segments.push_back(Segment(point2, point0));
-	return segments;
-      };
+    std::vector<Segment> getSegments();
   private:
     void getNormal();
     bool isInside(const Vector3d point) const;

@@ -81,4 +81,13 @@ namespace Geotree
 
     return true;
   }
+
+  std::vector<Segment> Face::getSegments()
+  {
+    std::vector<Segment> segments;
+    segments.push_back(Segment(point0, point1));
+    segments.push_back(Segment(point1, point2));
+    segments.push_back(Segment(point2, point0));
+    return segments;
+  };
 }
