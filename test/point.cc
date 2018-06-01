@@ -33,21 +33,15 @@ namespace {
     Point p2(Vector3d(0,0,1));
     Point p3(Vector3d(0,0,2));
 
-    p1.typeMesh0 = SEGMENT;
     p1.facesMesh0.insert(0);
     p1.facesMesh0.insert(1);
-    p1.typeMesh1 = FACE;
     p1.facesMesh1.insert(2);
     
-    p2.typeMesh0 = FACE;
     p2.facesMesh0.insert(0);
-    p2.typeMesh1 = SEGMENT;
     p2.facesMesh1.insert(1);
     p2.facesMesh1.insert(2);
 
-    p3.typeMesh0 = FACE;
     p3.facesMesh0.insert(0);
-    p3.typeMesh1 = SEGMENT;
     p3.facesMesh1.insert(3);
     p3.facesMesh1.insert(4);
 
@@ -59,15 +53,13 @@ namespace {
   {
     Point p1(Vector3d(0,0,0));
 
-    p1.typeMesh0 = SEGMENT;
     p1.facesMesh0.insert(0);
     p1.facesMesh0.insert(1);
-    p1.typeMesh1 = FACE;
     p1.facesMesh1.insert(2);
 
     p1.flip();
     
-    EXPECT_TRUE(p1.typeMesh0 == FACE);
-    EXPECT_TRUE(p1.typeMesh1 == SEGMENT);
+    EXPECT_EQ(p1.facesMesh0.size(), 1);
+    EXPECT_EQ(p1.facesMesh1.size(), 2);
   }
 }

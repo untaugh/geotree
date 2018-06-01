@@ -37,9 +37,9 @@ namespace Geotree
     }
 
     Point point(vector);
-    point.typeMesh0 = FACE;
+    //point.typeMesh0 = FACE;
     point.facesMesh0.insert(this->index);
-    point.typeMesh1 = SEGMENT;
+    //point.typeMesh1 = SEGMENT;
     point.facesMesh1.insert(segment.face0);
     point.facesMesh1.insert(segment.face1);
     points.push_back(point);
@@ -89,5 +89,5 @@ namespace Geotree
     segments.push_back(Segment(point1, point2));
     segments.push_back(Segment(point2, point0));
     return segments;
-  };
+  }
 }

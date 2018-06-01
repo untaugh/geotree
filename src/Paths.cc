@@ -90,4 +90,35 @@ namespace Geotree
       }
     return faces;
   }
+
+  std::set<int> Paths::getFaces(MeshID mesh, Point &point)
+  {
+    return point.getFaces(mesh);
+  }  
+  
+  std::set<Point> Paths::getPoints(MeshID mesh, int face)
+  {
+    std::set<Point> points;
+
+    for (Point point : intersection.points)
+      {
+	std::set<int> faces = getFaces(mesh, point);
+
+	if (faces.find(face) != faces.end())
+	  {
+	    points.insert(point);
+	  }
+      }
+
+    return points;
+  }
+  
+  std::vector <std::set<Point>> Paths::getPaths(int face)
+  {
+    std::set<Point> points = getPoints(MESH0, face);
+
+    std::vector<std::set<Point>> pointvectors;
+    pointvectors.push_back(points);
+    return pointvectors;
+  }
 }

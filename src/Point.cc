@@ -2,18 +2,18 @@
 
 namespace Geotree
 {
-  std::ostream& operator<< (std::ostream& stream, const PointType& type)
-  {
-    stream << "(";
-    switch(type)
-    {
-      case FACE: stream << "FACE:"; break;
-      case SEGMENT: stream << "SEGM:"; break;
-      case POINT: stream << "POIN:"; break;
-    }
-    stream << ")";
-    return stream;
-  }
+  // std::ostream& operator<< (std::ostream& stream, const PointType& type)
+  // {
+  //   stream << "(";
+  //   switch(type)
+  //   {
+  //     case FACE: stream << "FACE:"; break;
+  //     case SEGMENT: stream << "SEGM:"; break;
+  //     case POINT: stream << "POIN:"; break;
+  //   }
+  //   stream << ")";
+  //   return stream;
+  // }
 
   std::ostream& operator<< (std::ostream& stream, const Point& point)
   {
@@ -37,9 +37,9 @@ namespace Geotree
 
   void Point::flip()
   {
-    PointType typeTmp = this->typeMesh0;
-    this->typeMesh0 = this->typeMesh1;
-    this->typeMesh1 = typeTmp;
+    // PointType typeTmp = this->typeMesh0;
+    // this->typeMesh0 = this->typeMesh1;
+    // this->typeMesh1 = typeTmp;
 
     std::set <int> facesTmp = this->facesMesh0;
     this->facesMesh0 = this->facesMesh1;

@@ -108,4 +108,21 @@ namespace Geotree
 	faces.push_back(face);
       }
   }
+
+  int Mesh::add(Face face)
+  {
+    int vsize = this->V.rows();
+    int fsize = this->F.rows();			
+    
+    this->V.conservativeResize(vsize + 3, NoChange);
+    this->F.conservativeResize(fsize + 1, NoChange);
+
+    this->V.row(vsize) = face.point0;
+    this->V.row(vsize + 1) = face.point1;
+    this->V.row(vsize + 2) = face.point2;
+
+    this->F.row(fsize) = Vector3i(vsize, vsize+1, vsize+2);
+
+    return fsize;
+  }
 }

@@ -4,6 +4,7 @@
 #include "IntersectionPoints.h"
 #include "MeshFactory.h"
 #include "Paths.h"
+#include "FacesDivide.h"
 
 namespace {
     using namespace Geotree;
@@ -179,10 +180,14 @@ namespace {
       EXPECT_EQ(1, faces00.size());
       EXPECT_EQ(8, faces01.size());
 
-      for (int face : faces01)
-	{
+      FacesDivide facesdiv0(paths0);
+
+      EXPECT_EQ(18, facesdiv0.faceparts.size());
+      
+      // for (int face : faces01)
+      // 	{
 	  
-	}
+      // 	}
     }
 
     TEST_F(IntersectionPointsTest, CubeFace1) {

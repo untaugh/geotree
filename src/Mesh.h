@@ -22,6 +22,7 @@ namespace Geotree
     void getSegments(std::vector <Segment> &segments) const;
     Face getFace(int i) const;
     void getFaces(std::vector <Face> &faces) const;
+    int add(Face face);
   };
 
   std::ostream& operator<< (std::ostream& stream, const Mesh& mesh);

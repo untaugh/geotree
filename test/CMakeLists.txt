@@ -6,14 +6,15 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -Wall -Wextra -Werror -pedantic")
 find_package(GTest REQUIRED)
 find_package (Eigen3 REQUIRED)
 
-FILE(GLOB SRCFILES test.cc intersectionpoints.cc mesh.cc cc face.cc segment.cc meshdivide.cc facedivide.cc point.cc paths.cc
-../src/Segment.cc ../src/Mesh.cc ../src/MeshFactory.cc ../src/IntersectionPoints.cc ../src/Face.cc ../src/Point.cc
-../src/MeshDivide.cc ../src/FaceDivide.cc ../src/Log.cc ../src/Point.cc ../src/Paths.cc)
+FILE(GLOB SRCFILES ../src/Segment.cc ../src/Mesh.cc ../src/MeshFactory.cc ../src/IntersectionPoints.cc ../src/Face.cc ../src/Point.cc
+../src/MeshDivide.cc ../src/FacesDivide.cc ../src/Log.cc ../src/Point.cc ../src/Paths.cc ../src/Triangulate.cc)
 
-add_executable(${PROJECT_NAME} ${SRCFILES})
+FILE(GLOB TESTSRCFILES test.cc intersectionpoints.cc mesh.cc cc face.cc segment.cc meshdivide.cc facesdivide.cc point.cc paths.cc triangulate.cc)
+
+add_executable(${PROJECT_NAME} ${SRCFILES} ${TESTSRCFILES})
 
 include_directories("../src")
-#include_directories("/home/oscu/git/fast-poly2tri")
+include_directories("/home/oscu/git/earcut.hpp/include/mapbox")
 include_directories("/home/oscu/local/include/eigen3")
 
 target_link_libraries(${PROJECT_NAME} ${GTEST_BOTH_LIBRARIES})
