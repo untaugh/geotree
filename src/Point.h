@@ -2,18 +2,12 @@
 #include <Eigen/Core>
 #include <set>
 #include <iostream>
+#include "Cube.h"
 
 using namespace Eigen;
 
 namespace Geotree
 {
-  /* enum PointType */
-  /* { */
-  /*   POINT, */
-  /*   SEGMENT, */
-  /*   FACE */
-  /* }; */
-
   enum MeshID
   {
     MESH0 = 0,
@@ -23,14 +17,16 @@ namespace Geotree
   class Point
   {
   public:
-  Point(Vector3d vector) : vector(vector) {};
-    bool connected(Point point);
-    void flip();
+    Point(Vector3d vector) : vector(vector) {};
+
     bool operator !=(Point &point);
     bool operator == (Point &point);
-    /* PointType typeMesh0; */
-    /* PointType typeMesh1; */
+    bool operator < (const Point &point) const;
 
+    bool connected(Point point);
+    void flip();
+    bool inside(const Cube box) const;
+    
     std::set <int> facesMesh0;
     std::set <int> facesMesh1;
 
@@ -40,19 +36,10 @@ namespace Geotree
     const double NEAR_ZERO = 1.0e-14;
     
     std::set <int> &getFaces(MeshID mesh);
-
-    bool operator < (const Point &point) const
-    {
-      if (this->path < point.path) return true;
-      else if (this->path > point.path) return false;
-      else if (this->number < point.number) return true;
-      else return false;
-    }
   private:
     bool connected(MeshID mesh, Point point);
     bool hasFace(MeshID mesh, int face);
   };
 
-  //std::ostream& operator<< (std::ostream& stream, const PointType& type);
   std::ostream& operator<< (std::ostream& stream, const Point& point);
 }

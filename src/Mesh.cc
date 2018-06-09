@@ -125,4 +125,82 @@ namespace Geotree
 
     return fsize;
   }
+
+  Cube Mesh::boundingBox(std::set <int> &faces) const
+  {
+    Cube box;
+
+    if (this->F.rows() == 0)
+      {
+	box.p0 = Vector3d(0,0,0);
+	box.p1 = Vector3d(0,0,0);
+	return box;
+      }
+
+    for (int fi : faces)
+      {
+	Vector3i face = this->F.row(fi);
+	
+	for (int v=0; v<3; v++)
+	  {
+	    int vi = face[v];
+	    Vector3d point = this->V.row(vi);
+
+	    if (fi == 0 && v == 0)
+	      {
+		/* initialize with first point */
+		box.p0 = point;
+		box.p1 = point;
+		continue;
+	      }
+
+	    for (int axis=0; axis<3; axis++)
+	      {
+		if (point[axis] < box.p0[axis]) box.p0[axis] = point[axis];
+		if (point[axis] > box.p1[axis]) box.p1[axis] = point[axis];
+	      }
+	  }
+      }
+
+    return box;    
+  }
+  
+  Cube Mesh::boundingBox() const
+  {
+    Cube box;
+
+    if (this->F.rows() == 0)
+      {
+	box.p0 = Vector3d(0,0,0);
+	box.p1 = Vector3d(0,0,0);
+	return box;
+      }
+
+    for (int fi=0; fi<this->F.rows(); fi++)
+      {
+	Vector3i face = this->F.row(fi);
+	
+	for (int v=0; v<3; v++)
+	  {
+	    int vi = face[v];
+	    Vector3d point = this->V.row(vi);
+
+	    if (fi == 0 && v == 0)
+	      {
+		/* initialize with first point */
+		box.p0 = point;
+		box.p1 = point;
+		continue;
+	      }
+
+	    for (int axis=0; axis<3; axis++)
+	      {
+		if (point[axis] < box.p0[axis]) box.p0[axis] = point[axis];
+		if (point[axis] > box.p1[axis]) box.p1[axis] = point[axis];
+	      }
+	  }
+      }
+
+    return box;
+  }
 }

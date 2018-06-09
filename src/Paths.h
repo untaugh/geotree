@@ -12,7 +12,7 @@ namespace Geotree
     IntersectionPoints &intersection;
     unsigned int count();
     unsigned int size(int i);
-    std::set<int> faces(MeshID mesh);
+    std::set<int> faces(MeshID mesh) const;
     std::vector <std::set<Point>> getPaths(int face);
   private:
     void findPaths();

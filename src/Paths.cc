@@ -64,7 +64,7 @@ namespace Geotree
 		Point &newpoint = nextPoint(*current, *previous);
 		current->number = pointcount++;
 		current->path = pathcount;
-		std::cout << *current << std::endl;
+		//std::cout << *current << std::endl;
 		previous = current;
 		current = &newpoint;
 
@@ -80,7 +80,7 @@ namespace Geotree
       }
   }
 
-  std::set<int> Paths::faces(MeshID mesh)
+  std::set<int> Paths::faces(MeshID mesh) const
   {
     std::set<int> faces;
     for (Point point : this->intersection.points)

@@ -2,31 +2,17 @@
 
 namespace Geotree
 {
-  // std::ostream& operator<< (std::ostream& stream, const PointType& type)
-  // {
-  //   stream << "(";
-  //   switch(type)
-  //   {
-  //     case FACE: stream << "FACE:"; break;
-  //     case SEGMENT: stream << "SEGM:"; break;
-  //     case POINT: stream << "POIN:"; break;
-  //   }
-  //   stream << ")";
-  //   return stream;
-  // }
-
   std::ostream& operator<< (std::ostream& stream, const Point& point)
   {
-        stream << "(";
-        stream << point.vector.transpose() << "), ";
-        stream << point.path << ":";
-        stream << point.number << ":";
-        stream << "F0[";
+        stream << "[(";
+        stream << point.vector.transpose() << ");";
+        stream << point.path << ";";
+        stream << point.number << ";";
         for (int face : point.facesMesh0)
         {
           stream << face << ",";
         }
-        stream << "]F1[";
+        stream << ";";
         for (int face : point.facesMesh1)
         {
           stream << face << ",";
@@ -37,10 +23,6 @@ namespace Geotree
 
   void Point::flip()
   {
-    // PointType typeTmp = this->typeMesh0;
-    // this->typeMesh0 = this->typeMesh1;
-    // this->typeMesh1 = typeTmp;
-
     std::set <int> facesTmp = this->facesMesh0;
     this->facesMesh0 = this->facesMesh1;
     this->facesMesh1 = facesTmp;
@@ -95,6 +77,19 @@ namespace Geotree
       }
   }
 
+  bool Point::inside(const Cube box) const
+  {
+    for (int axis=0; axis<3; axis++)
+      {
+	if (this->vector[axis] < box.p0[axis]
+	    || this->vector[axis] > box.p1[axis])
+	  {
+	    return false;
+	  }
+      }
+    return true;
+  }
+
   bool Point::operator !=(Point &point)
   {
     return !(point.vector == this->vector);
@@ -113,4 +108,13 @@ namespace Geotree
         }
       return true;
     }
+
+  bool Point::operator < (const Point &point) const
+    {
+      if (this->path < point.path) return true;
+      else if (this->path > point.path) return false;
+      else if (this->number < point.number) return true;
+      else return false;
+    }
+
 }

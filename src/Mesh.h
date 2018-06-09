@@ -3,6 +3,7 @@
 #include <vector>
 #include "Segment.h"
 #include "Face.h"
+#include "Cube.h"
 
 using namespace Eigen;
 
@@ -23,6 +24,11 @@ namespace Geotree
     Face getFace(int i) const;
     void getFaces(std::vector <Face> &faces) const;
     int add(Face face);
+    Cube boundingBox() const;
+    Cube boundingBox(std::set <int> &faces) const;
+
+    Mesh unionOperation(Mesh &mesh);
+
   };
 
   std::ostream& operator<< (std::ostream& stream, const Mesh& mesh);

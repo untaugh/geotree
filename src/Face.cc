@@ -90,4 +90,26 @@ namespace Geotree
     segments.push_back(Segment(point2, point0));
     return segments;
   }
+
+  bool Face::connected(const Vector3d point) const
+  {
+    if (this->point0 == point
+	|| this->point1 == point
+	|| this->point2 == point)
+      {
+	return true;
+      }
+    else
+      {
+	return false;
+      }
+  }
+
+  bool Face::connected(const Face face) const
+  {
+    if (connected(face.point0)) return true;
+    else if (connected(face.point1)) return true;
+    else if (connected(face.point2)) return true;
+    else return false;
+  }
 }

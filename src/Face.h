@@ -20,6 +20,8 @@ namespace Geotree
     const Vector3d point2;
 
     bool intersect(const Segment segment, std::vector <Point> &points) const;
+    bool connected(const Vector3d point) const;
+    bool connected(const Face face) const;
     std::vector<Segment> getSegments();
   private:
     void getNormal();
