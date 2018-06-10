@@ -23,6 +23,9 @@ namespace Geotree
     bool connected(const Vector3d point) const;
     bool connected(const Face face) const;
     std::vector<Segment> getSegments();
+
+
+    std::vector <Matrix<int, Dynamic, 3>> split(std::vector <std::set<Point>> paths);
   private:
     void getNormal();
     bool isInside(const Vector3d point) const;

@@ -112,4 +112,13 @@ namespace Geotree
     else if (connected(face.point2)) return true;
     else return false;
   }
+
+  std::vector <Matrix<int, Dynamic, 3>> Face::split(std::vector <std::set<Point>> paths)
+  {
+    std::vector <Matrix<int, Dynamic, 3>> groups;
+
+    // sort edge points
+    (void) &paths;
+    return groups;
+  }
 }

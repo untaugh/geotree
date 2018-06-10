@@ -1,4 +1,5 @@
 #include "Point.h"
+#include "Zero.h"
 
 namespace Geotree
 {
