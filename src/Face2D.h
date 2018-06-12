@@ -2,6 +2,7 @@
 #include <iostream>
 #include <earcut.hpp>
 #include "Face.h"
+#include "Zero.h"
 
 using namespace Eigen;
 
@@ -14,12 +15,12 @@ namespace Geotree
 
     bool operator != (const Point2D &point) const
     {
-      return this->x != point.x || this->y != point.y;
+      return !(*this == point);
     }
 
     bool operator == (const Point2D &point) const
     {
-      return this->x == point.x && this->y == point.y;
+      return NEAREQUAL(this->x, point.x) && NEAREQUAL(this->y, point.y);
     }
 
     friend std::ostream& operator<< (std::ostream& stream, const Point2D& point)
@@ -88,14 +89,14 @@ namespace Geotree
     Point2D p1;
     Point2D p2;
 
-    //std::vector <std::vector<uint32_t>> split(Path2D path);
     std::vector <std::vector<uint32_t>> split(std::vector<Path2D> paths);
     
   private:
     void findpath(EdgePoint2D edgepoint, std::vector<Path2D> paths, int &path, bool &reverse);
     void createloops(int startpoint, std::vector <EdgePoint2D> edgepoints, std::vector<Path2D> paths, std::vector<Loop2D> &loops);
+    void createholes(std::vector<Path2D> paths, std::vector<Loop2D> &loops);
+    std::vector<uint32_t> triangulate(Loop2D loop, std::vector<Loop2D> &holes);
     std::vector<uint32_t> triangulate(Loop2D loop);
-    //uint32_t getIndex(Point2D point, Path2D path);
     uint32_t getIndex(Point2D point, std::vector<Path2D> paths);
     std::vector <EdgePoint2D> getEdgepoints(std::vector<Path2D> paths);
   };

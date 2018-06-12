@@ -56,10 +56,16 @@ namespace Geotree
       }	  
     }
   }
+
+  /* If first loop contains second */
+  // bool Face2D::contains(Loop2D loopA, Loop2D loopB)
+  // {
+    
+  // }
   
   void Face2D::createloops(int startpoint, std::vector <EdgePoint2D> edgepoints, std::vector<Path2D> paths, std::vector<Loop2D> &loops)
   {
-    int currentpoint = startpoint + 1;
+    uint32_t currentpoint = startpoint + 1;
 
     Loop2D loop;
 
@@ -71,7 +77,7 @@ namespace Geotree
       std::cout << startpoint << ":" << currentpoint << std::endl;
       loop.points.push_back(*edgepoints[currentpoint].point);
 	    
-      if (edgepoints[currentpoint].distance > 0.0)
+      if (edgepoints[currentpoint].distance > NEAR_ZERO)
       {
 	int path = -1;
 	bool reverse;
@@ -126,19 +132,19 @@ namespace Geotree
 	}
 
 	createloops(currentpoint, edgepoints, paths, loops);
- 
+
 	nextpoint++;
-	
-	if (nextpoint >= (int)edgepoints.size())
-	{
-	  break;
-	}
 
 	currentpoint = nextpoint;
       }
       else
       {
 	currentpoint++;
+      }
+
+      if (currentpoint >= edgepoints.size())
+      {
+	currentpoint = 0;
       }
     }
 
@@ -147,13 +153,40 @@ namespace Geotree
     loops.push_back(loop);
   }
 
-  std::vector<uint32_t> Face2D::triangulate(Loop2D loop)
+  std::vector<uint32_t> Face2D::triangulate(Loop2D loop, std::vector<Loop2D> &holes)
   {
     std::vector<std::vector<Point2D>> polygons;
-    
+
     polygons.push_back(loop.points);
 
+    if (holes.size() > 0)
+    {
+      polygons.push_back(holes[0].points);
+    }
+
     return mapbox::earcut<uint32_t>(polygons);
+  }
+
+  std::vector<uint32_t> Face2D::triangulate(Loop2D loop)
+  {
+    std::vector<Loop2D> holes;
+
+    return triangulate(loop, holes);
+  }
+
+  void Face2D::createholes(std::vector<Path2D> paths, std::vector<Loop2D> &loops)
+  {
+    for (Path2D path : paths)
+    {
+      if (!path.edgetoedge)
+      {
+	Loop2D loop;
+
+	loop.points = path.points;
+
+	loops.push_back(loop);
+      }
+    }
   }
 
   std::vector <EdgePoint2D> Face2D::getEdgepoints(std::vector<Path2D> paths)
@@ -172,8 +205,11 @@ namespace Geotree
     /* insert points of paths to edge poins */
     for (Path2D path : paths)
     {
-      edgepoints.push_back(path.begin);
-      edgepoints.push_back(path.end);
+      if (path.edgetoedge)
+      {
+	edgepoints.push_back(path.begin);
+	edgepoints.push_back(path.end);
+      }
     }
 
     std::sort(edgepoints.begin(), edgepoints.end());
@@ -195,11 +231,34 @@ namespace Geotree
 
     std::vector<Loop2D> loops;
 
+    std::vector<Loop2D> holes;
+
     createloops(0, edgepoints, paths, loops);
+
+    createholes(paths, holes);
+
+    std::cout << "holes:" << holes.size() << std::endl;
+
+    for (Loop2D loop : holes)
+    {
+      std::vector<uint32_t> faces = triangulate(loop);
+
+      for (uint32_t &face : faces)
+      {
+	face = getIndex(loop.points[face], paths);
+      }
+
+      groups.push_back(faces);
+    }
 
     for (Loop2D loop : loops)
     {
-      std::vector<uint32_t> faces = triangulate(loop);
+      std::vector<uint32_t> faces = triangulate(loop, holes);
+
+      if (holes.size() > 0)
+      {
+	loop.points.insert(loop.points.end(), holes[0].points.begin(), holes[0].points.end());
+      }
 
       for (uint32_t &face : faces)
       {
@@ -221,16 +280,21 @@ namespace Geotree
     const uint32_t faceoffset = 3; 
 
     uint32_t pathoffset = 0;
-
+    
     for (Path2D path : paths)
     {
       for (uint32_t i=0; i<path.points.size(); i++)
       {
-	if (point == path.points[i]) return pathoffset + faceoffset + i;
+	if (point == path.points[i])
+	{
+	  uint32_t index = pathoffset + faceoffset + i;
+		  
+	  return index;
+	}
       }
       pathoffset += path.points.size(); 
     }
 
-    return 0;
+    throw;
   } 
 }

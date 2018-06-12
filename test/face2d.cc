@@ -138,4 +138,82 @@ namespace {
     EXPECT_EQ(groups[1], group1_ref);
     EXPECT_EQ(groups[2], group2_ref);
   }
+
+  TEST_F(Face2DTest, Hole)
+  {
+    Face2D face;
+
+    face.p0 = {0,0};
+    face.p1 = {1,0};
+    face.p2 = {0,1};
+
+    Path2D path0;
+    Path2D path1;
+
+    Point2D p0 = {0.1, 0.1};
+    Point2D p1 = {0.1, 0.4};
+    Point2D p2 = {0.4, 0.1};
+    
+    path0.points.push_back(p0);
+    path0.points.push_back(p1);
+    path0.points.push_back(p2);
+    path0.edgetoedge = false;
+
+    std::vector <Path2D> paths;
+    paths.push_back(path0);
+    
+    std::vector <std::vector<uint32_t>> groups = face.split(paths);
+
+    std::vector<uint32_t> group0_ref = {4, 3, 5};
+    std::vector<uint32_t> group1_ref = { 2, 0, 3, 5, 3, 0, 2, 3, 4, 5, 0, 1, 1, 2, 4, 4, 5, 1 };
+
+    ASSERT_EQ(groups.size(), 2);
+    EXPECT_EQ(groups[0], group0_ref);
+    EXPECT_EQ(groups[1], group1_ref);
+  }
+
+  TEST_F(Face2DTest, TwoHoles)
+  {
+    Face2D face;
+
+    face.p0 = {0,0};
+    face.p1 = {1,0};
+    face.p2 = {0,1};
+
+    Path2D path0;
+    Path2D path1;
+
+    Point2D p0 = {0.1, 0.1};
+    Point2D p1 = {0.2, 0.1};
+    Point2D p2 = {0.1, 0.2};
+
+    Point2D p3 = {0.7, 0.1};
+    Point2D p4 = {0.5, 0.1};
+    Point2D p5 = {0.5, 0.2};
+    Point2D p6 = {0.7, 0.2};
+    
+    path0.points.push_back(p0);
+    path0.points.push_back(p1);
+    path0.points.push_back(p2);
+    path0.edgetoedge = false;
+
+    path1.points.push_back(p3);
+    path1.points.push_back(p4);
+    path1.points.push_back(p5);
+    path1.points.push_back(p6);
+    path1.edgetoedge = false;
+    
+    std::vector <Path2D> paths;
+    paths.push_back(path0);
+    paths.push_back(path1);
+    
+    std::vector <std::vector<uint32_t>> groups = face.split(paths);
+
+    std::vector<uint32_t> group0_ref = {4, 3, 5};
+    std::vector<uint32_t> group1_ref = { 2, 0, 3, 5, 3, 0, 2, 3, 4, 5, 0, 1, 1, 2, 4, 4, 5, 1 };
+
+    ASSERT_EQ(groups.size(), 3);
+    EXPECT_EQ(groups[0], group0_ref);
+    EXPECT_EQ(groups[1], group1_ref);
+  }
 }
