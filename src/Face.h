@@ -3,6 +3,7 @@
 #include <Eigen/Core>
 #include "Segment.h"
 #include "Point.h"
+#include "Axis.h"
 
 using namespace Eigen;
 
@@ -22,12 +23,13 @@ namespace Geotree
     bool intersect(const Segment segment, std::vector <Point> &points) const;
     bool connected(const Vector3d point) const;
     bool connected(const Face face) const;
+    Axis shortestside();
     std::vector<Segment> getSegments();
-
 
     std::vector <Matrix<int, Dynamic, 3>> split(std::vector <std::set<Point>> paths);
   private:
     void getNormal();
+    double lengthside(Axis axis);
     bool isInside(const Vector3d point) const;
   };
 }

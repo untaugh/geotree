@@ -7,7 +7,7 @@
 using namespace Eigen;
 
 namespace Geotree
-{
+{  
   enum MeshID
   {
     MESH0 = 0,
@@ -29,7 +29,10 @@ namespace Geotree
 
     std::set <int> facesMesh0;
     std::set <int> facesMesh1;
-    
+
+    int face0edge;
+    int face1edge;
+
     const Vector3d vector;
     int path = -1;
     int number = -1;
@@ -40,13 +43,5 @@ namespace Geotree
     bool hasFace(MeshID mesh, int face);
   };
 
-  class EdgePoint : public Point
-  {
-  public:
-    int edge;
-    double distance;
-    bool operator < (const EdgePoint &edgepoint) const;
-  };
-  
   std::ostream& operator<< (std::ostream& stream, const Point& point);
 }

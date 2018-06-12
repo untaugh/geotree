@@ -1,10 +1,13 @@
+#include "Log.h"
 #include "Face.h"
 #include <Eigen/Dense>
+#include "EdgePoint.h"
+#include "Face2D.h"
 
 namespace Geotree
 {
   Face::Face(const Vector3d v0, const Vector3d v1, const Vector3d v2, int _index)
-  : index(_index), point0(v0), point1(v1), point2(v2)
+    : index(_index), point0(v0), point1(v1), point2(v2)
   {
     getNormal();
   }
@@ -37,11 +40,11 @@ namespace Geotree
     }
 
     Point point(vector);
-    //point.typeMesh0 = FACE;
     point.facesMesh0.insert(this->index);
-    //point.typeMesh1 = SEGMENT;
     point.facesMesh1.insert(segment.face0);
     point.facesMesh1.insert(segment.face1);
+    point.face0edge = segment.face0edge;
+    point.face1edge = segment.face1edge;
     points.push_back(point);
 
     return true;
@@ -75,9 +78,9 @@ namespace Geotree
     double r3 = normal.dot(e3.cross(c3));
 
     if (r1 < 0.0 || r2 < 0.0 || r3 < 0.0)
-      {
-	       return false;
-      }
+    {
+      return false;
+    }
 
     return true;
   }
@@ -85,9 +88,9 @@ namespace Geotree
   std::vector<Segment> Face::getSegments()
   {
     std::vector<Segment> segments;
-    segments.push_back(Segment(point0, point1));
-    segments.push_back(Segment(point1, point2));
-    segments.push_back(Segment(point2, point0));
+    segments.push_back(Segment(point0, point1, 0));
+    segments.push_back(Segment(point1, point2, 1));
+    segments.push_back(Segment(point2, point0, 2));
     return segments;
   }
 
@@ -96,13 +99,13 @@ namespace Geotree
     if (this->point0 == point
 	|| this->point1 == point
 	|| this->point2 == point)
-      {
-	return true;
-      }
+    {
+      return true;
+    }
     else
-      {
-	return false;
-      }
+    {
+      return false;
+    }
   }
 
   bool Face::connected(const Face face) const
@@ -113,10 +116,67 @@ namespace Geotree
     else return false;
   }
 
+  double Face::lengthside(Axis axis)
+  {
+    double min = point0[axis];
+    double max = point0[axis];
+
+    if (point1[axis] < min) min = point1[axis];
+    if (point1[axis] > max) max = point1[axis];
+
+    if (point2[axis] < min) min = point2[axis];
+    if (point2[axis] > max) max = point2[axis];
+
+    return max - min;
+  }
+
+  Axis Face::shortestside()
+  {
+    double dX = lengthside(X);
+    double dY = lengthside(Y);
+    double dZ = lengthside(Z);
+
+    if (dX < dY)
+    {
+      if (dX < dZ)
+      {
+	return X;
+      }
+      else
+      {
+	return Z;
+      }
+    }
+    else if (dY < dZ)
+    {
+      return Y;
+    }
+    else
+    {
+      return Z;
+    }
+  }
+  
+  
   std::vector <Matrix<int, Dynamic, 3>> Face::split(std::vector <std::set<Point>> paths)
   {
     std::vector <Matrix<int, Dynamic, 3>> groups;
 
+    std::vector <EdgePoint> edgepoints;
+
+    for (std::set<Point> path : paths)
+    {
+      EdgePoint ep0(*path.begin());
+      EdgePoint ep1(*path.end());
+      
+      edgepoints.push_back(ep0);
+      edgepoints.push_back(ep1);
+    }
+
+    Face2D face2d(*this);
+
+    Log().debug() << face2d.dropaxis;
+    
     // sort edge points
     (void) &paths;
     return groups;

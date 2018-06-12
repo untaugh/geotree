@@ -8,8 +8,9 @@ namespace Geotree
   class EdgePoint : public Point
   {
   public:
-    int edge;
-    double distance;
+    //EdgePoint(Face face, Point point);
+    EdgePoint(const Point &point);
+    double position;
     bool operator < (const EdgePoint &edgepoint) const;
   };
 }

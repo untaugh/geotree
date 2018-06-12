@@ -15,13 +15,16 @@ namespace Geotree
   class Segment
   {
   public:
-    Segment(Vector3d begin, Vector3d end) : begin(begin), end(end) {};
+    Segment(Vector3d begin, Vector3d end, int edge)
+      : begin(begin), end(end), face0edge(edge) {};
 
     const Vector3d begin;
     const Vector3d end;
 
     int face0;
     int face1;
+    int face0edge;
+    int face1edge;
 
     bool operator == (Segment &segment);
   };

@@ -2,12 +2,31 @@
 
 namespace Geotree
 {
-  bool Point::operator < (const EdgePoint &point) const
+  EdgePoint::EdgePoint(const Point &point)
+    : Point(point.vector)
   {
-    if (this->path < point.path) return true;
-    else if (this->path > point.path) return false;
-    else if (this->number < point.number) return true;
-    else return false;
+    //this->vector = point.vector;
   }
 
+  bool EdgePoint::operator < (const EdgePoint &point) const
+  {
+    if (this->face0edge < point.face0edge)
+    {
+      return true;
+    }
+
+    if (this->face0edge > point.face0edge)
+    {
+      return false;
+    }
+
+    if (this->position < point.position)
+    {
+      return true;
+    }
+    else
+    {
+      return false;
+    }
+  }
 }

@@ -62,7 +62,7 @@ namespace Geotree
 	for (Segment newsegment : face.getSegments())
 	  {
 	    newsegment.face0 = face.index;
-		    
+
 	    bool duplicate = false;
 
 	    for (Segment &segment : segments)
@@ -70,6 +70,7 @@ namespace Geotree
 		if (segment == newsegment)
 		  {
 		    segment.face1 = newsegment.face0;
+		    segment.face1edge = newsegment.face0edge;
 		    duplicate = true;
 		    break;
 		  }
