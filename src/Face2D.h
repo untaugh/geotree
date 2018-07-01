@@ -3,6 +3,7 @@
 #include <earcut.hpp>
 #include "Face.h"
 #include "Zero.h"
+#include "Log.h"
 
 using namespace Eigen;
 
@@ -12,6 +13,32 @@ namespace Geotree
   {
     double x;
     double y;
+
+    uint32_t quadrant(Point2D &point)
+    {
+      if (point.y > this->y)
+      {
+	if (point.x > this->x)
+	{
+	  return 0;
+	}
+	else
+	{
+	  return 1;
+	}
+      }
+      else
+      {
+	if (point.x > this->x)
+	{
+	  return 3;
+	}
+	else
+	{
+	  return 2;
+	}
+      }
+    }
 
     bool operator != (const Point2D &point) const
     {
@@ -76,6 +103,31 @@ namespace Geotree
   struct Loop2D
   {
     std::vector <Point2D> points;
+
+    bool contains(Point2D &point)
+    {
+      int32_t wi = winding(point);	 
+      return wi > 3 || wi <-2;
+    }
+
+    int32_t winding(Point2D &point)
+    {
+      int32_t winding = 0;
+      uint32_t qa = points[0].quadrant(point);
+
+      for (Point2D p : points)
+      {
+	uint32_t newqa = p.quadrant(point);
+
+	winding += newqa - qa;
+	Log().debug() << "Winding " << winding;
+	qa = newqa;
+      }
+
+      //Log().debug() << "Winding " << winding;
+
+      return winding;
+    }
   };
 
   class Face2D
@@ -99,6 +151,7 @@ namespace Geotree
     std::vector<uint32_t> triangulate(Loop2D loop);
     uint32_t getIndex(Point2D point, std::vector<Path2D> paths);
     std::vector <EdgePoint2D> getEdgepoints(std::vector<Path2D> paths);
+    bool contains(Loop2D loopA, Loop2D loopB);
   };
 }
 

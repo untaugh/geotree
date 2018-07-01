@@ -9,7 +9,7 @@ find_package (Eigen3 REQUIRED)
 FILE(GLOB SRCFILES ../src/Segment.cc ../src/Mesh.cc ../src/MeshFactory.cc ../src/IntersectionPoints.cc ../src/Face.cc ../src/Point.cc
 ../src/MeshDivide.cc ../src/FacesDivide.cc ../src/Log.cc ../src/Point.cc ../src/Paths.cc ../src/Triangulate.cc ../src/Cube.cc ../src/EdgePoint.cc ../src/Face2D.cc)
 
-FILE(GLOB TESTSRCFILES test.cc intersectionpoints.cc mesh.cc cc face.cc segment.cc meshdivide.cc facesdivide.cc point.cc paths.cc triangulate.cc face2d.cc)
+FILE(GLOB TESTSRCFILES test.cc intersectionpoints.cc mesh.cc cc face.cc segment.cc meshdivide.cc facesdivide.cc point.cc paths.cc triangulate.cc face2d.cc loop2d.cc)
 
 add_executable(${PROJECT_NAME} ${SRCFILES} ${TESTSRCFILES})
 

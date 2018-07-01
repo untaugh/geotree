@@ -57,10 +57,20 @@ namespace Geotree
     }
   }
 
+  // bool Face2D::contains(Loop2D loop, Point2D point)
+  // {
+  //   int32_t winding = loop.winding(point);
+
+  //   return winding > 3 || winding <-2;
+  // }
+  
   /* If first loop contains second */
   // bool Face2D::contains(Loop2D loopA, Loop2D loopB)
   // {
-    
+  //   for (Point2D point : loopB.points)
+  //   {
+  //     loopA
+  //   }
   // }
   
   void Face2D::createloops(int startpoint, std::vector <EdgePoint2D> edgepoints, std::vector<Path2D> paths, std::vector<Loop2D> &loops)
