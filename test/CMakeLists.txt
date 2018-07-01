@@ -14,7 +14,7 @@ FILE(GLOB TESTSRCFILES test.cc intersectionpoints.cc mesh.cc cc face.cc segment.
 add_executable(${PROJECT_NAME} ${SRCFILES} ${TESTSRCFILES})
 
 include_directories("../src")
-include_directories("/home/oscu/git/earcut.hpp/include/mapbox")
-include_directories("/home/oscu/local/include/eigen3")
+include_directories("/usr/include/eigen3")
+include_directories("/usr/include/mapbox")
 
 target_link_libraries(${PROJECT_NAME} ${GTEST_BOTH_LIBRARIES})
