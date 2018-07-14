@@ -7,6 +7,12 @@ namespace Geotree
   {
   }
 
+  Mesh::Mesh(int verts, int faces)
+  {
+    V(verts,3);
+    F(faces,3);
+  }
+
   Mesh Mesh::operator +(const Mesh mesh)
   {
     Matrix <double, Dynamic, 3> V(mesh.V.rows() + this->V.rows(), 3);

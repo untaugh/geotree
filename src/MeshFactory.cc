@@ -13,26 +13,26 @@ namespace Geotree
         }
 
         V << 0.0, 0.0, 0.0,
-                0.0, height, 0.0,
-                width, height, 0.0,
-                width, 0.0, 0.0,
-                0.0, 0.0, depth,
-                0.0, height, depth,
-                width, height, depth,
-                width, 0.0, depth;
+	  width, 0.0, 0.0,	  
+	  0.0, height, 0.0,
+	  width, height, 0.0,
+	  0.0, 0.0, depth,
+	  width, 0.0, depth,
+	  0.0, height, depth,
+	  width, height, depth;
 
-        F << 0,1,2,
-                0,2,3,
-                0,1,4,
-                1,4,5,
-                1,2,5,
-                2,5,6,
-                2,3,6,
-                3,6,7,
-                3,0,7,
-                0,7,4,
-                4,5,6,
-                4,6,7;
+        F << 2,1,0,
+	  1,2,3,
+	  4,5,6,
+	  7,6,5,
+	  0,1,4,
+	  5,4,1,
+	  6,3,2,
+	  3,6,7,
+	  4,2,0,
+	  2,4,6,
+	  1,3,5,
+	  7,5,3;
 
         return Mesh(V,F);
     }

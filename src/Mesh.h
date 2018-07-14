@@ -14,6 +14,7 @@ namespace Geotree
   public:
     Mesh(Matrix<double, Dynamic, 3> V, Matrix<int, Dynamic, 3> F);
     Mesh();
+    Mesh(int verts, int faces);
 
     Matrix<double, Dynamic, 3> V;
     Matrix<int, Dynamic, 3> F;
@@ -29,6 +30,7 @@ namespace Geotree
 
     Mesh unionOperation(Mesh &mesh);
 
+    int numFaces() { return F.rows(); };
   };
 
   std::ostream& operator<< (std::ostream& stream, const Mesh& mesh);
