@@ -44,7 +44,7 @@ namespace Geotree
 
         V << 0,0,0, size,0,0, 0,size,0, 0,0,size;
 
-        F << 0,1,2, 0,2,3, 0,1,3, 1,2,3;
+        F << 2,1,0, 3,2,0, 0,1,3, 1,2,3;
 
         return Mesh(V,F);
     }
