@@ -18,3 +18,4 @@ include_directories("/usr/include/eigen3")
 include_directories("/usr/include/mapbox")
 
 target_link_libraries(${PROJECT_NAME} ${GTEST_BOTH_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} pthread)
