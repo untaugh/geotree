@@ -1,12 +1,13 @@
 #pragma once
 #include <vector>
-#include "Geometry.h"
 #include <Eigen/Geometry>
+#include "Mesh.h"
 
+namespace Geotree
+{
 class Node {
  public:
   std::vector<Node*> children;
-  Geometry g;
   virtual void build();
   void add(Node * node);
 };
@@ -18,15 +19,15 @@ class UnionNode : public Node
   void build();
 };
 
-class GeometryNode : public Node
+class MeshNode : public Node
 {
  public:
   void build(){};
-  GeometryNode(){};
-  GeometryNode(Geometry g_){ this->g = g_; };
+  MeshNode(){};
+  Mesh mesh;
 };
 
-class CubeNode : public GeometryNode
+class CubeNode : public MeshNode
 {
  public:
   CubeNode(double x, double y, double z);
@@ -40,3 +41,4 @@ class TranslateNode : public UnionNode
  private:
   Eigen::Affine3d t;
 };
+}

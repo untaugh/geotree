@@ -1,6 +1,8 @@
-#include "Geotree"
+#include "Geotree.h"
 
-Geotree::Geotree()
+namespace Geotree
 {
-  
+  Geotree::Geotree()
+  {
+  }
 }

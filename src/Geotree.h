@@ -1,8 +1,8 @@
 #pragma once
-
 #include "Node.h"
-#include "Intersect.h"
 
+namespace Geotree
+{
 class Geotree
 {
  public:
@@ -10,3 +10,4 @@ class Geotree
   ~Geotree(){};
   int test;
 };
+}

@@ -5,10 +5,7 @@ find_package (Eigen3 REQUIRED)
 
 FILE(GLOB SRCFILES src/*.cc)
 
-#set(SRCFILE src/Calc.cc)
-
-add_library(${PROJECT_NAME} ${SRCFILE} ${SRCFILES})
-add_library(geotree2 STATIC ${SRCFILE} ${SRCFILES})
+add_library(${PROJECT_NAME} SHARED ${SRCFILE} ${SRCFILES})
 
 include_directories("src")
 include_directories("/usr/include/eigen3")
